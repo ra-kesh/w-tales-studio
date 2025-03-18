@@ -32,21 +32,21 @@ export const sidebarData = {
   navMain: [
     {
       title: "Projects",
-      url: "#",
+      url: "/projects",
       icon: SquareTerminal,
       isActive: true,
       items: [
         {
           title: "Shoots",
-          url: "#",
+          url: "/shoots",
         },
         {
           title: "Deliverables",
-          url: "#",
+          url: "/deliverables",
         },
         {
           title: "Tasks",
-          url: "#",
+          url: "/tasks",
         },
       ],
     },

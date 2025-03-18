@@ -36,6 +36,7 @@ export function NavMain({
           <SidebarMenuItem key={item.title}>
             <SidebarMenuButton asChild>
               <a href={item.url} className="font-medium">
+                {item.icon && <item.icon className="size-4" />}
                 {item.title}
               </a>
             </SidebarMenuButton>
