@@ -1,7 +1,12 @@
 import React from "react";
+import ProjeectForm from "../project-form/project-form";
 
 const NewProject = () => {
-  return <div className="flex flex-1 flex-col gap-4 p-4 pt-0">New project</div>;
+  return (
+    <div className="flex items-center justify-center p-4 pt-0">
+      <ProjeectForm />
+    </div>
+  );
 };
 
 export default NewProject;

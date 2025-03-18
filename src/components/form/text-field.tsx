@@ -10,13 +10,20 @@ type TextFieldProps = {
   label: string;
 } & React.InputHTMLAttributes<HTMLInputElement>;
 
-export const TextField = ({ label, ...inputProps }: TextFieldProps) => {
+export const TextField = ({
+  label,
+  required,
+  ...inputProps
+}: TextFieldProps) => {
   const field = useFieldContext<string>();
 
   return (
     <div className="space-y-2">
       <div className="space-y-1">
-        <Label htmlFor={field.name}>{label}</Label>
+        <Label htmlFor={field.name} className="text-sm font-medium">
+          {label}
+          {required && <span className="text-destructive">*</span>}
+        </Label>
         <Input
           id={field.name}
           value={field.state.value}
