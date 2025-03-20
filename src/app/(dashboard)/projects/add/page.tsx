@@ -1,5 +1,5 @@
 import React from "react";
-import ProjeectForm from "../project-form/project-form";
+import ProjeectForm from "../project-form";
 
 const NewProject = () => {
   return (

@@ -20,24 +20,35 @@ type SelectFieldProps = {
   label: string;
   options: SelectOption[];
   placeholder?: string;
+  clasName?: string;
+  required?: boolean;
 };
 
 export const SelectField = ({
   label,
   options,
   placeholder,
+  clasName,
+  required,
 }: SelectFieldProps) => {
   const field = useFieldContext<string>();
 
   return (
     <div className="space-y-2">
       <div className="space-y-1">
-        <Label htmlFor={field.name}>{label}</Label>
+        <Label htmlFor={field.name} className="text-sm font-medium">
+          {label}
+          {required && <span className="text-destructive">*</span>}
+        </Label>
         <Select
           value={field.state.value}
           onValueChange={(value) => field.handleChange(value)}
         >
-          <SelectTrigger id={field.name} onBlur={field.handleBlur}>
+          <SelectTrigger
+            id={field.name}
+            onBlur={field.handleBlur}
+            className={clasName}
+          >
             <SelectValue placeholder={placeholder} />
           </SelectTrigger>
           <SelectContent>
