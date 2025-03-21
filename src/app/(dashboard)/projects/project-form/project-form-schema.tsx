@@ -124,7 +124,7 @@ export const ProjectSchema = z.object({
     z.object({
       amount: RequiredPositiveWholeNumber,
       description: z.string().optional(),
-      date: z.string().min(1, "Date is required"),
+      date: z.string(),
     })
   ),
   scheduledPayments: z.array(

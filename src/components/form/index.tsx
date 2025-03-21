@@ -4,6 +4,7 @@ import { SelectField } from "./select-field";
 import { CheckboxField } from "./checkbox-field";
 import { SubmitButton } from "./submit-button";
 import { PriceField } from "./price-field";
+import { DateField } from "./date-field";
 
 export const { fieldContext, useFieldContext, formContext, useFormContext } =
   createFormHookContexts();
@@ -14,6 +15,7 @@ export const { useAppForm, withForm } = createFormHook({
     CheckboxField,
     SelectField,
     PriceField,
+    DateField,
   },
   formComponents: {
     SubmitButton,

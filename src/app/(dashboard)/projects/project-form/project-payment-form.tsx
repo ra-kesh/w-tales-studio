@@ -26,10 +26,10 @@ export const ProjectPaymentForm = withForm({
                 return (
                   <>
                     <div className="rounded-md border">
-                      <div className="grid grid-cols-3 border-b bg-muted/50 px-4 py-3 text-sm font-medium">
+                      <div className="grid grid-cols-3 border-b bg-muted/50 px-4 py-3 text-sm font-medium gap-4">
                         <div>Amount</div>
-                        <div>Description</div>
                         <div>Paid On</div>
+                        <div>Description</div>
                       </div>
 
                       {field.state.value.length === 0 && (
@@ -40,26 +40,23 @@ export const ProjectPaymentForm = withForm({
 
                       {field.state.value.map((_, i) => {
                         return (
-                          <div key={i} className="grid grid-cols-3 px-4 py-3">
+                          <div
+                            key={i}
+                            className="grid grid-cols-3 px-4 py-3 gap-4"
+                          >
                             <form.AppField
                               name={`payments[${i}].amount`}
-                              children={(subField) => (
-                                <subField.PriceField placeholder="0.00" />
-                              )}
+                              children={(subField) => <subField.PriceField />}
                             />
 
                             <form.AppField
                               name={`payments[${i}].date`}
-                              children={(subField) => (
-                                <subField.TextField placeholder="Date" />
-                              )}
+                              children={(subField) => <subField.DateField />}
                             />
 
                             <form.AppField
                               name={`payments[${i}].description`}
-                              children={(subField) => (
-                                <subField.TextField placeholder="Description" />
-                              )}
+                              children={(subField) => <subField.TextField />}
                             />
                           </div>
                         );
@@ -71,7 +68,7 @@ export const ProjectPaymentForm = withForm({
                       className="mt-4"
                       onClick={() =>
                         field.pushValue({
-                          amount: 0,
+                          amount: "",
                           description: "",
                           date: "",
                         })

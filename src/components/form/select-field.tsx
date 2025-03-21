@@ -20,7 +20,7 @@ type SelectFieldProps = {
   label: string;
   options: SelectOption[];
   placeholder?: string;
-  clasName?: string;
+  className?: string;
   required?: boolean;
 };
 
@@ -28,7 +28,7 @@ export const SelectField = ({
   label,
   options,
   placeholder,
-  clasName,
+  className,
   required,
 }: SelectFieldProps) => {
   const field = useFieldContext<string>();
@@ -47,7 +47,7 @@ export const SelectField = ({
           <SelectTrigger
             id={field.name}
             onBlur={field.handleBlur}
-            className={clasName}
+            className={className}
           >
             <SelectValue placeholder={placeholder} />
           </SelectTrigger>
