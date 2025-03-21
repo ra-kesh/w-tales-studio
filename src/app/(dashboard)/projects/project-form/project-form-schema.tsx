@@ -12,7 +12,7 @@ export const RequiredPositiveWholeNumber = z.union([
       message: "must be positive",
     }),
   z.literal("").refine(() => false, {
-    message: "is required",
+    message: "required",
   }),
 ]);
 

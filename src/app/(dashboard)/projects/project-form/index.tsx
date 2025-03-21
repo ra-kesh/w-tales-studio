@@ -1,10 +1,7 @@
 "use client";
 
 import React from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Divide, Plus } from "lucide-react";
 import { useAppForm } from "@/components/form";
 import { ProjectDetailForm } from "./project-detail-form";
 import { formOptions } from "./project-form-schema";
@@ -33,29 +30,25 @@ const ProjeectForm = () => {
         <Tabs defaultValue="details" className="space-y-8">
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="details">Details</TabsTrigger>
-            <TabsTrigger value="shoots">Shoots</TabsTrigger>
-            <TabsTrigger value="deliverables">Deliverables</TabsTrigger>
             <TabsTrigger value="payments">Payments</TabsTrigger>
+            <TabsTrigger value="deliverables">Deliverables</TabsTrigger>
+            <TabsTrigger value="shoots">Shoots</TabsTrigger>
           </TabsList>
 
-          {/* Project Details Tab */}
           <TabsContent value="details" className="space-y-6">
             <ProjectDetailForm form={form} />
           </TabsContent>
 
-          {/* Shoots Tab */}
-          <TabsContent value="shoots" className="space-y-6">
-            <ShootDetailForm form={form} />
+          <TabsContent value="payments" className="space-y-6">
+            <ProjectPaymentForm form={form} />
           </TabsContent>
 
-          {/* Deliverables Tab */}
           <TabsContent value="deliverables" className="space-y-6">
             <ProjectDeliveryForm form={form} />
           </TabsContent>
 
-          {/* Payments Tab */}
-          <TabsContent value="payments" className="space-y-6">
-            <ProjectPaymentForm form={form} />
+          <TabsContent value="shoots" className="space-y-6">
+            <ShootDetailForm form={form} />
           </TabsContent>
         </Tabs>
         <form.AppForm>

@@ -34,7 +34,7 @@ export const ProjectDetailForm = withForm({
                   <field.SelectField
                     label="Project Type"
                     options={ProjectTypes}
-                    clasName="w-full"
+                    className="w-full"
                   />
                 )}
               />
@@ -44,7 +44,7 @@ export const ProjectDetailForm = withForm({
                   <field.SelectField
                     label="Package Type"
                     options={PackageTypes}
-                    clasName="w-full"
+                    className="w-full"
                   />
                 )}
               />
@@ -80,7 +80,7 @@ export const ProjectDetailForm = withForm({
                   <field.SelectField
                     label="Relation"
                     options={RelationTypes}
-                    clasName="w-full"
+                    className="w-full"
                   />
                 )}
               />
