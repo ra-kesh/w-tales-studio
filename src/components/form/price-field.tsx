@@ -21,7 +21,6 @@ export const PriceField = ({
     const numericValue = value.replace(/\D/g, "");
 
     field.handleChange(numericValue);
-    console.log(field.state.value);
   };
   return (
     <div className="space-y-2">
