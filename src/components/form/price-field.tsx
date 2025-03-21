@@ -7,7 +7,7 @@ import { Label } from "../ui/label";
 import { FieldErrors } from "./field-errors";
 
 type PriceFieldProps = {
-  label: string;
+  label?: string;
   required?: boolean;
 } & React.InputHTMLAttributes<HTMLInputElement>;
 
@@ -27,7 +27,7 @@ export const PriceField = ({
     <div className="space-y-2">
       <div className="space-y-1">
         <Label htmlFor={field.name} className="text-sm font-medium">
-          {label}
+          {label ?? null}
           {required && <span className="text-destructive">*</span>}
         </Label>
         <div className="relative">

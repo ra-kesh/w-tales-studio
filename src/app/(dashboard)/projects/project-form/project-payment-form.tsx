@@ -21,20 +21,69 @@ export const ProjectPaymentForm = withForm({
             </p>
           </CardHeader>
           <CardContent>
-            <div className="rounded-md border">
-              <div className="grid grid-cols-3 border-b bg-muted/50 px-4 py-3 text-sm font-medium">
-                <div>Amount</div>
-                <div>Description</div>
-                <div>Paid On</div>
-              </div>
-              <div className="p-4 text-center text-sm text-muted-foreground">
-                No payments recorded yet.
-              </div>
-            </div>
-            <Button size="sm" variant="outline" className="mt-4">
-              <Plus className="mr-2 h-4 w-4" />
-              Add Payment
-            </Button>
+            <form.Field name="payments" mode="array">
+              {(field) => {
+                return (
+                  <>
+                    <div className="rounded-md border">
+                      <div className="grid grid-cols-3 border-b bg-muted/50 px-4 py-3 text-sm font-medium">
+                        <div>Amount</div>
+                        <div>Description</div>
+                        <div>Paid On</div>
+                      </div>
+
+                      {field.state.value.length === 0 && (
+                        <div className="p-4 text-center text-sm text-muted-foreground">
+                          No payments received yet.
+                        </div>
+                      )}
+
+                      {field.state.value.map((_, i) => {
+                        return (
+                          <div key={i} className="grid grid-cols-3 px-4 py-3">
+                            <form.AppField
+                              name={`payments[${i}].amount`}
+                              children={(subField) => (
+                                <subField.PriceField placeholder="0.00" />
+                              )}
+                            />
+
+                            <form.AppField
+                              name={`payments[${i}].date`}
+                              children={(subField) => (
+                                <subField.TextField placeholder="Date" />
+                              )}
+                            />
+
+                            <form.AppField
+                              name={`payments[${i}].description`}
+                              children={(subField) => (
+                                <subField.TextField placeholder="Description" />
+                              )}
+                            />
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="mt-4"
+                      onClick={() =>
+                        field.pushValue({
+                          amount: 0,
+                          description: "",
+                          date: "",
+                        })
+                      }
+                    >
+                      <Plus className="mr-2 h-4 w-4" />
+                      Add Payment
+                    </Button>
+                  </>
+                );
+              }}
+            </form.Field>
           </CardContent>
         </Card>
 

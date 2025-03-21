@@ -1,5 +1,41 @@
 import { z } from "zod";
 
+export const RequiredPositiveWholeNumber = z.union([
+  z.coerce
+    .number({
+      message: "must be a number",
+    })
+    .int({
+      message: "must be a whole number",
+    })
+    .positive({
+      message: "must be positive",
+    }),
+  z.literal("").refine(() => false, {
+    message: "is required",
+  }),
+]);
+
+export type RequiredPositiveWholeNumber = z.infer<
+  typeof RequiredPositiveWholeNumber
+>;
+
+export const OptionalPositiveWholeNumber = z
+  .union([
+    z.coerce
+      .number({
+        message: "must be a number",
+      })
+      .int({
+        message: "must be a whole number",
+      })
+      .positive({
+        message: "must be positive",
+      }),
+    z.literal(""),
+  ])
+  .optional();
+
 export const ContactMethod = z.union([
   z.literal("email"),
   z.literal("phone"),
@@ -63,7 +99,7 @@ export const ProjectSchema = z.object({
   projectName: z.string().min(1, "Project name is required"),
   projectType: ProjectType,
   packageType: PackageType,
-  packageCost: z.string().min(0, "Package cost must be a positive number"),
+  packageCost: RequiredPositiveWholeNumber,
   clientName: z.string().min(1, "Client name is required"),
   relation: RelationType.optional(),
   phone: z.string().min(1, "Phone number is required"),
@@ -79,21 +115,26 @@ export const ProjectSchema = z.object({
   deliverables: z.array(
     z.object({
       title: z.string().min(1, "Title is required"),
-      cost: z.number().min(0, "Cost must be a positive number"),
-      quantity: z.number().min(0, "Quantity must be a positive number"),
+      cost: RequiredPositiveWholeNumber,
+      quantity: RequiredPositiveWholeNumber,
       dueDate: z.string().min(1, "Due date is required"),
     })
   ),
   payments: z.array(
     z.object({
-      amount: z.number().min(0, "Amount must be a positive number"),
-      description: z.string().min(1, "Description is required"),
+      amount: RequiredPositiveWholeNumber,
+      description: z.string().optional(),
       date: z.string().min(1, "Date is required"),
     })
   ),
-  receivedAmount: z
-    .number()
-    .min(0, "Received amount must be a positive number"),
+  scheduledPayments: z.array(
+    z.object({
+      amount: RequiredPositiveWholeNumber,
+      description: z.string().min(1, "Description is required"),
+      dueDate: z.string().min(1, "Due date is required"),
+    })
+  ),
+  receivedAmount: OptionalPositiveWholeNumber,
   dueDate: z.string().min(1, "Due date is required"),
   contactMethod: ContactMethod,
 });
@@ -103,7 +144,7 @@ export const defaultProject: Project = {
   projectName: "",
   projectType: "wedding",
   packageType: "basic",
-  packageCost: "0",
+  packageCost: "",
   clientName: "",
   relation: undefined,
   phone: "",
@@ -111,7 +152,8 @@ export const defaultProject: Project = {
   shoots: [],
   deliverables: [],
   payments: [],
-  receivedAmount: 0,
+  scheduledPayments: [],
+  receivedAmount: "",
   dueDate: "",
   contactMethod: "phone",
 };
