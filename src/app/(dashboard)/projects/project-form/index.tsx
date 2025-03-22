@@ -166,27 +166,29 @@ const ProjeectForm = () => {
           </TabsContent>
         </Tabs>
         <div className="flex justify-between mt-6">
-          <Button
-            type="button"
-            variant={"secondary"}
-            onClick={goToPreviousTab}
-            disabled={isFirstTab}
-          >
-            Previous
-          </Button>
+          <div className="flex items-center gap-6">
+            <Button
+              type="button"
+              variant={"secondary"}
+              onClick={goToPreviousTab}
+              disabled={isFirstTab}
+            >
+              Previous
+            </Button>
 
-          <Button
-            type="button"
-            variant={"secondary"}
-            onClick={goToNextTab}
-            disabled={isLastTab}
-          >
-            Next
-          </Button>
+            <Button
+              type="button"
+              variant={"secondary"}
+              onClick={goToNextTab}
+              disabled={isLastTab}
+            >
+              Next
+            </Button>
+          </div>
+          <form.AppForm>
+            <form.SubmitButton>Submit</form.SubmitButton>
+          </form.AppForm>
         </div>
-        {/* <form.AppForm>
-          <form.SubmitButton>Submit</form.SubmitButton>
-        </form.AppForm> */}
       </form>
     </main>
   );
