@@ -35,8 +35,13 @@ export function NavUser({ user }: { user: User }) {
   const router = useRouter();
 
   async function handleSignOut() {
-    await signOut();
-    router.refresh();
+    await signOut({
+      fetchOptions: {
+        onSuccess: () => {
+          router.push("/sign-in");
+        },
+      },
+    });
   }
 
   return (

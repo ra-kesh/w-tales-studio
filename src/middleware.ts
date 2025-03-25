@@ -12,7 +12,7 @@ export async function middleware(request: NextRequest) {
     },
   });
 
-  console.log({ session });
+  // console.log({ session });
 
   if (!session) {
     return NextResponse.redirect(new URL("/sign-in", request.url));
@@ -21,5 +21,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/projects/:path*"],
+  matcher: ["/projects/:path*", "/dashboard/:path*"],
 };

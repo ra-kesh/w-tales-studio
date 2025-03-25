@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,6 +16,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { toast } from "sonner";
 
 export function Login({
   mode = "signin",
@@ -26,18 +27,72 @@ export function Login({
 }) {
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect");
-  const priceId = searchParams.get("priceId");
+  const router = useRouter();
+
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
 
+  const handleAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (mode === "signin") {
+      const { data, error } = await authClient.signIn.email(
+        {
+          email,
+          password,
+          callbackURL: "/projects",
+          rememberMe: false,
+        },
+        {
+          onRequest: (ctx) => {
+            setIsPending(true);
+          },
+          onSuccess: (ctx) => {
+            toast.success("Signin successfull" + " " + `${ctx.data.user.name}`);
+            setIsPending(false);
+            router.push(`/projects`);
+          },
+          onError: (ctx) => {
+            setIsPending(false);
+            setError(ctx.error.message);
+          },
+        }
+      );
+    } else {
+      const { data, error } = await authClient.signUp.email(
+        {
+          email,
+          password,
+          name,
+          callbackURL: "/projects",
+        },
+        {
+          onRequest: (ctx) => {
+            setIsPending(true);
+          },
+          onSuccess: (ctx) => {
+            toast.success("Signup successfull" + " " + `${ctx.data.user.name}`);
+            setIsPending(false);
+            router.push(`/projects`);
+          },
+          onError: (ctx) => {
+            setIsPending(false);
+            setError(ctx.error.message);
+          },
+        }
+      );
+    }
+  };
+
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
         <CardHeader className="text-center">
-          <CardTitle className="text-xl">Welcome back</CardTitle>
+          <CardTitle className="text-xl">
+            {mode === "signin" ? "Welcome back" : "Create an account"}
+          </CardTitle>
           <CardDescription>
             {" "}
             {mode === "signin"
@@ -46,7 +101,7 @@ export function Login({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form>
+          <form onSubmit={handleAuth}>
             <div className="grid gap-6">
               <div className="flex flex-col gap-4">
                 <Button
@@ -56,7 +111,7 @@ export function Login({
                   onClick={async () => {
                     await authClient.signIn.social({
                       provider: "google",
-                      callbackURL: "/",
+                      callbackURL: "/projects",
                     });
                   }}
                 >
@@ -134,33 +189,7 @@ export function Login({
                   />
                 </div>
                 {error && <div className="text-red-500 text-sm">{error}</div>}
-                <Button
-                  type="submit"
-                  className="w-full"
-                  disabled={isPending}
-                  onClick={async () => {
-                    if (mode === "signin") {
-                      await authClient.signIn.email(
-                        {
-                          email,
-                          password,
-                          callbackURL: "/projects",
-                        },
-                        fetchCallback({ setIsPending })
-                      );
-                    } else {
-                      await authClient.signUp.email(
-                        {
-                          email,
-                          password,
-                          name,
-                          callbackURL: "/projects",
-                        },
-                        fetchCallback({ setIsPending })
-                      );
-                    }
-                  }}
-                >
+                <Button type="submit" className="w-full" disabled={isPending}>
                   {isPending ? (
                     <>
                       <Loader2 className="animate-spin mr-2 h-4 w-4" />
@@ -177,8 +206,8 @@ export function Login({
               <div className="text-center text-sm">
                 <>
                   {mode === "signin"
-                    ? "Don't have an account?"
-                    : "Already have an account"}
+                    ? "Don't have an account? "
+                    : "Already have an account? "}
                   <Link
                     href={`${mode === "signin" ? "/sign-up" : "/sign-in"}${
                       redirect ? `?redirect=${redirect}` : ""
