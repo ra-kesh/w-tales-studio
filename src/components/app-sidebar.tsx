@@ -15,8 +15,12 @@ import {
 } from "@/components/ui/sidebar";
 
 import { sidebarData } from "@/data/sidebar-data";
+import { useSession } from "@/lib/auth-client";
+import { User } from "better-auth";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { data } = useSession();
+
   return (
     <Sidebar variant="inset" collapsible="icon" {...props}>
       <SidebarHeader>
@@ -27,7 +31,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         {/* <NavProjects projects={sidebarData.projects} /> */}
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={sidebarData.user} />
+        <NavUser user={data?.user as User} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
