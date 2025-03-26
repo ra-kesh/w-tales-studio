@@ -39,11 +39,8 @@ export function Login({
 				mode === "signin"
 					? await signIn(state, formData)
 					: await signUp(state, formData);
-			if (!result) return state;
-			if (result.redirect) {
-				router.push(result.redirect as string);
-			}
-			return result;
+
+			return result || state;
 		},
 		{ error: "" },
 	);

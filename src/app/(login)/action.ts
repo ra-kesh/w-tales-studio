@@ -11,40 +11,24 @@ const signInSchema = z.object({
 	password: z.string().min(8).max(100),
 });
 
-export const signIn = validatedAction(
-	signInSchema,
-	async (data, formData): Promise<ActionState> => {
-		const { email, password } = data;
+export const signIn = validatedAction(signInSchema, async (data, formData) => {
+	const { email, password } = data;
 
-		try {
-			const response = await auth.api.signInEmail({
-				body: {
-					email,
-					password,
-				},
-				asResponse: true,
-			});
+	const response = await auth.api.signInEmail({
+		body: { email, password },
+		asResponse: true,
+	});
 
-			if (!response.ok) {
-				return {
-					error: "Invalid email or password. Please try again.",
-					email,
-					password,
-				};
-			}
+	if (!response.ok) {
+		return {
+			error: "Invalid email or password. Please try again.",
+			email,
+			password,
+		};
+	}
 
-			// Return success state first, then redirect
-			return {
-				error: "",
-				redirect: "/projects", // Add redirect path to state
-			};
-		} catch (error) {
-			return {
-				error: "An error occurred during sign in",
-			};
-		}
-	},
-);
+	redirect("/projects");
+});
 
 const signUpSchema = z.object({
 	name: z.string().min(2).max(50),
@@ -52,34 +36,25 @@ const signUpSchema = z.object({
 	password: z.string().min(8).max(100),
 });
 
-export const signUp = validatedAction(
-	signUpSchema,
-	async (data, formData): Promise<ActionState> => {
-		const { name, email, password } = data;
-		try {
-			const response = await auth.api.signUpEmail({
-				body: {
-					name,
-					email,
-					password,
-				},
-				asResponse: true,
-			});
+export const signUp = validatedAction(signUpSchema, async (data, formData) => {
+	const { name, email, password } = data;
+	const response = await auth.api.signUpEmail({
+		body: {
+			name,
+			email,
+			password,
+		},
+		asResponse: true,
+	});
 
-			if (!response.ok) {
-				return {
-					error: "Failed to create account",
-				};
-			}
+	if (!response.ok) {
+		return {
+			error: "Failed to create account",
+			name,
+			email,
+			password,
+		};
+	}
 
-			return {
-				error: "",
-				redirect: "/projects",
-			};
-		} catch (error) {
-			return {
-				error: "An error occurred during sign up",
-			};
-		}
-	},
-);
+	redirect("/projects");
+});
