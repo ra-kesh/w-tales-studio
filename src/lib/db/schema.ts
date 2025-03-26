@@ -240,7 +240,7 @@ export const deliverables = pgTable("deliverables", {
 
 export const receivedAmounts = pgTable("received_amounts", {
 	id: serial("id").primaryKey(),
-	bookingId: text("booking_id")
+	bookingId: integer("booking_id")
 		.notNull()
 		.references(() => bookings.id, { onDelete: "cascade" }),
 	amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
@@ -251,8 +251,8 @@ export const receivedAmounts = pgTable("received_amounts", {
 });
 
 export const paymentSchedules = pgTable("payment_schedules", {
-	id: text("id").primaryKey(),
-	bookingId: text("booking_id")
+	id: serial("id").primaryKey(),
+	bookingId: integer("booking_id")
 		.notNull()
 		.references(() => bookings.id, { onDelete: "cascade" }),
 	amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
