@@ -163,7 +163,7 @@ export enum TaskPriority {
 }
 
 export const relationsTable = pgTable("relations", {
-	id: text("id").primaryKey(),
+	id: serial("id").primaryKey(),
 	name: text("name").notNull().unique(),
 });
 
@@ -175,7 +175,7 @@ export const clients = pgTable("clients", {
 	name: text("name").notNull(), // PoC name
 	brideName: text("bride_name"), // Optional, for Wedding projects
 	groomName: text("groom_name"), // Optional, for Wedding projects
-	relationId: text("relation_id").references(() => relationsTable.id),
+	relationId: integer("relation_id").references(() => relationsTable.id),
 	phoneNumber: text("phone_number").notNull(), // Required
 	email: text("email"),
 	locations: jsonb("locations").notNull(), // Array of locations, at least one required
