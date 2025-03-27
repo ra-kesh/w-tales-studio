@@ -3,6 +3,7 @@ import { betterAuth } from "better-auth";
 import { db } from "../db/drizzle";
 import { admin, organization, username } from "better-auth/plugins";
 import { nextCookies } from "better-auth/next-js";
+import { getActiveOrganization } from "../db/queries";
 
 export const auth = betterAuth({
 	database: drizzleAdapter(db, {
@@ -22,4 +23,19 @@ export const auth = betterAuth({
 		}),
 		nextCookies(),
 	],
+	databaseHooks: {
+		session: {
+			create: {
+				before: async (session) => {
+					const organization = await getActiveOrganization(session.userId);
+					return {
+						data: {
+							...session,
+							activeOrganizationId: organization.organizationId,
+						},
+					};
+				},
+			},
+		},
+	},
 });
