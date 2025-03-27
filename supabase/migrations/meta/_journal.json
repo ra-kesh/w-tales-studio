@@ -15,6 +15,13 @@
       "when": 1743048778740,
       "tag": "0001_eminent_mathemanic",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1743054720138,
+      "tag": "0002_nasty_kid_colt",
+      "breakpoints": true
     }
   ]
 }
