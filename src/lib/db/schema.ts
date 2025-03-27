@@ -1,4 +1,3 @@
-import { phoneNumber } from "better-auth/plugins";
 import { relations } from "drizzle-orm";
 import {
 	varchar,
@@ -314,6 +313,19 @@ export const tasks = pgTable("tasks", {
 	updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+export const packageConfigs = pgTable("package_configs", {
+	id: serial("id").primaryKey(),
+	packageType: text("package_type", {
+		enum: Object.values(PackageType) as [string, ...string[]],
+	})
+		.notNull()
+		.unique(),
+	defaultCost: decimal("default_cost", { precision: 10, scale: 2 }).notNull(),
+	defaultDeliverables: jsonb("default_deliverables").notNull(), // Array of deliverables, e.g., [{ title: "Raw Photos", quantity: 100, is_package_included: true }]
+	createdAt: timestamp("created_at").defaultNow(),
+	updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 export const clientsRelations = relations(clients, ({ one, many }) => ({
 	organization: one(organizations, {
 		fields: [clients.organizationId],
@@ -496,6 +508,8 @@ export type Crew = typeof crew.$inferSelect;
 export type NewCrew = typeof crew.$inferInsert;
 export type Task = typeof tasks.$inferSelect;
 export type NewTask = typeof tasks.$inferInsert;
+export type PackageConfig = typeof packageConfigs.$inferSelect;
+export type NewPackageConfig = typeof packageConfigs.$inferInsert;
 
 export enum ActivityType {
 	SIGN_UP = "SIGN_UP",
