@@ -16,13 +16,13 @@ export async function GET(request: Request) {
 		return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 	}
 
-	// const userOrganizationId = session.user.organizationId;
-	// if (!userOrganizationId) {
-	// 	return NextResponse.json(
-	// 		{ message: "User not associated with an organization" },
-	// 		{ status: 403 },
-	// 	);
-	// }
+	const userOrganizationId = session.session.activeOrganizationId;
+	if (!userOrganizationId) {
+		return NextResponse.json(
+			{ message: "User not associated with an organization" },
+			{ status: 403 },
+		);
+	}
 
 	try {
 		// Get pagination parameters from the query string
@@ -36,13 +36,13 @@ export async function GET(request: Request) {
 			db
 				.select()
 				.from(clients)
-				// .where(eq(clients.organizationId, userOrganizationId))
+				.where(eq(clients.organizationId, userOrganizationId))
 				.limit(limit)
 				.offset(offset),
 			db
 				.select({ count: count() })
-				.from(clients),
-			// .where(eq(clients.organizationId, userOrganizationId)),
+				.from(clients)
+				.where(eq(clients.organizationId, userOrganizationId)),
 		]);
 
 		const total = totalData[0].count;
