@@ -27,7 +27,6 @@ export const users = pgTable("users", {
 	banned: boolean("banned"),
 	banReason: text("ban_reason"),
 	banExpires: timestamp("ban_expires"),
-	metadata: jsonb("metadata"),
 });
 
 export const sessions = pgTable("sessions", {
