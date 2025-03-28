@@ -2,10 +2,11 @@
 
 import * as React from "react";
 import {
-	ColumnDef,
-	ColumnFiltersState,
-	SortingState,
-	VisibilityState,
+	useReactTable,
+	type ColumnDef,
+	type ColumnFiltersState,
+	type SortingState,
+	type VisibilityState,
 	flexRender,
 	getCoreRowModel,
 	getFacetedRowModel,
@@ -13,7 +14,6 @@ import {
 	getFilteredRowModel,
 	getPaginationRowModel,
 	getSortedRowModel,
-	useReactTable,
 } from "@tanstack/react-table";
 
 import {
@@ -25,15 +25,15 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 
-import { DataTablePagination } from "./data-table-pagination";
-import { DataTableToolbar } from "./data-table-toolbar";
+import { TaskTablePagination } from "./task-table-pagination";
+import { TaskTableToolbar } from "./task-table-toolbar";
 
 interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
 	data: TData[];
 }
 
-export function DataTable<TData, TValue>({
+export function TaskTable<TData, TValue>({
 	columns,
 	data,
 }: DataTableProps<TData, TValue>) {
@@ -69,7 +69,7 @@ export function DataTable<TData, TValue>({
 
 	return (
 		<div className="space-y-4">
-			<DataTableToolbar table={table} />
+			<TaskTableToolbar table={table} />
 			<div className="rounded-md border">
 				<Table>
 					<TableHeader>
@@ -120,7 +120,7 @@ export function DataTable<TData, TValue>({
 					</TableBody>
 				</Table>
 			</div>
-			<DataTablePagination table={table} />
+			<TaskTablePagination table={table} />
 		</div>
 	);
 }

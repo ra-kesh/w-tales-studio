@@ -35,7 +35,7 @@ export async function GET(request: Request) {
 					bookingId: tasks.bookingId,
 					bookingName: bookings.name,
 					deliverableId: tasks.deliverableId,
-					deliverableTitle: deliverables.title,
+					title: deliverables.title,
 					description: tasks.description,
 					assignedTo: tasks.assignedTo,
 					priority: tasks.priority,
