@@ -117,7 +117,7 @@ export const activityLogs = pgTable("activity_logs", {
 	ipAddress: varchar("ip_address", { length: 45 }),
 });
 
-export enum ProjectType {
+export enum BookingType {
 	WEDDING = "Wedding",
 	COMMERCIAL = "Commercial",
 }
@@ -188,8 +188,8 @@ export const bookings = pgTable("bookings", {
 		.notNull()
 		.references(() => organizations.id, { onDelete: "cascade" }),
 	name: text("name").notNull(),
-	projectType: text("project_type", {
-		enum: Object.values(ProjectType) as [string, ...string[]],
+	bookingType: text("booking_type", {
+		enum: Object.values(BookingType) as [string, ...string[]],
 	}).notNull(),
 	packageType: text("package_type", {
 		enum: Object.values(PackageType) as [string, ...string[]],
@@ -491,7 +491,7 @@ export type NewRelation = typeof relationsTable.$inferInsert;
 export type Client = typeof clients.$inferSelect;
 export type NewClient = typeof clients.$inferInsert;
 export type Booking = typeof bookings.$inferSelect;
-export type NewProject = typeof bookings.$inferInsert;
+export type NewBooking = typeof bookings.$inferInsert;
 export type Shoot = typeof shoots.$inferSelect;
 export type NewShoot = typeof shoots.$inferInsert;
 export type Deliverable = typeof deliverables.$inferSelect;
