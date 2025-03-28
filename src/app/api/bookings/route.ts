@@ -28,38 +28,23 @@ export async function GET(request: Request) {
 		const limit = Number.parseInt(searchParams.get("limit") || "10", 10);
 		const offset = (page - 1) * limit;
 
-		const [bookingData, totalData] = await Promise.all([
-			db
-				.select({
-					id: bookings.id,
-					organizationId: bookings.organizationId,
-					name: bookings.name,
-					bookingType: bookings.bookingType,
-					packageType: bookings.packageType,
-					packageCost: bookings.packageCost,
-					client: {
-						id: clients.id,
-						name: clients.name,
-					},
-					createdAt: bookings.createdAt,
-					updatedAt: bookings.updatedAt,
-				})
-				.from(bookings)
-				.leftJoin(clients, eq(bookings.clientId, clients.id))
-				.where(eq(bookings.organizationId, userOrganizationId))
-				.limit(limit)
-				.offset(offset),
-			db
-				.select({ count: count() })
-				.from(bookings)
-				.where(eq(bookings.organizationId, userOrganizationId)),
-		]);
+		const bookingsData = await db.query.bookings.findMany({
+			where: eq(bookings.organizationId, userOrganizationId),
+			with: {
+				clients: true,
+			},
+			limit,
+			offset,
+		});
 
-		const total = totalData[0].count;
+		const total = await db.$count(
+			bookings,
+			eq(bookings.organizationId, userOrganizationId),
+		);
 
 		return NextResponse.json(
 			{
-				data: bookingData,
+				data: bookingsData,
 				total,
 				page,
 				limit,
