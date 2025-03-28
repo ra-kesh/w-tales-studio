@@ -281,7 +281,7 @@ export const expenses = pgTable("expenses", {
 	updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export const crew = pgTable("crew", {
+export const crews = pgTable("crews", {
 	id: serial("id").primaryKey(),
 	bookingId: integer("booking_id")
 		.notNull()
@@ -341,7 +341,7 @@ export const bookingsRelations = relations(bookings, ({ one, many }) => ({
 		fields: [bookings.organizationId],
 		references: [organizations.id],
 	}),
-	client: one(clients, {
+	clients: one(clients, {
 		fields: [bookings.clientId],
 		references: [clients.id],
 	}),
@@ -350,7 +350,7 @@ export const bookingsRelations = relations(bookings, ({ one, many }) => ({
 	receivedAmounts: many(receivedAmounts),
 	paymentSchedules: many(paymentSchedules),
 	expenses: many(expenses),
-	crew: many(crew),
+	crews: many(crews),
 	tasks: many(tasks),
 }));
 
@@ -403,13 +403,13 @@ export const expensesRelations = relations(expenses, ({ one }) => ({
 	}),
 }));
 
-export const crewRelations = relations(crew, ({ one }) => ({
+export const crewRelations = relations(crews, ({ one }) => ({
 	booking: one(bookings, {
-		fields: [crew.bookingId],
+		fields: [crews.bookingId],
 		references: [bookings.id],
 	}),
 	user: one(users, {
-		fields: [crew.userId],
+		fields: [crews.userId],
 		references: [users.id],
 	}),
 }));
@@ -503,8 +503,8 @@ export type NewPaymentSchedule = typeof paymentSchedules.$inferInsert;
 
 export type Expense = typeof expenses.$inferSelect;
 export type NewExpense = typeof expenses.$inferInsert;
-export type Crew = typeof crew.$inferSelect;
-export type NewCrew = typeof crew.$inferInsert;
+export type Crew = typeof crews.$inferSelect;
+export type NewCrew = typeof crews.$inferInsert;
 export type Task = typeof tasks.$inferSelect;
 export type NewTask = typeof tasks.$inferInsert;
 export type PackageConfig = typeof packageConfigs.$inferSelect;
