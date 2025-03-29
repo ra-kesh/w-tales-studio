@@ -32,13 +32,13 @@ export function TaskTableToolbar<TData>({
 					}
 					className="h-8 w-[150px] lg:w-[250px]"
 				/>
-				{/* {table.getColumn("status") && (
+				{table.getColumn("status") && (
 					<DataTableFacetedFilter
 						column={table.getColumn("status")}
 						title="Status"
 						options={statuses}
 					/>
-				)} */}
+				)}
 				{table.getColumn("priority") && (
 					<DataTableFacetedFilter
 						column={table.getColumn("priority")}

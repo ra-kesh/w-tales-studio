@@ -165,6 +165,7 @@ export enum TaskStatus {
 	DONE = "Done",
 	TODO = "Todo",
 	CANCELED = "Canceled",
+	BACKLOG = "Backlog",
 }
 
 export const relationsTable = pgTable("relations", {

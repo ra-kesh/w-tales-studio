@@ -69,6 +69,21 @@ export const taskColumns: ColumnDef<Task>[] = [
 			);
 		},
 	},
+	{
+		accessorKey: "status",
+		header: ({ column }) => (
+			<DataTableColumnHeader column={column} title="Status" />
+		),
+		cell: ({ row }) => {
+			return (
+				<div className="flex space-x-2">
+					<span className="max-w-[500px] truncate font-medium">
+						{row.getValue("status")}
+					</span>
+				</div>
+			);
+		},
+	},
 
 	{
 		accessorKey: "bookingName",

@@ -18,8 +18,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import { labels } from "../data/data";
-import { taskSchema } from "../data/schema";
 import { Button } from "@/components/ui/button";
+import type { Task } from "@/lib/db/schema";
 
 interface DataTableRowActionsProps<TData> {
 	row: Row<TData>;
@@ -28,7 +28,8 @@ interface DataTableRowActionsProps<TData> {
 export function TaskTableRowActions<TData>({
 	row,
 }: DataTableRowActionsProps<TData>) {
-	const task = taskSchema.parse(row.original);
+	// Directly cast row.original to Task type
+	const task = row.original as Task;
 
 	return (
 		<DropdownMenu>
@@ -46,7 +47,7 @@ export function TaskTableRowActions<TData>({
 				<DropdownMenuItem>Make a copy</DropdownMenuItem>
 				<DropdownMenuItem>Favorite</DropdownMenuItem>
 				<DropdownMenuSeparator />
-				<DropdownMenuSub>
+				{/* <DropdownMenuSub>
 					<DropdownMenuSubTrigger>Labels</DropdownMenuSubTrigger>
 					<DropdownMenuSubContent>
 						<DropdownMenuRadioGroup value={task.label}>
@@ -57,7 +58,7 @@ export function TaskTableRowActions<TData>({
 							))}
 						</DropdownMenuRadioGroup>
 					</DropdownMenuSubContent>
-				</DropdownMenuSub>
+				</DropdownMenuSub> */}
 				<DropdownMenuSeparator />
 				<DropdownMenuItem>
 					Delete
