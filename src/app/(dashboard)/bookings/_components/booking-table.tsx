@@ -68,9 +68,9 @@ export function BookingTable<TData, TValue>({
 	});
 
 	return (
-		<div className="space-y-4 ">
+		<div className="space-y-4 relative overflow-auto flex flex-col">
 			<BookingTableToolbar table={table} />
-			<div className="rounded-md border">
+			<div className="rounded-md border overflow-hidden">
 				<Table>
 					<TableHeader>
 						{table.getHeaderGroups().map((headerGroup) => (
