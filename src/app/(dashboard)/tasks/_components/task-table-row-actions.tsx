@@ -17,7 +17,6 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-import { labels } from "../data/data";
 import { Button } from "@/components/ui/button";
 import type { Task } from "@/lib/db/schema";
 
