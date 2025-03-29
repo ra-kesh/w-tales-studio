@@ -2,12 +2,20 @@ import {
 	AudioWaveform,
 	BookOpen,
 	Bot,
+	CameraIcon,
 	Command,
+	FolderIcon,
 	Frame,
 	GalleryVerticalEnd,
+	HelpCircleIcon,
+	LayoutDashboardIcon,
 	PieChart,
+	SearchIcon,
 	Settings2,
+	Settings2Icon,
+	SettingsIcon,
 	SquareTerminal,
+	UsersIcon,
 } from "lucide-react";
 
 export const sidebarData = {
@@ -32,7 +40,7 @@ export const sidebarData = {
 		{
 			title: "Bookings",
 			url: "/bookings",
-			icon: SquareTerminal,
+			icon: CameraIcon,
 			isActive: true,
 			items: [
 				{
@@ -57,17 +65,52 @@ export const sidebarData = {
 				},
 			],
 		},
+		{
+			title: "Dashboard",
+			url: "/dashboard",
+			icon: LayoutDashboardIcon,
+			isActive: true,
+		},
+		{
+			title: "Configurations",
+			url: "/configurations",
+			icon: Settings2Icon,
+			isActive: true,
+		},
+		{
+			title: "Teams",
+			url: "/teams",
+			icon: UsersIcon,
+			isActive: true,
+		},
 	],
-	// projects: [
-	//   {
-	//     name: "Celebrity Wedding",
-	//     url: "#",
-	//     // icon: Frame,
-	//   },
-	//   {
-	//     name: "SPortsman Wedding",
-	//     url: "#",
-	//     // icon: PieChart,
-	//   },
-	// ],
+	navSecondary: [
+		{
+			title: "Settings",
+			url: "#",
+			icon: SettingsIcon,
+		},
+		{
+			title: "Get Help",
+			url: "#",
+			icon: HelpCircleIcon,
+		},
+		{
+			title: "Search",
+			url: "#",
+			icon: SearchIcon,
+		},
+	],
+	bookings: [
+		{
+			name: "Celebrity Wedding",
+			url: "#",
+			// icon: Frame,
+		},
+		{
+			name: "SPortsman Wedding",
+			url: "#",
+			// icon: PieChart,
+		},
+	],
 };

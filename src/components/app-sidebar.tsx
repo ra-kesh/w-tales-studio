@@ -17,6 +17,7 @@ import {
 import { sidebarData } from "@/data/sidebar-data";
 import { useSession } from "@/lib/auth/auth-client";
 import type { User } from "better-auth";
+import { NavSecondary } from "./nav-secondary";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 	const { data } = useSession();
@@ -28,7 +29,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 			</SidebarHeader>
 			<SidebarContent>
 				<NavMain items={sidebarData.navMain} />
-				{/* <NavProjects projects={sidebarData.projects} /> */}
+				<NavProjects projects={sidebarData.bookings} />
+				<NavSecondary items={sidebarData.navSecondary} className="mt-auto" />
 			</SidebarContent>
 			<SidebarFooter>
 				<NavUser user={data?.user as User} />
