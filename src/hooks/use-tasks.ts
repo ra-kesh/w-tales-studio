@@ -1,13 +1,29 @@
-export const getTasks = async () => {
-	const response = await fetch("/api/tasks", {
-		headers: {
-			"Content-Type": "application/json",
-		},
-	});
+import { useQuery } from "@tanstack/react-query";
+import { Task } from "@/lib/db/schema";
 
-	if (!response.ok) {
-		throw new Error("Failed to fetch tasks");
-	}
+interface TasksResponse {
+  data: Task[];
+  total: number;
+}
 
-	return response.json();
-};
+export async function fetchTasks(): Promise<TasksResponse> {
+  const response = await fetch("/api/tasks", {
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch tasks");
+  }
+
+  return response.json();
+}
+
+export function useTasks() {
+  return useQuery({
+    queryKey: ["tasks"],
+    queryFn: fetchTasks,
+    placeholderData: { data: [], total: 0 },
+  });
+}
