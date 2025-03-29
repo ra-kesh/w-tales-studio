@@ -37,6 +37,7 @@ export async function GET(request: Request) {
 					deliverableId: tasks.deliverableId,
 					title: deliverables.title,
 					description: tasks.description,
+					status: tasks.status,
 					assignedTo: tasks.assignedTo,
 					priority: tasks.priority,
 					dueDate: tasks.dueDate,

@@ -155,10 +155,16 @@ export enum ExpenseCategory {
 }
 
 export enum TaskPriority {
-	CRITICAL = "Critical",
+	// CRITICAL = "Critical",
 	HIGH = "High",
 	MEDIUM = "Medium",
 	LOW = "Low",
+}
+export enum TaskStatus {
+	INPROGRESS = "In-Progress",
+	DONE = "Done",
+	TODO = "Todo",
+	CANCELED = "Canceled",
 }
 
 export const relationsTable = pgTable("relations", {
@@ -302,6 +308,11 @@ export const tasks = pgTable("tasks", {
 	deliverableId: integer("deliverable_id").references(() => deliverables.id, {
 		onDelete: "cascade",
 	}),
+	status: text("status", {
+		enum: Object.values(TaskStatus) as [string, ...string[]],
+	})
+		.notNull()
+		.default(TaskStatus.TODO),
 	description: text("description").notNull(),
 	assignedTo: text("assigned_to").references(() => users.id),
 	priority: text("priority", {

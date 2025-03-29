@@ -43,6 +43,13 @@
       "when": 1743137586328,
       "tag": "0005_high_eternals",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1743217988876,
+      "tag": "0006_soft_sage",
+      "breakpoints": true
     }
   ]
 }
