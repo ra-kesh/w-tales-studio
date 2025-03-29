@@ -68,7 +68,7 @@ export function BookingTable<TData, TValue>({
 	});
 
 	return (
-		<div className="space-y-4">
+		<div className="space-y-4 ">
 			<BookingTableToolbar table={table} />
 			<div className="rounded-md border">
 				<Table>

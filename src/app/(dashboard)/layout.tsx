@@ -40,7 +40,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
             </Breadcrumb> */}
 					</div>
 				</header>
-				<div>{children}</div>
+				<div className="overflow-hidden">{children}</div>
 			</SidebarInset>
 		</SidebarProvider>
 	);

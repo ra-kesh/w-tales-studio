@@ -32,6 +32,7 @@ export async function GET(request: Request) {
 			where: eq(bookings.organizationId, userOrganizationId),
 			with: {
 				clients: true,
+				shoots: true,
 			},
 			limit,
 			offset,
