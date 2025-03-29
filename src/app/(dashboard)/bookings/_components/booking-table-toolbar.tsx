@@ -5,6 +5,7 @@ import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DataTableFacetedFilter } from "@/app/(dashboard)/tasks/_components/task-table-faceted-filter";
+import Link from "next/link";
 
 interface DataTableToolbarProps<TData> {
 	table: Table<TData>;
@@ -35,9 +36,9 @@ export function BookingTableToolbar<TData>({
 					</Button>
 				)}
 			</div>
-			<div>
-				<Button>Add project</Button>
-			</div>
+			<Link href="/bookings/add">
+				<Button>Add Booking</Button>
+			</Link>
 		</div>
 	);
 }
