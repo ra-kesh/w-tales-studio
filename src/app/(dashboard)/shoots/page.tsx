@@ -1,7 +1,21 @@
-import React from "react";
+import {
+  dehydrate,
+  HydrationBoundary,
+  QueryClient,
+} from "@tanstack/react-query";
+import { Shoots } from "./shoots";
+import { fetchShoots } from "@/hooks/use-shoots";
 
-const Shoots = () => {
-  return <div className="flex flex-1 flex-col gap-4 p-4 pt-0">shoots</div>;
-};
+export default async function ShootsPage() {
+  const queryClient = new QueryClient();
+  await queryClient.prefetchQuery({
+    queryKey: ["shoots"],
+    queryFn: fetchShoots,
+  });
 
-export default Shoots;
+  return (
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <Shoots />
+    </HydrationBoundary>
+  );
+}

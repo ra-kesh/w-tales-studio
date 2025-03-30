@@ -4,24 +4,24 @@ import type { Table } from "@tanstack/react-table";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { DataTableFacetedFilter } from "@/app/(dashboard)/tasks/_components/task-table-faceted-filter";
-import Link from "next/link";
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
 }
 
-export function BookingTableToolbar<TData>({
+export function ShootsTableToolbar<TData>({
   table,
 }: DataTableToolbarProps<TData>) {
   return (
     <div className="flex items-center justify-between">
       <div className="flex flex-1 items-center space-x-2">
         <Input
-          placeholder="Filter bookings..."
-          value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
+          placeholder="Filter shoots..."
+          value={
+            (table.getColumn("bookingName")?.getFilterValue() as string) ?? ""
+          }
           onChange={(event) =>
-            table.getColumn("name")?.setFilterValue(event.target.value)
+            table.getColumn("bookingName")?.setFilterValue(event.target.value)
           }
           className="h-8 w-[150px] lg:w-[250px]"
         />
@@ -36,9 +36,6 @@ export function BookingTableToolbar<TData>({
           </Button>
         )}
       </div>
-      <Link href="/bookings/add">
-        <Button>Add Booking</Button>
-      </Link>
     </div>
   );
 }
