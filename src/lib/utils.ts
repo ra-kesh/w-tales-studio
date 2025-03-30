@@ -24,3 +24,15 @@ export const fetchCallback = ({
     },
   };
 };
+
+export function generateBreadcrumbs(pathname: string) {
+  const paths = pathname.split("/").filter(Boolean);
+  return paths.map((path, index) => ({
+    href: "/" + paths.slice(0, index + 1).join("/"),
+    label: path
+      .split("-")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" "),
+    isLast: index === paths.length - 1,
+  }));
+}
