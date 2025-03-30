@@ -1,5 +1,6 @@
 import { createAuthClient } from "better-auth/client";
-import { NextRequest, NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
 const client = createAuthClient();
 
@@ -12,8 +13,6 @@ export async function middleware(request: NextRequest) {
     },
   });
 
-  // console.log({ session });
-
   if (!session) {
     return NextResponse.redirect(new URL("/sign-in", request.url));
   }
@@ -21,5 +20,16 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/projects/:path*", "/dashboard/:path*"],
+  matcher: [
+    "/bookings/:path*",
+    "/dashboard/:path*",
+    "/clients/:path*",
+    "/deliverables/:path*",
+    "/expenses/:path*",
+    "/shoots/:path*",
+    "/tasks/:path*",
+    "/teams/:path*",
+    "/configurations/:path*",
+    "settings/:path*",
+  ],
 };

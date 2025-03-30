@@ -27,7 +27,7 @@ export const signIn = validatedAction(signInSchema, async (data, formData) => {
 		};
 	}
 
-	redirect("/projects");
+	redirect("/bookings");
 });
 
 const signUpSchema = z.object({
@@ -56,5 +56,5 @@ export const signUp = validatedAction(signUpSchema, async (data, formData) => {
 		};
 	}
 
-	redirect("/projects");
+	redirect("/bookings");
 });
