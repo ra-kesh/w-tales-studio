@@ -1,9 +1,21 @@
-import React from "react";
+import { Deliverables } from "./deliverables";
+import {
+  dehydrate,
+  HydrationBoundary,
+  QueryClient,
+} from "@tanstack/react-query";
+import { fetchDeliverables } from "@/hooks/use-deliverables";
 
-const Deliverables = () => {
+export default async function DeliverablesPage() {
+  const queryClient = new QueryClient();
+  await queryClient.prefetchQuery({
+    queryKey: ["deliverables"],
+    queryFn: fetchDeliverables,
+  });
+
   return (
-    <div className="flex flex-1 flex-col gap-4 p-4 pt-0">deliverables</div>
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <Deliverables />
+    </HydrationBoundary>
   );
-};
-
-export default Deliverables;
+}
