@@ -8,12 +8,10 @@ import { fetchDeliverables } from "@/hooks/use-deliverables";
 
 export default async function DeliverablesPage() {
 	const queryClient = new QueryClient();
-	if (process.env.NODE_ENV !== "production") {
-		await queryClient.prefetchQuery({
-			queryKey: ["deliverables"],
-			queryFn: fetchDeliverables,
-		});
-	}
+	// await queryClient.prefetchQuery({
+	// 	queryKey: ["deliverables"],
+	// 	queryFn: fetchDeliverables,
+	// });
 	return (
 		<HydrationBoundary state={dehydrate(queryClient)}>
 			<Deliverables />

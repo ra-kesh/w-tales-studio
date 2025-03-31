@@ -260,6 +260,9 @@ export const deliverables = pgTable("deliverables", {
 	bookingId: integer("booking_id")
 		.notNull()
 		.references(() => bookings.id, { onDelete: "cascade" }),
+	organizationId: text("organization_id")
+		.notNull()
+		.references(() => organizations.id, { onDelete: "cascade" }),
 	title: text("title").notNull(),
 	isPackageIncluded: boolean("is_package_included").notNull().default(false),
 	cost: decimal("cost", { precision: 10, scale: 2 }), // Nullable if part of package
@@ -400,6 +403,10 @@ export const deliverablesRelations = relations(
 			fields: [deliverables.bookingId],
 			references: [bookings.id],
 		}),
+		organization: one(organizations, {
+			fields: [deliverables.organizationId],
+			references: [organizations.id],
+		}),
 		tasks: many(tasks),
 	}),
 );
@@ -467,6 +474,7 @@ export const organizationRelations = relations(organizations, ({ many }) => ({
 	invitations: many(invitations),
 	clients: many(clients),
 	bookings: many(bookings),
+	deliverables: many(deliverables),
 }));
 
 export const invitationsRelations = relations(invitations, ({ one }) => ({
