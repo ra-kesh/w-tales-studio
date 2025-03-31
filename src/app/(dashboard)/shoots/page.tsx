@@ -1,22 +1,22 @@
 import {
-	dehydrate,
-	HydrationBoundary,
-	QueryClient,
+  dehydrate,
+  HydrationBoundary,
+  QueryClient,
 } from "@tanstack/react-query";
 import { Shoots } from "./shoots";
 import { fetchShoots } from "@/hooks/use-shoots";
 
 export default async function ShootsPage() {
-	const queryClient = new QueryClient();
-	if (process.env.NODE_ENV !== "production") {
-		await queryClient.prefetchQuery({
-			queryKey: ["shoots"],
-			queryFn: fetchShoots,
-		});
-	}
-	return (
-		<HydrationBoundary state={dehydrate(queryClient)}>
-			<Shoots />
-		</HydrationBoundary>
-	);
+  const queryClient = new QueryClient();
+  if (process.env.NODE_ENV !== "production") {
+    await queryClient.prefetchQuery({
+      queryKey: ["shoots"],
+      queryFn: fetchShoots,
+    });
+  }
+  return (
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <Shoots />
+    </HydrationBoundary>
+  );
 }
