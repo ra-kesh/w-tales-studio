@@ -18,7 +18,7 @@ export const auth = betterAuth({
 		username(),
 		admin(),
 		organization({
-			//todo: add custom logic later
+			//todo: add custom logic later based on subscription
 			allowUserToCreateOrganization: true,
 		}),
 		nextCookies(),
@@ -38,4 +38,5 @@ export const auth = betterAuth({
 			},
 		},
 	},
+	disabledPaths: ["/sign-up/email", "/sign-in/email"],
 });
