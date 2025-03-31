@@ -7,15 +7,17 @@ import {
 import { fetchClients } from "@/hooks/use-clients";
 
 export default async function ClientsPage() {
-	// const queryClient = new QueryClient();
-	// await queryClient.prefetchQuery({
-	//   queryKey: ["clients"],
-	//   queryFn: fetchClients,
-	// });
+	const queryClient = new QueryClient();
 
+	if (process.env.NODE_ENV !== "production") {
+		await queryClient.prefetchQuery({
+			queryKey: ["clients"],
+			queryFn: fetchClients,
+		});
+	}
 	return (
-		// <HydrationBoundary state={dehydrate(queryClient)}>
-		<Clients />
-		// </HydrationBoundary>
+		<HydrationBoundary state={dehydrate(queryClient)}>
+			<Clients />
+		</HydrationBoundary>
 	);
 }

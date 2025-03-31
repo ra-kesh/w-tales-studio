@@ -7,15 +7,16 @@ import { Shoots } from "./shoots";
 import { fetchShoots } from "@/hooks/use-shoots";
 
 export default async function ShootsPage() {
-	// const queryClient = new QueryClient();
-	// await queryClient.prefetchQuery({
-	// 	queryKey: ["shoots"],
-	// 	queryFn: fetchShoots,
-	// });
-
+	const queryClient = new QueryClient();
+	if (process.env.NODE_ENV !== "production") {
+		await queryClient.prefetchQuery({
+			queryKey: ["shoots"],
+			queryFn: fetchShoots,
+		});
+	}
 	return (
-		// <HydrationBoundary state={dehydrate(queryClient)}>
-		<Shoots />
-		// </HydrationBoundary>
+		<HydrationBoundary state={dehydrate(queryClient)}>
+			<Shoots />
+		</HydrationBoundary>
 	);
 }
