@@ -1,6 +1,7 @@
 import { GalleryVerticalEnd } from "lucide-react";
 
 import { Login } from "../login";
+import { Suspense } from "react";
 
 export default function SignUpPage() {
 	return (
@@ -12,7 +13,9 @@ export default function SignUpPage() {
 					</div>
 					Studio Weddingtales.
 				</a>
-				<Login mode="signup" />
+				<Suspense>
+					<Login mode="signup" />
+				</Suspense>
 			</div>
 		</div>
 	);
