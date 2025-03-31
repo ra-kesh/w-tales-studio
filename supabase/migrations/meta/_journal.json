@@ -1,0 +1,62 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1743008921699,
+      "tag": "0000_even_betty_ross",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1743048778740,
+      "tag": "0001_eminent_mathemanic",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1743054720138,
+      "tag": "0002_nasty_kid_colt",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1743081516551,
+      "tag": "0003_open_absorbing_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1743133146764,
+      "tag": "0004_spicy_surge",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1743137586328,
+      "tag": "0005_high_eternals",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1743217988876,
+      "tag": "0006_soft_sage",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1743225409823,
+      "tag": "0007_shocking_christian_walker",
+      "breakpoints": true
+    }
+  ]
+}

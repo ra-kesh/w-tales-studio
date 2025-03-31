@@ -1,0 +1,1 @@
+ALTER TABLE "bookings" RENAME COLUMN "project_type" TO "booking_type";
