@@ -1,22 +1,33 @@
 import { Expenses } from "./expenses";
 import {
-  dehydrate,
-  HydrationBoundary,
-  QueryClient,
+	dehydrate,
+	HydrationBoundary,
+	QueryClient,
 } from "@tanstack/react-query";
-import { fetchExpenses } from "@/hooks/use-expenses";
+import { getExpenses } from "@/lib/db/queries";
+import { getServerSession } from "@/lib/dal";
 
 export default async function ExpensesPage() {
-  const queryClient = new QueryClient();
-  if (process.env.NODE_ENV !== "production") {
-    await queryClient.prefetchQuery({
-      queryKey: ["expenses"],
-      queryFn: fetchExpenses,
-    });
-  }
-  return (
-    <HydrationBoundary state={dehydrate(queryClient)}>
-      <Expenses />
-    </HydrationBoundary>
-  );
+	const { session } = await getServerSession();
+
+	const queryClient = new QueryClient();
+	await queryClient.prefetchQuery({
+		queryKey: ["expenses"],
+		queryFn: () => getExpenses(session?.session.activeOrganizationId as string),
+	});
+	return (
+		<div className="h-full flex-1 flex flex-col p-8">
+			<div className="flex items-center justify-between mb-8">
+				<div>
+					<h2 className="text-2xl font-bold tracking-tight">Expenses</h2>
+					<p className="text-muted-foreground">
+						Track and manage project-related expenses
+					</p>
+				</div>
+			</div>
+			<HydrationBoundary state={dehydrate(queryClient)}>
+				<Expenses />
+			</HydrationBoundary>
+		</div>
+	);
 }

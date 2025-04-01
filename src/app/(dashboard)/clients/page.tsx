@@ -1,21 +1,35 @@
 import { Clients } from "./clients";
 import {
-  dehydrate,
-  HydrationBoundary,
-  QueryClient,
+	dehydrate,
+	HydrationBoundary,
+	QueryClient,
 } from "@tanstack/react-query";
-import { fetchClients } from "@/hooks/use-clients";
+import { getServerSession } from "@/lib/dal";
+import { getClients } from "@/lib/db/queries";
 
 export default async function ClientsPage() {
-  const queryClient = new QueryClient();
+	const { session } = await getServerSession();
 
-  await queryClient.prefetchQuery({
-    queryKey: ["clients"],
-    queryFn: fetchClients,
-  });
-  return (
-    <HydrationBoundary state={dehydrate(queryClient)}>
-      <Clients />
-    </HydrationBoundary>
-  );
+	const queryClient = new QueryClient();
+
+	await queryClient.prefetchQuery({
+		queryKey: ["clients"],
+		queryFn: () => getClients(session?.session.activeOrganizationId as string),
+	});
+
+	return (
+		<div className="h-full flex-1 flex flex-col p-8">
+			<div className="flex items-center justify-between mb-8">
+				<div>
+					<h2 className="text-2xl font-bold tracking-tight">Clients</h2>
+					<p className="text-muted-foreground">
+						Manage your client relationships and bookings
+					</p>
+				</div>
+			</div>
+			<HydrationBoundary state={dehydrate(queryClient)}>
+				<Clients />
+			</HydrationBoundary>
+		</div>
+	);
 }

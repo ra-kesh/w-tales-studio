@@ -4,13 +4,13 @@ import { db } from "@/lib/db/drizzle";
 import { ConfigType, configurations } from "@/lib/db/schema";
 import { auth } from "@/lib/auth";
 import { eq, or, isNull, and } from "drizzle-orm";
+import { getServerSession } from "@/lib/dal";
+import { getConfigs } from "@/lib/db/queries";
 
 const configTypeValues = ConfigType.enumValues as string[];
 
 export async function GET(request: Request) {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+  const { session } = await getServerSession();
 
   if (!session || !session.user) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
@@ -48,16 +48,10 @@ export async function GET(request: Request) {
       );
     }
 
-    const configs = await db.query.configurations.findMany({
-      where: and(
-        eq(configurations.type, type as (typeof ConfigType.enumValues)[number]), // Cast type to the correct union type
-        or(
-          eq(configurations.organizationId, userOrganizationId),
-          eq(configurations.isSystem, true)
-        )
-      ),
-      orderBy: configurations.isSystem, // Prioritize organization-specific (isSystem = false) over system-wide
-    });
+    const configs = await getConfigs(
+      userOrganizationId,
+      type as (typeof ConfigType.enumValues)[number]
+    );
 
     return NextResponse.json(configs, { status: 200 });
   } catch (error) {
