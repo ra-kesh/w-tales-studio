@@ -294,3 +294,27 @@ export async function getConfigs(
 
 	return config;
 }
+
+export async function getBookingDetail(
+	userOrganizationId: string,
+	bookingId: number,
+) {
+	const response = await db.query.bookings.findFirst({
+		where: and(
+			eq(bookings.id, bookingId),
+			eq(bookings.organizationId, userOrganizationId),
+		),
+		with: {
+			clients: true,
+			shoots: true,
+			deliverables: true,
+			receivedAmounts: true,
+			paymentSchedules: true,
+			expenses: true,
+			crews: true,
+			tasks: true,
+		},
+	});
+
+	return response;
+}

@@ -1,17 +1,15 @@
 import { NextResponse } from "next/server";
-import { headers } from "next/headers";
 import { db } from "@/lib/db/drizzle";
 import { bookings } from "@/lib/db/schema";
-import { auth } from "@/lib/auth";
 import { and, eq } from "drizzle-orm";
+import { getServerSession } from "@/lib/dal";
+import { getBookingDetail } from "@/lib/db/queries";
 
 export async function GET(
 	request: Request,
 	{ params }: { params: { id: string } },
 ) {
-	const session = await auth.api.getSession({
-		headers: await headers(),
-	});
+	const { session } = await getServerSession();
 
 	if (!session || !session.user) {
 		return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
@@ -30,22 +28,7 @@ export async function GET(
 		const { id } = await params;
 		const bookingId = Number.parseInt(id, 10);
 
-		const response = await db.query.bookings.findFirst({
-			where: and(
-				eq(bookings.id, bookingId),
-				eq(bookings.organizationId, userOrganizationId),
-			),
-			with: {
-				clients: true,
-				shoots: true,
-				deliverables: true,
-				receivedAmounts: true,
-				paymentSchedules: true,
-				expenses: true,
-				crews: true,
-				tasks: true,
-			},
-		});
+		const response = await getBookingDetail(userOrganizationId, bookingId);
 
 		return NextResponse.json(response, { status: 200 });
 	} catch (error: unknown) {
