@@ -1,6 +1,6 @@
 import { and, eq } from "drizzle-orm";
-import { db } from "./drizzle";
-import { members, users, deliverables, bookings } from "./schema";
+import { client, db } from "./drizzle";
+import { members, users, deliverables, bookings, clients } from "./schema";
 
 export async function getActiveOrganization(userId: string) {
 	const result = await db
@@ -67,6 +67,36 @@ export async function getBookings(
 	const total = await db.$count(
 		bookings,
 		eq(bookings.organizationId, userOrganizationId),
+	);
+
+	return {
+		data: bookingsData,
+		total,
+		page,
+		limit,
+	};
+}
+
+export async function getClients(
+	userOrganizationId: string,
+	page = 1,
+	limit = 10,
+) {
+	const offset = (page - 1) * limit;
+
+	const bookingsData = await db.query.clients.findMany({
+		where: eq(clients.organizationId, userOrganizationId),
+		// with: {
+		// 	clients: true,
+		// 	shoots: true,
+		// },
+		limit,
+		offset,
+	});
+
+	const total = await db.$count(
+		clients,
+		eq(clients.organizationId, userOrganizationId),
 	);
 
 	return {
