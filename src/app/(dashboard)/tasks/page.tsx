@@ -4,10 +4,9 @@ import {
 	QueryClient,
 } from "@tanstack/react-query";
 import Tasks from "./tasks";
-import { fetchTasks } from "@/hooks/use-tasks";
-import { fetchConfigs } from "@/hooks/use-task-configs";
+
 import { getServerSession } from "@/lib/dal";
-import { getTasks } from "@/lib/db/queries";
+import { getConfigs, getTasks } from "@/lib/db/queries";
 
 export default async function TaskPage() {
 	const { session } = await getServerSession();
@@ -18,15 +17,23 @@ export default async function TaskPage() {
 		queryFn: () => getTasks(session?.session.activeOrganizationId as string),
 	});
 
-	// await queryClient.prefetchQuery({
-	// 	queryKey: ["configurations", "task_priority"],
-	// 	queryFn: () => fetchConfigs("task_priority"),
-	// });
+	await queryClient.prefetchQuery({
+		queryKey: ["configurations", "task_priority"],
+		queryFn: () =>
+			getConfigs(
+				session?.session.activeOrganizationId as string,
+				"task_priority",
+			),
+	});
+	await queryClient.prefetchQuery({
+		queryKey: ["configurations", "task_status"],
+		queryFn: () =>
+			getConfigs(
+				session?.session.activeOrganizationId as string,
+				"task_status",
+			),
+	});
 
-	// await queryClient.prefetchQuery({
-	// 	queryKey: ["configurations", "task_status"],
-	// 	queryFn: () => fetchConfigs("task_status"),
-	// });
 	return (
 		<div className="hidden h-full flex-1 flex-col space-y-8 p-8 md:flex">
 			<div className="flex items-center justify-between space-y-2">

@@ -1,4 +1,4 @@
-import { and, count, eq } from "drizzle-orm";
+import { and, count, eq, or } from "drizzle-orm";
 import { client, db } from "./drizzle";
 import {
 	members,
@@ -9,6 +9,8 @@ import {
 	expenses,
 	shoots,
 	tasks,
+	configurations,
+	type ConfigType,
 } from "./schema";
 
 export async function getActiveOrganization(userId: string) {
@@ -273,4 +275,22 @@ export async function getTasks(
 		page,
 		limit,
 	};
+}
+
+export async function getConfigs(
+	userOrganizationId: string,
+	type: (typeof ConfigType.enumValues)[number],
+) {
+	const config = await db.query.configurations.findMany({
+		where: and(
+			eq(configurations.type, type),
+			or(
+				eq(configurations.organizationId, userOrganizationId),
+				eq(configurations.isSystem, true),
+			),
+		),
+		orderBy: configurations.isSystem,
+	});
+
+	return config;
 }
