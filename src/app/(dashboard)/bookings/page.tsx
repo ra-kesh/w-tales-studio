@@ -3,18 +3,29 @@ import {
 	HydrationBoundary,
 	QueryClient,
 } from "@tanstack/react-query";
-import { fetchBookings } from "@/hooks/use-bookings";
 import Bookings from "./bookings";
+import { getBookings } from "@/lib/db/queries";
+import { getServerSession } from "@/lib/dal";
 
 export default async function BookingPage() {
+	const { session } = await getServerSession();
+
 	const queryClient = new QueryClient();
+
 	await queryClient.prefetchQuery({
 		queryKey: ["bookings"],
-		queryFn: fetchBookings,
+		queryFn: () => getBookings(session?.session.activeOrganizationId as string),
 	});
 	return (
-		<HydrationBoundary state={dehydrate(queryClient)}>
-			<Bookings />
-		</HydrationBoundary>
+		<div className="hidden h-full flex-1 flex-col space-y-8 p-8 md:flex ">
+			<div className="flex items-center justify-between space-y-2">
+				<div>
+					<h2 className="text-2xl font-bold tracking-tight">Bookings</h2>
+				</div>
+			</div>
+			<HydrationBoundary state={dehydrate(queryClient)}>
+				<Bookings />
+			</HydrationBoundary>
+		</div>
 	);
 }

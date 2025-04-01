@@ -1,12 +1,9 @@
 import { NextResponse } from "next/server";
-import { headers } from "next/headers";
-import { auth } from "@/lib/auth";
 import { getDeliverables } from "@/lib/db/queries";
+import { getServerSession } from "@/lib/dal";
 
 export async function GET(request: Request) {
-	const session = await auth.api.getSession({
-		headers: await headers(),
-	});
+	const { session } = await getServerSession();
 
 	if (!session || !session.user) {
 		return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
@@ -26,6 +23,7 @@ export async function GET(request: Request) {
 		const limit = Number.parseInt(searchParams.get("limit") || "10", 10);
 
 		const result = await getDeliverables(userOrganizationId, page, limit);
+
 		return NextResponse.json(result, { status: 200 });
 	} catch (error: unknown) {
 		console.error("Error fetching deliverables:", error);
