@@ -1,20 +1,16 @@
 import { NextResponse } from "next/server";
-import { headers } from "next/headers";
-import { db } from "@/lib/db/drizzle";
-import { expenses, bookings } from "@/lib/db/schema";
-import { auth } from "@/lib/auth";
-import { count, eq } from "drizzle-orm";
+import { getExpenses } from "@/lib/db/queries";
+import { getServerSession } from "@/lib/dal";
 
 export async function GET(request: Request) {
-	const session = await auth.api.getSession({
-		headers: await headers(),
-	});
+	const { session } = await getServerSession();
 
 	if (!session || !session.user) {
 		return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 	}
 
 	const userOrganizationId = session.session.activeOrganizationId;
+
 	if (!userOrganizationId) {
 		return NextResponse.json(
 			{ message: "User not associated with an organization" },
@@ -26,48 +22,10 @@ export async function GET(request: Request) {
 		const { searchParams } = new URL(request.url);
 		const page = Number.parseInt(searchParams.get("page") || "1", 10);
 		const limit = Number.parseInt(searchParams.get("limit") || "10", 10);
-		const offset = (page - 1) * limit;
 
-		const [expenseData, totalData] = await Promise.all([
-			db
-				.select({
-					id: expenses.id,
-					bookingId: expenses.bookingId,
-					bookingName: bookings.name,
-					billTo: expenses.billTo,
-					category: expenses.category,
-					amount: expenses.amount,
-					date: expenses.date,
-					spentBy: expenses.spentBy,
-					spentByUserId: expenses.spentByUserId,
-					description: expenses.description,
-					fileUrls: expenses.fileUrls,
-					createdAt: expenses.createdAt,
-					updatedAt: expenses.updatedAt,
-				})
-				.from(expenses)
-				.leftJoin(bookings, eq(expenses.bookingId, bookings.id))
-				.where(eq(bookings.organizationId, userOrganizationId))
-				.limit(limit)
-				.offset(offset),
-			db
-				.select({ count: count() })
-				.from(expenses)
-				.leftJoin(bookings, eq(expenses.bookingId, bookings.id))
-				.where(eq(bookings.organizationId, userOrganizationId)),
-		]);
+		const result = await getExpenses(userOrganizationId, page, limit);
 
-		const total = totalData[0].count;
-
-		return NextResponse.json(
-			{
-				data: expenseData,
-				total,
-				page,
-				limit,
-			},
-			{ status: 200 },
-		);
+		return NextResponse.json(result, { status: 200 });
 	} catch (error: unknown) {
 		console.error("Error fetching expenses:", error);
 		const errorMessage =
