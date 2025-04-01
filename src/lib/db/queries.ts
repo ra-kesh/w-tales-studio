@@ -8,6 +8,7 @@ import {
 	clients,
 	expenses,
 	shoots,
+	tasks,
 } from "./schema";
 
 export async function getActiveOrganization(userId: string) {
@@ -24,14 +25,14 @@ export async function getActiveOrganization(userId: string) {
 }
 
 export async function getDeliverables(
-	organizationId: string,
+	userOrganizationId: string,
 	page = 1,
 	limit = 10,
 ) {
 	const offset = (page - 1) * limit;
 
 	const deliverableData = await db.query.deliverables.findMany({
-		where: and(eq(deliverables.organizationId, organizationId)),
+		where: and(eq(deliverables.organizationId, userOrganizationId)),
 		with: {
 			booking: {
 				columns: {
@@ -45,8 +46,36 @@ export async function getDeliverables(
 
 	const total = await db.$count(
 		deliverables,
-		eq(deliverables.organizationId, organizationId),
+		eq(deliverables.organizationId, userOrganizationId),
 	);
+
+	// const [deliverableData, totalData] = await Promise.all([
+	// 	db
+	// 		.select({
+	// 			id: deliverables.id,
+	// 			bookingId: deliverables.bookingId,
+	// 			bookingName: bookings.name,
+	// 			title: deliverables.title,
+	// 			isPackageIncluded: deliverables.isPackageIncluded,
+	// 			cost: deliverables.cost,
+	// 			quantity: deliverables.quantity,
+	// 			dueDate: deliverables.dueDate,
+	// 			createdAt: deliverables.createdAt,
+	// 			updatedAt: deliverables.updatedAt,
+	// 		})
+	// 		.from(deliverables)
+	// 		.leftJoin(bookings, eq(deliverables.bookingId, bookings.id))
+	// 		.where(eq(bookings.organizationId, userOrganizationId))
+	// 		.limit(limit)
+	// 		.offset(offset),
+	// 	db
+	// 		.select({ count: count() })
+	// 		.from(deliverables)
+	// 		.leftJoin(bookings, eq(deliverables.bookingId, bookings.id))
+	// 		.where(eq(bookings.organizationId, userOrganizationId)),
+	// ]);
+
+	// const total = totalData[0].count;
 
 	return {
 		data: deliverableData,
@@ -196,6 +225,50 @@ export async function getShoots(
 
 	return {
 		data: shootsData,
+		total,
+		page,
+		limit,
+	};
+}
+export async function getTasks(
+	userOrganizationId: string,
+	page = 1,
+	limit = 10,
+) {
+	const offset = (page - 1) * limit;
+	const [taskData, totalData] = await Promise.all([
+		db
+			.select({
+				id: tasks.id,
+				bookingId: tasks.bookingId,
+				bookingName: bookings.name,
+				deliverableId: tasks.deliverableId,
+				title: deliverables.title,
+				description: tasks.description,
+				status: tasks.status,
+				assignedTo: tasks.assignedTo,
+				priority: tasks.priority,
+				dueDate: tasks.dueDate,
+				createdAt: tasks.createdAt,
+				updatedAt: tasks.updatedAt,
+			})
+			.from(tasks)
+			.leftJoin(bookings, eq(tasks.bookingId, bookings.id))
+			.leftJoin(deliverables, eq(tasks.deliverableId, deliverables.id))
+			.where(eq(bookings.organizationId, userOrganizationId))
+			.limit(limit)
+			.offset(offset),
+		db
+			.select({ count: count() })
+			.from(tasks)
+			.leftJoin(bookings, eq(tasks.bookingId, bookings.id))
+			.where(eq(bookings.organizationId, userOrganizationId)),
+	]);
+
+	const total = totalData[0].count;
+
+	return {
+		data: taskData,
 		total,
 		page,
 		limit,
