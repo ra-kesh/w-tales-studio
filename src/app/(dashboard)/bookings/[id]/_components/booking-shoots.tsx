@@ -20,7 +20,9 @@ export function BookingShoots({ shoots }: { shoots: Shoot[] }) {
             <div className="grid grid-cols-2 gap-4">
               <div className="flex items-center space-x-2">
                 <Calendar className="h-4 w-4 text-muted-foreground" />
-                <span>{format(new Date(shoot.date), "MMM dd, yyyy")}</span>
+                <span>
+                  {format(new Date(shoot.date as string), "MMM dd, yyyy")}
+                </span>
               </div>
               <div className="flex items-center space-x-2">
                 <Clock className="h-4 w-4 text-muted-foreground" />
@@ -31,7 +33,9 @@ export function BookingShoots({ shoots }: { shoots: Shoot[] }) {
               <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
               <div>
                 <div>{shoot.venue}</div>
-                <div className="text-sm text-muted-foreground">{shoot.city}</div>
+                <div className="text-sm text-muted-foreground">
+                  {shoot.city}
+                </div>
               </div>
             </div>
             {shoot.notes && (
@@ -40,21 +44,24 @@ export function BookingShoots({ shoots }: { shoots: Shoot[] }) {
                 {shoot.notes}
               </div>
             )}
-            {shoot.additionalServices?.length > 0 && (
-              <div>
-                <span className="text-sm font-medium">Additional Services: </span>
-                <div className="flex flex-wrap gap-2 mt-1">
-                  {shoot.additionalServices.map((service) => (
-                    <span
-                      key={service}
-                      className="inline-flex items-center rounded-md bg-muted px-2 py-1 text-xs font-medium"
-                    >
-                      {service}
-                    </span>
-                  ))}
+            {Array.isArray(shoot.additionalServices) &&
+              shoot.additionalServices.length > 0 && (
+                <div>
+                  <span className="text-sm font-medium">
+                    Additional Services:{" "}
+                  </span>
+                  <div className="flex flex-wrap gap-2 mt-1">
+                    {shoot.additionalServices.map((service) => (
+                      <span
+                        key={service}
+                        className="inline-flex items-center rounded-md bg-muted px-2 py-1 text-xs font-medium"
+                      >
+                        {service}
+                      </span>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
           </CardContent>
         </Card>
       ))}
