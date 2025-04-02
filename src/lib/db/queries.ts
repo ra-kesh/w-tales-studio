@@ -51,34 +51,6 @@ export async function getDeliverables(
 		eq(deliverables.organizationId, userOrganizationId),
 	);
 
-	// const [deliverableData, totalData] = await Promise.all([
-	// 	db
-	// 		.select({
-	// 			id: deliverables.id,
-	// 			bookingId: deliverables.bookingId,
-	// 			bookingName: bookings.name,
-	// 			title: deliverables.title,
-	// 			isPackageIncluded: deliverables.isPackageIncluded,
-	// 			cost: deliverables.cost,
-	// 			quantity: deliverables.quantity,
-	// 			dueDate: deliverables.dueDate,
-	// 			createdAt: deliverables.createdAt,
-	// 			updatedAt: deliverables.updatedAt,
-	// 		})
-	// 		.from(deliverables)
-	// 		.leftJoin(bookings, eq(deliverables.bookingId, bookings.id))
-	// 		.where(eq(bookings.organizationId, userOrganizationId))
-	// 		.limit(limit)
-	// 		.offset(offset),
-	// 	db
-	// 		.select({ count: count() })
-	// 		.from(deliverables)
-	// 		.leftJoin(bookings, eq(deliverables.bookingId, bookings.id))
-	// 		.where(eq(bookings.organizationId, userOrganizationId)),
-	// ]);
-
-	// const total = totalData[0].count;
-
 	return {
 		data: deliverableData,
 		total,
@@ -149,36 +121,23 @@ export async function getExpenses(
 ) {
 	const offset = (page - 1) * limit;
 
-	const [expenseData, totalData] = await Promise.all([
-		db
-			.select({
-				id: expenses.id,
-				bookingId: expenses.bookingId,
-				bookingName: bookings.name,
-				billTo: expenses.billTo,
-				category: expenses.category,
-				amount: expenses.amount,
-				date: expenses.date,
-				spentBy: expenses.spentBy,
-				spentByUserId: expenses.spentByUserId,
-				description: expenses.description,
-				fileUrls: expenses.fileUrls,
-				createdAt: expenses.createdAt,
-				updatedAt: expenses.updatedAt,
-			})
-			.from(expenses)
-			.leftJoin(bookings, eq(expenses.bookingId, bookings.id))
-			.where(eq(bookings.organizationId, userOrganizationId))
-			.limit(limit)
-			.offset(offset),
-		db
-			.select({ count: count() })
-			.from(expenses)
-			.leftJoin(bookings, eq(expenses.bookingId, bookings.id))
-			.where(eq(bookings.organizationId, userOrganizationId)),
-	]);
+	const expenseData = await db.query.expenses.findMany({
+		where: eq(expenses.organizationId, userOrganizationId),
+		with: {
+			booking: {
+				columns: {
+					name: true,
+				},
+			},
+		},
+		limit,
+		offset,
+	});
 
-	const total = totalData[0].count;
+	const total = await db.$count(
+		expenses,
+		eq(expenses.organizationId, userOrganizationId),
+	);
 
 	return {
 		data: expenseData,
