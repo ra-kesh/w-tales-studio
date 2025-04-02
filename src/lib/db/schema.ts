@@ -240,6 +240,9 @@ export const shoots = pgTable("shoots", {
 	bookingId: integer("booking_id")
 		.notNull()
 		.references(() => bookings.id, { onDelete: "cascade" }),
+	organizationId: text("organization_id")
+		.notNull()
+		.references(() => organizations.id, { onDelete: "cascade" }),
 	title: text("title").notNull(),
 	date: date("date"),
 	time: text("time", {
@@ -397,6 +400,10 @@ export const shootsRelations = relations(shoots, ({ one }) => ({
 		fields: [shoots.bookingId],
 		references: [bookings.id],
 	}),
+	organization: one(organizations, {
+		fields: [shoots.organizationId],
+		references: [organizations.id],
+	}),
 }));
 
 export const deliverablesRelations = relations(
@@ -483,6 +490,7 @@ export const organizationRelations = relations(organizations, ({ many }) => ({
 	bookings: many(bookings),
 	deliverables: many(deliverables),
 	expenses: many(expenses),
+	shoots: many(shoots),
 }));
 
 export const invitationsRelations = relations(invitations, ({ one }) => ({
