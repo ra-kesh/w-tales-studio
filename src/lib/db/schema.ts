@@ -301,6 +301,9 @@ export const expenses = pgTable("expenses", {
 	bookingId: integer("booking_id")
 		.notNull()
 		.references(() => bookings.id, { onDelete: "cascade" }),
+	organizationId: text("organization_id")
+		.notNull()
+		.references(() => organizations.id, { onDelete: "cascade" }),
 	billTo: text("bill_to", {
 		enum: Object.values(BillTo) as [string, ...string[]],
 	}).notNull(),
@@ -436,6 +439,10 @@ export const expensesRelations = relations(expenses, ({ one }) => ({
 		fields: [expenses.bookingId],
 		references: [bookings.id],
 	}),
+	organization: one(organizations, {
+		fields: [expenses.organizationId],
+		references: [organizations.id],
+	}),
 	spentByUser: one(users, {
 		fields: [expenses.spentByUserId],
 		references: [users.id],
@@ -475,6 +482,7 @@ export const organizationRelations = relations(organizations, ({ many }) => ({
 	clients: many(clients),
 	bookings: many(bookings),
 	deliverables: many(deliverables),
+	expenses: many(expenses),
 }));
 
 export const invitationsRelations = relations(invitations, ({ one }) => ({

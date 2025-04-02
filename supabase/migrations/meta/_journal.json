@@ -64,6 +64,13 @@
       "when": 1743439581535,
       "tag": "0008_jittery_steve_rogers",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1743599606605,
+      "tag": "0009_pretty_sprite",
+      "breakpoints": true
     }
   ]
 }
