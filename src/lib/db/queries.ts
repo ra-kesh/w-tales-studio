@@ -184,39 +184,27 @@ export async function getTasks(
 	limit = 10,
 ) {
 	const offset = (page - 1) * limit;
-	const [taskData, totalData] = await Promise.all([
-		db
-			.select({
-				id: tasks.id,
-				bookingId: tasks.bookingId,
-				bookingName: bookings.name,
-				deliverableId: tasks.deliverableId,
-				title: deliverables.title,
-				description: tasks.description,
-				status: tasks.status,
-				assignedTo: tasks.assignedTo,
-				priority: tasks.priority,
-				dueDate: tasks.dueDate,
-				createdAt: tasks.createdAt,
-				updatedAt: tasks.updatedAt,
-			})
-			.from(tasks)
-			.leftJoin(bookings, eq(tasks.bookingId, bookings.id))
-			.leftJoin(deliverables, eq(tasks.deliverableId, deliverables.id))
-			.where(eq(bookings.organizationId, userOrganizationId))
-			.limit(limit)
-			.offset(offset),
-		db
-			.select({ count: count() })
-			.from(tasks)
-			.leftJoin(bookings, eq(tasks.bookingId, bookings.id))
-			.where(eq(bookings.organizationId, userOrganizationId)),
-	]);
 
-	const total = totalData[0].count;
+	const tasksData = await db.query.tasks.findMany({
+		where: eq(tasks.organizationId, userOrganizationId),
+		with: {
+			booking: {
+				columns: {
+					name: true,
+				},
+			},
+		},
+		limit,
+		offset,
+	});
+
+	const total = await db.$count(
+		tasks,
+		eq(tasks.organizationId, userOrganizationId),
+	);
 
 	return {
-		data: taskData,
+		data: tasksData,
 		total,
 		page,
 		limit,

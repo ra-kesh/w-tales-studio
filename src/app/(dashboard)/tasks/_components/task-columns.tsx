@@ -10,7 +10,7 @@ import { useTaskConfigs } from "@/hooks/use-task-configs";
 export function useTaskColumns() {
   const { statuses, priorities } = useTaskConfigs();
 
-  const taskColumns: ColumnDef<Task>[] = [
+  const taskColumns: ColumnDef<Task & { booking: { name: string } }>[] = [
     {
       id: "select",
       header: ({ table }) => (
@@ -95,14 +95,14 @@ export function useTaskColumns() {
     },
 
     {
-      accessorKey: "bookingName",
+      accessorKey: "booking",
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Booking" />
       ),
       cell: ({ row }) => {
         return (
           <div className="flex items-center">
-            <span>{row.getValue("bookingName")}</span>
+            <span>{row.original.booking.name}</span>
           </div>
         );
       },
