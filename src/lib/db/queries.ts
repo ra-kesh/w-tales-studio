@@ -152,37 +152,24 @@ export async function getShoots(
 	limit = 10,
 ) {
 	const offset = (page - 1) * limit;
-	const [shootsData, totalData] = await Promise.all([
-		db
-			.select({
-				id: shoots.id,
-				bookingId: shoots.bookingId,
-				bookingName: bookings.name,
-				title: shoots.title,
-				date: shoots.date,
-				time: shoots.time,
-				reportingTime: shoots.reportingTime,
-				duration: shoots.duration,
-				city: shoots.city,
-				venue: shoots.venue,
-				notes: shoots.notes,
-				additionalServices: shoots.additionalServices,
-				createdAt: shoots.createdAt,
-				updatedAt: shoots.updatedAt,
-			})
-			.from(shoots)
-			.leftJoin(bookings, eq(shoots.bookingId, bookings.id))
-			.where(eq(bookings.organizationId, userOrganizationId))
-			.limit(limit)
-			.offset(offset),
-		db
-			.select({ count: count() })
-			.from(shoots)
-			.leftJoin(bookings, eq(shoots.bookingId, bookings.id))
-			.where(eq(bookings.organizationId, userOrganizationId)),
-	]);
 
-	const total = totalData[0].count;
+	const shootsData = await db.query.shoots.findMany({
+		where: eq(shoots.organizationId, userOrganizationId),
+		with: {
+			booking: {
+				columns: {
+					name: true,
+				},
+			},
+		},
+		limit,
+		offset,
+	});
+
+	const total = await db.$count(
+		shoots,
+		eq(shoots.organizationId, userOrganizationId),
+	);
 
 	return {
 		data: shootsData,
