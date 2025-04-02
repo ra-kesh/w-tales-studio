@@ -14,14 +14,20 @@ export default async function BookingDetailsPage({
 		return notFound();
 	}
 
+	const { id } = await params;
+
 	const booking = await getBookingDetail(
 		session.session.activeOrganizationId,
-		Number.parseInt(params.id),
+		Number.parseInt(id),
 	);
 
 	if (!booking) {
 		return notFound();
 	}
 
-	return <BookingDetails booking={booking} />;
+	return (
+		<>
+			<BookingDetails booking={booking} />
+		</>
+	);
 }
