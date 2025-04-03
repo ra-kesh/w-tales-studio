@@ -5,7 +5,7 @@ import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DataTableFacetedFilter } from "./task-table-faceted-filter";
-import { useTaskConfigs } from "@/hooks/use-task-configs";
+import { useTaskConfigs } from "@/hooks/use-configs";
 
 interface DataTableToolbarProps<TData> {
 	table: Table<TData>;

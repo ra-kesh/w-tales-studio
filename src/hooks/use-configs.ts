@@ -47,3 +47,16 @@ export function useTaskConfigs() {
 		isError: statuses.isError || priorities.isError,
 	};
 }
+
+export function usePackageTypes() {
+	return useQuery({
+		queryKey: ["configurations", "package_type"],
+		queryFn: () => fetchConfigs("package_type"),
+		staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
+		select: (data) =>
+			data.map((config) => ({
+				value: config.key,
+				label: config.value,
+			})),
+	});
+}
