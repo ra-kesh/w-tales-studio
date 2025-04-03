@@ -1,14 +1,26 @@
 import React, { Suspense } from "react";
-import ProjeectForm from "../project-form";
+import Bookingform from "../booking-form";
+import {
+	dehydrate,
+	HydrationBoundary,
+	QueryClient,
+} from "@tanstack/react-query";
+import { getServerSession } from "@/lib/dal";
 
-const NewProject = () => {
+const NewBooking = async () => {
+	const { session } = await getServerSession();
+
+	const queryClient = new QueryClient();
+
 	return (
 		<div className="flex items-center justify-center p-4 pt-0">
-			<Suspense>
-				<ProjeectForm />
-			</Suspense>
+			<HydrationBoundary state={dehydrate(queryClient)}>
+				<Suspense>
+					<Bookingform />
+				</Suspense>
+			</HydrationBoundary>
 		</div>
 	);
 };
 
-export default NewProject;
+export default NewBooking;

@@ -3,23 +3,21 @@
 import React, { useCallback, useEffect, useRef } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAppForm } from "@/components/form";
-import { ProjectDetailForm } from "./project-detail-form";
-import { formOptions } from "./project-form-schema";
+import { BookingDetailForm } from "./booking-detail-form";
+import { formOptions } from "./booking-form-schema";
 import { ShootDetailForm } from "./shoot-detail-form";
-import { ProjectDeliveryForm } from "./project-delivery-form";
-import { ProjectPaymentForm } from "./project-payment-form";
+import { BookingDeliveryForm } from "./booking-delivery-form";
+import { BookingPaymentForm } from "./booking-payment-form";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 
-const ProjeectForm = () => {
+const BookingForm = () => {
 	const form = useAppForm({
 		...formOptions,
 		onSubmit: ({ value }) => {
 			console.log("Form submitted:", value);
 		},
 	});
-
-	// console.log(form);
 
 	const searchParams = useSearchParams();
 	const router = useRouter();
@@ -39,7 +37,7 @@ const ProjeectForm = () => {
 		[searchParams],
 	);
 
-	const tabOrder = ["details", "payments", "deliverables", "shoots"];
+	const tabOrder = ["details", "payments", "shoots", "deliverables"];
 	const tabRefs = {
 		details: detailsTabRef,
 		payments: paymentsTabRef,
@@ -55,19 +53,6 @@ const ProjeectForm = () => {
 	const [activeTab, setActiveTab] = React.useState(() => getInitialTabs());
 
 	useEffect(() => {
-		if (!searchParams.get("tab")) {
-			router.push(`?${createQueryString("tab", activeTab)}`, { scroll: false });
-		}
-	}, []);
-
-	useEffect(() => {
-		const activeTabRef = tabRefs[activeTab as keyof typeof tabRefs];
-		if (activeTabRef && activeTabRef.current) {
-			activeTabRef.current.focus();
-		}
-	}, [activeTab]);
-
-	useEffect(() => {
 		const handleKeyDown = (e: KeyboardEvent) => {
 			if (
 				(e.key === "ArrowLeft" || e.key === "ArrowRight") &&
@@ -81,7 +66,7 @@ const ProjeectForm = () => {
 				if (!isSomeTabFocused) {
 					e.preventDefault();
 					const activeTabRef = tabRefs[activeTab as keyof typeof tabRefs];
-					if (activeTabRef && activeTabRef.current) {
+					if (activeTabRef?.current) {
 						activeTabRef.current.focus();
 					}
 				}
@@ -148,19 +133,19 @@ const ProjeectForm = () => {
 					</TabsList>
 
 					<TabsContent value="details" className="space-y-6">
-						<ProjectDetailForm form={form} />
+						<BookingDetailForm form={form} />
 					</TabsContent>
 
 					<TabsContent value="payments" className="space-y-6">
-						<ProjectPaymentForm form={form} />
-					</TabsContent>
-
-					<TabsContent value="deliverables" className="space-y-6">
-						<ProjectDeliveryForm form={form} />
+						<BookingPaymentForm form={form} />
 					</TabsContent>
 
 					<TabsContent value="shoots" className="space-y-6">
 						<ShootDetailForm form={form} />
+					</TabsContent>
+
+					<TabsContent value="deliverables" className="space-y-6">
+						<BookingDeliveryForm form={form} />
 					</TabsContent>
 				</Tabs>
 				<div className="flex justify-between mt-6">
@@ -192,4 +177,4 @@ const ProjeectForm = () => {
 	);
 };
 
-export default ProjeectForm;
+export default BookingForm;
