@@ -10,10 +10,25 @@ import { BookingDeliveryForm } from "./booking-delivery-form";
 import { BookingPaymentForm } from "./booking-payment-form";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { useActionState } from "react";
+import { initialFormState } from "@tanstack/react-form/nextjs";
+import someAction from "../action";
+import {
+	mergeForm,
+	useForm,
+	useStore,
+	useTransform,
+} from "@tanstack/react-form";
 
 const BookingForm = () => {
+	const [state, action] = useActionState(someAction, initialFormState);
+
 	const form = useAppForm({
 		...formOptions,
+		transform: useTransform(
+			(baseForm) => (state ? mergeForm(baseForm, state) : baseForm),
+			[state],
+		),
 		onSubmit: ({ value }) => {
 			console.log("Form submitted:", value);
 		},
@@ -107,10 +122,13 @@ const BookingForm = () => {
 	return (
 		<main className="container max-w-5xl py-6 md:py-10">
 			<form
-				onSubmit={(e) => {
-					e.preventDefault();
-					form.handleSubmit();
-				}}
+				action={action as never}
+				onSubmit={() => form.handleSubmit()}
+
+				// onSubmit={(e) => {
+				// 	e.preventDefault();
+				// 	form.handleSubmit();
+				// }}
 			>
 				<Tabs
 					value={activeTab}

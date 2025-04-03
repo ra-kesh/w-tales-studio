@@ -1,5 +1,5 @@
 import React, { Suspense } from "react";
-import Bookingform from "../booking-form";
+import Bookingform from "./_components/booking-from";
 import {
 	dehydrate,
 	HydrationBoundary,
