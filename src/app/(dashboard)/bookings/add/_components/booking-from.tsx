@@ -147,11 +147,11 @@ const BookingForm = () => {
 						<TabsTrigger ref={paymentsTabRef} value="payments">
 							Payments
 						</TabsTrigger>
-						<TabsTrigger ref={deliverablesTabRef} value="deliverables">
-							Deliverables
-						</TabsTrigger>
 						<TabsTrigger ref={shootsTabRef} value="shoots">
 							Shoots
+						</TabsTrigger>
+						<TabsTrigger ref={deliverablesTabRef} value="deliverables">
+							Deliverables
 						</TabsTrigger>
 					</TabsList>
 
@@ -175,7 +175,7 @@ const BookingForm = () => {
 					<div className="flex items-center gap-6">
 						<Button
 							type="button"
-							variant={"secondary"}
+							variant={"outline"}
 							onClick={goToPreviousTab}
 							disabled={isFirstTab}
 						>
@@ -184,7 +184,7 @@ const BookingForm = () => {
 
 						<Button
 							type="button"
-							variant={"secondary"}
+							variant={"outline"}
 							onClick={goToNextTab}
 							disabled={isLastTab}
 						>
