@@ -50,15 +50,15 @@ export const ContactMethods = ContactMethod.options.map(({ value }) => ({
 	label: value.charAt(0).toUpperCase() + value.slice(1),
 }));
 
-export const BookingTypes = Object.entries(BookingType).map(([_, value]) => ({
-	value,
-	label: value,
-}));
+// export const BookingTypes = Object.entries(BookingType).map(([_, value]) => ({
+// 	value,
+// 	label: value,
+// }));
 
-export const PackageTypes = Object.entries(PackageType).map(([_, value]) => ({
-	value,
-	label: value,
-}));
+// export const PackageTypes = Object.entries(PackageType).map(([_, value]) => ({
+// 	value,
+// 	label: value,
+// }));
 
 export const RelationType = z.union([
 	z.literal("bride"),

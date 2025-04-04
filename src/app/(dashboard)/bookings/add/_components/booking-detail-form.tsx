@@ -3,16 +3,15 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { withForm } from "@/components/form";
-import {
-	BookingTypes,
-	formOpts,
-	PackageTypes,
-	RelationTypes,
-} from "./booking-form-schema";
+import { formOpts, RelationTypes } from "./booking-form-schema";
+import { useBookingTypes, usePackageTypes } from "@/hooks/use-configs";
 
 export const BookingDetailForm = withForm({
 	...formOpts,
 	render: ({ form }) => {
+		const { data: packageTypes = [] } = usePackageTypes();
+		const { data: bookingTypes = [] } = useBookingTypes();
+
 		return (
 			<>
 				<Card>
@@ -33,17 +32,23 @@ export const BookingDetailForm = withForm({
 								children={(field) => (
 									<field.SelectField
 										label="Booking Type"
-										options={BookingTypes}
+										options={bookingTypes}
 										className="w-full"
 									/>
 								)}
 							/>
 							<form.AppField
 								name="packageType"
+								// listeners={{
+								// 	onChange: async ({ value, fieldApi }) => {
+								// 		const cost = await fetchPackageCost(value);
+								// 		fieldApi.form.setFieldValue("packageCost", cost.toFixed(2));
+								// 	},
+								// }}
 								children={(field) => (
 									<field.SelectField
 										label="Package Type"
-										options={PackageTypes}
+										options={packageTypes}
 										className="w-full"
 									/>
 								)}
