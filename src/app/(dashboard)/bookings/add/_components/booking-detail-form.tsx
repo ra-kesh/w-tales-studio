@@ -5,12 +5,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { withForm } from "@/components/form";
 import { formOpts, RelationTypes } from "./booking-form-schema";
 import { useBookingTypes, usePackageTypes } from "@/hooks/use-configs";
+import { useStore } from "@tanstack/react-form";
 
 export const BookingDetailForm = withForm({
 	...formOpts,
 	render: ({ form }) => {
 		const { data: packageTypes = [] } = usePackageTypes();
 		const { data: bookingTypes = [] } = useBookingTypes();
+
+		const bookingType = useStore(
+			form.store,
+			(state) => state.values.bookingType,
+		);
 
 		return (
 			<>
@@ -19,13 +25,15 @@ export const BookingDetailForm = withForm({
 						<CardTitle>Booking Details</CardTitle>
 					</CardHeader>
 					<CardContent className="space-y-4">
-						<div className="grid gap-4 md:grid-cols-2">
-							<form.AppField
-								name="bookingName"
-								children={(field) => (
-									<field.TextField label="Booking name" required />
-								)}
-							/>
+						<div className="grid gap-4 lg:grid-cols-5">
+							<div className="col-span-2">
+								<form.AppField
+									name="bookingName"
+									children={(field) => (
+										<field.TextField label="Booking name" required />
+									)}
+								/>
+							</div>
 
 							<form.AppField
 								name="bookingType"
@@ -83,32 +91,67 @@ export const BookingDetailForm = withForm({
 				</Card>
 				<Card>
 					<CardHeader>
-						<CardTitle>Client Information</CardTitle>
+						<CardTitle>Client Detail</CardTitle>
 					</CardHeader>
 					<CardContent className="space-y-4">
 						<div className="grid gap-4 md:grid-cols-2">
-							<form.AppField
-								name="clientName"
-								children={(field) => (
-									<field.TextField label="Client name" required />
-								)}
-							/>
-							<form.AppField
-								name="relation"
-								children={(field) => (
-									<field.SelectField
-										label="Relation"
-										options={RelationTypes}
-										className="w-full"
+							{bookingType === "COMMERCIAL" && (
+								<>
+									<form.AppField
+										name="clientName"
+										children={(field) => (
+											<field.TextField label="Client name" required />
+										)}
 									/>
-								)}
-							/>
+									<form.AppField
+										name="companyName"
+										children={(field) => (
+											<field.TextField label="Company name" required />
+										)}
+									/>
+								</>
+							)}
+
+							{bookingType === "WEDDING" && (
+								<>
+									<form.AppField
+										name="brideName"
+										children={(field) => (
+											<field.TextField label="Bride name" required />
+										)}
+									/>
+									<form.AppField
+										name="groomName"
+										children={(field) => (
+											<field.TextField label="Groom name" required />
+										)}
+									/>
+
+									<form.AppField
+										name="pocName"
+										children={(field) => (
+											<field.TextField label="Point of Contact" required />
+										)}
+									/>
+
+									<form.AppField
+										name="relation"
+										children={(field) => (
+											<field.SelectField
+												label="Relation"
+												options={RelationTypes}
+												className="w-full"
+											/>
+										)}
+									/>
+								</>
+							)}
 
 							<form.AppField
 								name="phone"
 								children={(field) => (
 									<field.TextField
-										label="Phone number"
+										label="Phone Number"
 										type="tel"
 										// pattern="[0-9]{3}-[0-9]{2}-[0-9]{3}"
 										required
