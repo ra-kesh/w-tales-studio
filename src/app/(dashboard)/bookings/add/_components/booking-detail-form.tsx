@@ -39,12 +39,26 @@ export const BookingDetailForm = withForm({
 							/>
 							<form.AppField
 								name="packageType"
-								// listeners={{
-								// 	onChange: async ({ value, fieldApi }) => {
-								// 		const cost = await fetchPackageCost(value);
-								// 		fieldApi.form.setFieldValue("packageCost", cost.toFixed(2));
-								// 	},
-								// }}
+								listeners={{
+									// onMount: async () => {
+									// 	if (packageTypes) {
+									// 		form.setFieldValue("packageType", packageTypes[0]?.value);
+									// 	}
+									// },
+									onChange: async ({ value, fieldApi }) => {
+										const selectedPackage = packageTypes.find(
+											(pkg) => pkg.value === value,
+										);
+										if (selectedPackage) {
+											form.setFieldValue(
+												"packageCost",
+												selectedPackage.metadata.defaultCost as string,
+											);
+										} else {
+											form.setFieldValue("packageCost", "");
+										}
+									},
+								}}
 								children={(field) => (
 									<field.SelectField
 										label="Package Type"
@@ -96,7 +110,7 @@ export const BookingDetailForm = withForm({
 									<field.TextField
 										label="Phone number"
 										type="tel"
-										pattern="[0-9]{3}-[0-9]{2}-[0-9]{3}"
+										// pattern="[0-9]{3}-[0-9]{2}-[0-9]{3}"
 										required
 										placeholder="+91 xxxxxxxxxx"
 									/>

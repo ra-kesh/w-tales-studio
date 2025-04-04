@@ -37,6 +37,8 @@ const BookingForm = () => {
 		},
 	});
 
+	console.log(form);
+
 	const searchParams = useSearchParams();
 	const router = useRouter();
 
@@ -125,13 +127,13 @@ const BookingForm = () => {
 	return (
 		<main className="container max-w-5xl py-6 md:py-10">
 			<form
-				action={action as never}
-				onSubmit={() => form.handleSubmit()}
+				// action={action as never}
+				// onSubmit={() => form.handleSubmit()}
 
-				// onSubmit={(e) => {
-				// 	e.preventDefault();
-				// 	form.handleSubmit();
-				// }}
+				onSubmit={(e) => {
+					e.preventDefault();
+					form.handleSubmit();
+				}}
 			>
 				<Tabs
 					value={activeTab}
@@ -190,7 +192,7 @@ const BookingForm = () => {
 						</Button>
 					</div>
 					<form.AppForm>
-						<form.SubmitButton>Submit</form.SubmitButton>
+						<form.SubmitButton label="Submit" />
 					</form.AppForm>
 				</div>
 			</form>

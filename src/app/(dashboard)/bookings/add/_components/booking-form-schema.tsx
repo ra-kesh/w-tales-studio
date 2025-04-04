@@ -1,42 +1,5 @@
-import { BookingType, PackageType } from "@/lib/db/schema";
 import { formOptions } from "@tanstack/react-form";
 import { z } from "zod";
-
-export const RequiredPositiveWholeNumber = z.union([
-	z.coerce
-		.number({
-			message: "must be a number",
-		})
-		.int({
-			message: "must be a whole number",
-		})
-		.positive({
-			message: "must be positive",
-		}),
-	z.literal("").refine(() => false, {
-		message: "required",
-	}),
-]);
-
-export type RequiredPositiveWholeNumber = z.infer<
-	typeof RequiredPositiveWholeNumber
->;
-
-export const OptionalPositiveWholeNumber = z
-	.union([
-		z.coerce
-			.number({
-				message: "must be a number",
-			})
-			.int({
-				message: "must be a whole number",
-			})
-			.positive({
-				message: "must be positive",
-			}),
-		z.literal(""),
-	])
-	.optional();
 
 export const ContactMethod = z.union([
 	z.literal("email"),
@@ -49,16 +12,6 @@ export const ContactMethods = ContactMethod.options.map(({ value }) => ({
 	value,
 	label: value.charAt(0).toUpperCase() + value.slice(1),
 }));
-
-// export const BookingTypes = Object.entries(BookingType).map(([_, value]) => ({
-// 	value,
-// 	label: value,
-// }));
-
-// export const PackageTypes = Object.entries(PackageType).map(([_, value]) => ({
-// 	value,
-// 	label: value,
-// }));
 
 export const RelationType = z.union([
 	z.literal("bride"),
@@ -78,11 +31,29 @@ export const RelationTypes = RelationType.options.map(({ value }) => ({
 	label: value.charAt(0).toUpperCase() + value.slice(1),
 }));
 
+// First, create a decimal validator
+export const DecimalString = z.string().transform((val, ctx) => {
+	// Remove any non-numeric characters except decimal point
+	const cleaned = val.replace(/[^\d.]/g, "");
+	const parsed = Number.parseFloat(cleaned);
+
+	if (Number.isNaN(parsed)) {
+		ctx.addIssue({
+			code: z.ZodIssueCode.custom,
+			message: "Must be a valid number",
+		});
+		return z.NEVER;
+	}
+
+	// Format to 2 decimal places
+	return parsed.toFixed(2);
+});
+
 export const BookingSchema = z.object({
 	bookingName: z.string().min(1, "Booking name is required"),
 	bookingType: z.string().min(1, "Booking type is required"),
 	packageType: z.string().min(1, "Package type is required"),
-	packageCost: RequiredPositiveWholeNumber,
+	packageCost: DecimalString,
 	clientName: z.string().min(1, "Client name is required"),
 	relation: RelationType.optional(),
 	phone: z.string().min(1, "Phone number is required"),
@@ -98,26 +69,26 @@ export const BookingSchema = z.object({
 	deliverables: z.array(
 		z.object({
 			title: z.string().min(1, "Title is required"),
-			cost: RequiredPositiveWholeNumber,
-			quantity: RequiredPositiveWholeNumber,
+			cost: DecimalString,
+			quantity: DecimalString,
 			dueDate: z.string().min(1, "Due date is required"),
 		}),
 	),
 	payments: z.array(
 		z.object({
-			amount: RequiredPositiveWholeNumber,
+			amount: DecimalString,
 			description: z.string().optional(),
 			date: z.string(),
 		}),
 	),
 	scheduledPayments: z.array(
 		z.object({
-			amount: RequiredPositiveWholeNumber,
+			amount: DecimalString,
 			description: z.string().min(1, "Description is required"),
 			dueDate: z.string().min(1, "Due date is required"),
 		}),
 	),
-	receivedAmount: OptionalPositiveWholeNumber,
+	receivedAmount: DecimalString,
 	dueDate: z.string().min(1, "Due date is required"),
 	contactMethod: ContactMethod,
 });
@@ -127,7 +98,7 @@ export const defaultBooking: Booking = {
 	bookingName: "",
 	bookingType: "",
 	packageType: "",
-	packageCost: "",
+	packageCost: "0.00",
 	clientName: "",
 	relation: undefined,
 	phone: "",
