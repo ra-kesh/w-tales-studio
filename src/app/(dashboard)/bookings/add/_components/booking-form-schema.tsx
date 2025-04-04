@@ -67,7 +67,7 @@ export const BookingSchema = z.object({
 			title: z.string().min(1, "Title is required"),
 			date: z.string().min(1, "Date is required"),
 			time: z.string().min(1, "Time is required"),
-			city: z.string().min(1, "City is required"),
+			location: z.string().min(1, "location is required"),
 		}),
 	),
 	deliverables: z.array(
