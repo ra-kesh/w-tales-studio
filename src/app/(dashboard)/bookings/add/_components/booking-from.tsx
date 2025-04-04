@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useRef } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAppForm } from "@/components/form";
 import { BookingDetailForm } from "./booking-detail-form";
-import { formOptions } from "./booking-form-schema";
+import { BookingSchema, formOpts } from "./booking-form-schema";
 import { ShootDetailForm } from "./shoot-detail-form";
 import { BookingDeliveryForm } from "./booking-delivery-form";
 import { BookingPaymentForm } from "./booking-payment-form";
@@ -24,7 +24,10 @@ const BookingForm = () => {
 	const [state, action] = useActionState(someAction, initialFormState);
 
 	const form = useAppForm({
-		...formOptions,
+		...formOpts,
+		validators: {
+			onChange: BookingSchema,
+		},
 		transform: useTransform(
 			(baseForm) => (state ? mergeForm(baseForm, state) : baseForm),
 			[state],

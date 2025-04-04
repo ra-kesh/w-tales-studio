@@ -6,11 +6,11 @@ import {
 	ServerValidateError,
 	createServerValidate,
 } from "@tanstack/react-form/nextjs";
-import { formOptions } from "./_components/booking-form-schema";
+import { formOpts } from "./_components/booking-form-schema";
 
 // Create the server action that will infer the types of the form from `formOpts`
 const serverValidate = createServerValidate({
-	...formOptions,
+	...formOpts,
 	onServerValidate: ({ value }) => {
 		// if (value.age < 12) {
 		// 	return "Server validation: You must be at least 12 to sign up";

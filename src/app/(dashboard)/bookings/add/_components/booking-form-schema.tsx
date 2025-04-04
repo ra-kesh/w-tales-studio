@@ -1,4 +1,5 @@
 import { BookingType, PackageType } from "@/lib/db/schema";
+import { formOptions } from "@tanstack/react-form";
 import { z } from "zod";
 
 export const RequiredPositiveWholeNumber = z.union([
@@ -79,8 +80,8 @@ export const RelationTypes = RelationType.options.map(({ value }) => ({
 
 export const BookingSchema = z.object({
 	bookingName: z.string().min(1, "Booking name is required"),
-	bookingType: z.nativeEnum(BookingType),
-	packageType: z.nativeEnum(PackageType),
+	bookingType: z.string().min(1, "Booking type is required"),
+	packageType: z.string().min(1, "Package type is required"),
 	packageCost: RequiredPositiveWholeNumber,
 	clientName: z.string().min(1, "Client name is required"),
 	relation: RelationType.optional(),
@@ -124,8 +125,8 @@ export type Booking = z.infer<typeof BookingSchema>;
 
 export const defaultBooking: Booking = {
 	bookingName: "",
-	bookingType: BookingType.WEDDING,
-	packageType: PackageType.BASIC_SINGLE,
+	bookingType: "",
+	packageType: "",
 	packageCost: "",
 	clientName: "",
 	relation: undefined,
@@ -140,9 +141,6 @@ export const defaultBooking: Booking = {
 	contactMethod: "phone",
 };
 
-export const formOptions = {
+export const formOpts = formOptions({
 	defaultValues: defaultBooking,
-	validators: {
-		onChange: BookingSchema,
-	},
-};
+});

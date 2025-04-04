@@ -3,12 +3,12 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { withForm } from "@/components/form";
-import { formOptions } from "./booking-form-schema";
+import { formOpts } from "./booking-form-schema";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash } from "lucide-react";
 
 export const BookingPaymentForm = withForm({
-	...formOptions,
+	...formOpts,
 	render: ({ form }) => {
 		return (
 			<>
