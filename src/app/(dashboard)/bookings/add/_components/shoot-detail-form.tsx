@@ -61,7 +61,9 @@ export const ShootDetailForm = withForm({
 													<div className="col-span-2">
 														<form.AppField
 															name={`shoots[${i}].time`}
-															children={(subField) => <subField.TimeField />}
+															children={(subField) => (
+																<subField.TimeField placeholder="Pick a time" />
+															)}
 														/>
 													</div>
 													<div className="col-span-2">

@@ -42,6 +42,7 @@ export const BookingDetailForm = withForm({
 										label="Booking Type"
 										options={bookingTypes}
 										className="w-full"
+										required
 									/>
 								)}
 							/>
@@ -93,6 +94,7 @@ export const BookingDetailForm = withForm({
 										label="Package Type"
 										options={packageTypes}
 										className="w-full"
+										required
 									/>
 								)}
 							/>
@@ -121,13 +123,13 @@ export const BookingDetailForm = withForm({
 									<form.AppField
 										name="clientName"
 										children={(field) => (
-											<field.TextField label="Client name" required />
+											<field.TextField label="Client name" />
 										)}
 									/>
 									<form.AppField
 										name="companyName"
 										children={(field) => (
-											<field.TextField label="Company name" required />
+											<field.TextField label="Company name" />
 										)}
 									/>
 								</>

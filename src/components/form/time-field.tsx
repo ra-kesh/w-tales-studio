@@ -1,8 +1,5 @@
 "use client";
 
-import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { useFieldContext } from ".";
 import { Label } from "../ui/label";
 
@@ -18,10 +15,12 @@ import { ScrollArea } from "../ui/scroll-area";
 
 type Props = {
 	label?: string;
+	placeholder?: string;
+	className?: string;
 	required?: boolean;
 };
 
-export const TimeField = ({ label, required }: Props) => {
+export const TimeField = ({ label, required, placeholder }: Props) => {
 	const field = useFieldContext<string | undefined>();
 
 	return (
@@ -31,36 +30,13 @@ export const TimeField = ({ label, required }: Props) => {
 					{label ?? null}
 					{required && <span className="text-destructive">*</span>}
 				</Label>
-				{/* <Popover>
-					<PopoverTrigger asChild>
-						<Button
-							variant={"outline"}
-							className={cn(
-								"w-full pl-3 text-left font-normal",
-								!field.state.value && "text-muted-foreground",
-							)}
-						>
-							{field.state.value ? (
-								format(field.state.value, "PPP")
-							) : (
-								<span>Pick a date</span>
-							)}
-							<CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-						</Button>
-					</PopoverTrigger>
-					<PopoverContent className="w-auto p-0" align="start">
-						<Calendar
-							mode="single"
-							selected={parseDate(field.state.value)}
-							onSelect={handleDateChange}
-							disabled={(date) => date < new Date("1900-01-01")}
-							initialFocus
-						/>
-					</PopoverContent>
-				</Popover> */}
-				<Select>
+
+				<Select
+					value={field.state.value}
+					onValueChange={(value) => field.handleChange(value)}
+				>
 					<SelectTrigger className="font-normal focus:ring-0  focus:ring-offset-0 w-full">
-						<SelectValue />
+						<SelectValue placeholder={placeholder} />
 					</SelectTrigger>
 					<SelectContent>
 						<ScrollArea className="h-[15rem]">
