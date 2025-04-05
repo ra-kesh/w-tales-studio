@@ -79,6 +79,7 @@ export const BookingPaymentForm = withForm({
 										</div>
 										<Button
 											size="sm"
+											type="button"
 											variant="outline"
 											className="mt-4"
 											onClick={() =>
@@ -115,8 +116,8 @@ export const BookingPaymentForm = withForm({
 										<div className="rounded-md border">
 											<div className="grid grid-cols-10 border-b bg-muted/50 px-4 py-3 text-sm font-medium gap-4">
 												<div className="col-span-3">Amount</div>
-												<div className="col-span-3">Description</div>
 												<div className="col-span-3">Due Date</div>
+												<div className="col-span-3">Description</div>
 												<div className="col-span-1" />
 											</div>
 
@@ -140,15 +141,14 @@ export const BookingPaymentForm = withForm({
 														</div>
 														<div className="col-span-3">
 															<form.AppField
-																name={`scheduledPayments[${i}].description`}
-																children={(subField) => <subField.TextField />}
-															/>
-														</div>
-
-														<div className="col-span-3">
-															<form.AppField
 																name={`scheduledPayments[${i}].dueDate`}
 																children={(subField) => <subField.DateField />}
+															/>
+														</div>
+														<div className="col-span-3">
+															<form.AppField
+																name={`scheduledPayments[${i}].description`}
+																children={(subField) => <subField.TextField />}
 															/>
 														</div>
 
@@ -166,6 +166,7 @@ export const BookingPaymentForm = withForm({
 										</div>
 										<Button
 											size="sm"
+											type="button"
 											variant="outline"
 											className="mt-4"
 											onClick={() =>

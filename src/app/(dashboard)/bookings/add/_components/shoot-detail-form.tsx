@@ -85,6 +85,7 @@ export const ShootDetailForm = withForm({
 									</div>
 									<Button
 										size="sm"
+										type="button"
 										variant="outline"
 										className="mt-4"
 										onClick={() =>
