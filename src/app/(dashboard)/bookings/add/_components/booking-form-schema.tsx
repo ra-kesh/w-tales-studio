@@ -50,15 +50,17 @@ export const DecimalString = z.string().transform((val, ctx) => {
 });
 
 export const BookingSchema = z.object({
-	bookingName: z.string().min(1, "Booking name is required"),
-	bookingType: z.string().min(1, "Booking type is required"),
-	packageType: z.string().min(1, "Package type is required"),
+	bookingName: z.string().min(1, "Required field"),
+	bookingType: z.string().min(1, "Required field"),
+	packageType: z.string().min(1, "Required field"),
 	packageCost: DecimalString,
-	clientName: z.string().min(1, "Client name is required"),
+	clientName: z.string(),
 	companyName: z.string(),
-	brideName: z.string().min(1, "Bride name is required"),
-	groomName: z.string().min(1, "Groom name is required"),
-	pocName: z.string().min(1, "Point of contact is required"),
+	brideName: z.string().min(1, "Required field"),
+	groomName: z.string().min(1, "Required field"),
+	pocName: z.string(),
+	note: z.string(),
+	address: z.string(),
 	relation: RelationType.optional(),
 	phone: z.string().min(1, "Phone number is required"),
 	email: z.string().email("Invalid email address").optional(),
@@ -75,7 +77,7 @@ export const BookingSchema = z.object({
 			title: z.string().min(1, "Title is required"),
 			cost: DecimalString,
 			quantity: DecimalString,
-			dueDate: z.string().min(1, "Due date is required"),
+			dueDate: z.string(),
 		}),
 	),
 	payments: z.array(
@@ -88,13 +90,13 @@ export const BookingSchema = z.object({
 	scheduledPayments: z.array(
 		z.object({
 			amount: DecimalString,
-			description: z.string().min(1, "Description is required"),
-			dueDate: z.string().min(1, "Due date is required"),
+			description: z.string(),
+			dueDate: z.string(),
 		}),
 	),
-	receivedAmount: DecimalString,
-	dueDate: z.string().min(1, "Due date is required"),
-	contactMethod: ContactMethod,
+	// receivedAmount: DecimalString,
+	// dueDate: z.string().min(1, "Due date is required"),
+	// contactMethod: ContactMethod,
 });
 export type Booking = z.infer<typeof BookingSchema>;
 
@@ -115,9 +117,11 @@ export const defaultBooking: Booking = {
 	deliverables: [],
 	payments: [],
 	scheduledPayments: [],
-	receivedAmount: "",
-	dueDate: "",
-	contactMethod: "phone",
+	note: "",
+	address: "",
+	// receivedAmount: "",
+	// dueDate: "",
+	// contactMethod: "phone",
 };
 
 export const formOpts = formOptions({

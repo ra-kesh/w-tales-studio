@@ -5,16 +5,17 @@ import { useFieldContext } from ".";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { FieldErrors } from "./field-errors";
+import { Textarea } from "../ui/textarea";
 
 type TextFieldProps = {
 	label?: string;
 	required?: boolean;
-} & React.InputHTMLAttributes<HTMLInputElement>;
+} & React.TextareaHTMLAttributes<HTMLTextAreaElement>;
 
-export const TextField = ({
+export const TextAreaField = ({
 	label,
 	required,
-	...inputProps
+	...textAreaProps
 }: TextFieldProps) => {
 	const field = useFieldContext<string>();
 
@@ -25,12 +26,12 @@ export const TextField = ({
 					{label ? label : null}
 					{required && <span className="text-destructive">*</span>}
 				</Label>
-				<Input
+				<Textarea
 					id={field.name}
 					value={field.state.value}
 					onChange={(e) => field.handleChange(e.target.value)}
 					onBlur={field.handleBlur}
-					{...inputProps}
+					{...textAreaProps}
 				/>
 			</div>
 			<FieldErrors meta={field.state.meta} />

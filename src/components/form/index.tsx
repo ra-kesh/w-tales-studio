@@ -6,6 +6,7 @@ import { SubmitButton } from "./submit-button";
 import { PriceField } from "./price-field";
 import { DateField } from "./date-field";
 import { TimeField } from "./time-field";
+import { TextAreaField } from "./text-area-field";
 
 export const { fieldContext, useFieldContext, formContext, useFormContext } =
 	createFormHookContexts();
@@ -18,6 +19,7 @@ export const { useAppForm, withForm } = createFormHook({
 		PriceField,
 		DateField,
 		TimeField,
+		TextAreaField,
 	},
 	formComponents: {
 		SubmitButton,
