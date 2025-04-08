@@ -2,9 +2,12 @@
 
 import React, { useCallback, useEffect, useRef } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useAppForm } from "@/components/form";
 import { BookingDetailForm } from "./booking-detail-form";
-import { Booking, BookingSchema, formOpts } from "./booking-form-schema";
+import {
+	type Booking,
+	BookingSchema,
+	defaultBooking,
+} from "./booking-form-schema";
 import { ShootDetailForm } from "./shoot-detail-form";
 import { BookingDeliveryForm } from "./booking-delivery-form";
 import { BookingPaymentForm } from "./booking-payment-form";
@@ -18,16 +21,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Form } from "@/components/ui/form";
 
 const BookingForm = () => {
-	const [state, action] = useActionState(someAction, initialFormState);
+	// const [state, action] = useActionState(someAction, initialFormState);
 
 	const form = useForm<Booking>({
 		resolver: zodResolver(BookingSchema),
-		defaultValues: {
-			bookingType: "WEDDING",
-			shoots: [],
-			deliverables: [],
-		},
+		defaultValues: defaultBooking,
 	});
+
+	console.log(form.getValues());
 
 	const searchParams = useSearchParams();
 	const router = useRouter();
@@ -115,12 +116,7 @@ const BookingForm = () => {
 	const isLastTab = tabOrder.indexOf(activeTab) === tabOrder.length - 1;
 
 	const onSubmit = async (data: Booking) => {
-		// try {
-		//   await action(data);
-		//   router.push("/bookings");
-		// } catch (error) {
-		//   console.error("Error submitting form:", error);
-		// }
+		console.log(data);
 	};
 
 	return (
