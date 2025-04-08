@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useRef } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAppForm } from "@/components/form";
 import { BookingDetailForm } from "./booking-detail-form";
-import { BookingSchema, formOpts } from "./booking-form-schema";
+import { Booking, BookingSchema, formOpts } from "./booking-form-schema";
 import { ShootDetailForm } from "./shoot-detail-form";
 import { BookingDeliveryForm } from "./booking-delivery-form";
 import { BookingPaymentForm } from "./booking-payment-form";
@@ -13,32 +13,21 @@ import { Button } from "@/components/ui/button";
 import { useActionState } from "react";
 import { initialFormState } from "@tanstack/react-form/nextjs";
 import someAction from "../action";
-import {
-	mergeForm,
-	useForm,
-	useStore,
-	useTransform,
-} from "@tanstack/react-form";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Form } from "@/components/ui/form";
 
 const BookingForm = () => {
 	const [state, action] = useActionState(someAction, initialFormState);
 
-	const form = useAppForm({
-		...formOpts,
-		validators: {
-			onChange: BookingSchema,
-		},
-		// transform: useTransform(
-		//   (baseForm) => (state ? mergeForm(baseForm, state) : baseForm),
-		//   [state]
-		// ),
-		onSubmit: ({ value }) => {
-			console.log("Form submitted:", value);
-			// alert(JSON.stringify(value, null, 2));
+	const form = useForm<Booking>({
+		resolver: zodResolver(BookingSchema),
+		defaultValues: {
+			bookingType: "WEDDING",
+			shoots: [],
+			deliverables: [],
 		},
 	});
-
-	console.log(Object.entries(form.state.errors));
 
 	const searchParams = useSearchParams();
 	const router = useRouter();
@@ -125,16 +114,20 @@ const BookingForm = () => {
 	const isFirstTab = tabOrder.indexOf(activeTab) === 0;
 	const isLastTab = tabOrder.indexOf(activeTab) === tabOrder.length - 1;
 
-	return (
-		<main className="container max-w-5xl py-6 md:py-10">
-			<form
-				// action={action as never}
-				// onSubmit={() => form.handleSubmit()}
+	const onSubmit = async (data: Booking) => {
+		// try {
+		//   await action(data);
+		//   router.push("/bookings");
+		// } catch (error) {
+		//   console.error("Error submitting form:", error);
+		// }
+	};
 
-				onSubmit={(e) => {
-					e.preventDefault();
-					form.handleSubmit();
-				}}
+	return (
+		<Form {...form}>
+			<form
+				onSubmit={form.handleSubmit(onSubmit)}
+				className="container max-w-5xl py-6 md:py-10"
 			>
 				<Tabs
 					value={activeTab}
@@ -157,37 +150,23 @@ const BookingForm = () => {
 					</TabsList>
 
 					<TabsContent value="details" className="space-y-6">
-						<BookingDetailForm form={form} />
+						<BookingDetailForm />
 					</TabsContent>
 
 					<TabsContent value="payments" className="space-y-6">
-						<BookingPaymentForm form={form} />
+						<BookingPaymentForm />
 					</TabsContent>
 
 					<TabsContent value="shoots" className="space-y-6">
-						<ShootDetailForm form={form} />
+						<ShootDetailForm />
 					</TabsContent>
 
 					<TabsContent value="deliverables" className="space-y-6">
-						<BookingDeliveryForm form={form} />
+						<BookingDeliveryForm />
 					</TabsContent>
 				</Tabs>
-				<div className="flex justify-between mt-6">
-					{/* {Object.keys(form.state.errors).length > 0 && (
-            <div className="bg-destructive/15 text-destructive rounded-lg p-4">
-              <h3 className="font-semibold mb-2">
-                Please fix the following errors:
-              </h3>
-              <ul className="list-disc list-inside space-y-1">
-                {Object.entries(form.state.errors).map(([field, error]) => (
-                  <li key={field}>
-                    {field}: {error.message}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )} */}
 
+				<div className="flex justify-between mt-6">
 					<div className="flex items-center gap-6">
 						<Button
 							type="button"
@@ -197,7 +176,6 @@ const BookingForm = () => {
 						>
 							Previous
 						</Button>
-
 						<Button
 							type="button"
 							variant={"outline"}
@@ -207,12 +185,10 @@ const BookingForm = () => {
 							Next
 						</Button>
 					</div>
-					<form.AppForm>
-						<form.SubmitButton label="Submit" />
-					</form.AppForm>
+					<Button type="submit">Submit</Button>
 				</div>
 			</form>
-		</main>
+		</Form>
 	);
 };
 

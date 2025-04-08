@@ -2,112 +2,144 @@
 
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { withForm } from "@/components/form";
-import { formOpts } from "./booking-form-schema";
+import { useFieldArray, useFormContext } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash } from "lucide-react";
+import { FormField, FormItem, FormControl } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+// import { DatePicker } from "@/components/ui/date-picker";
 
-export const BookingDeliveryForm = withForm({
-	...formOpts,
-	render: ({ form }) => {
-		return (
-			<Card>
-				<CardHeader className="flex flex-row items-center justify-between">
-					<CardTitle>Deliverables</CardTitle>
-					{/* <Button size="sm" variant="outline">
-						<Plus className="mr-2 h-4 w-4" />
-						Add Deliverable
-					</Button> */}
-				</CardHeader>
-				<CardContent>
-					<form.Field name="deliverables" mode="array">
-						{(field) => {
-							return (
-								<>
-									<div className="rounded-md border">
-										<div className="grid grid-cols-10 border-b bg-muted/50 px-4 py-3 text-sm font-medium gap-4">
-											<div className="col-span-3">Title</div>
-											<div className="col-span-2">Extra Cost</div>
-											<div className="col-span-2">Quantity</div>
-											<div className="col-span-2">Due Date</div>
-										</div>
+export function BookingDeliveryForm() {
+  const { control } = useFormContext();
 
-										{field.state.value.length === 0 && (
-											<div className="p-4 text-center text-sm text-muted-foreground">
-												No deliverables added yet.
-											</div>
-										)}
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "deliverables",
+  });
 
-										{field.state.value.map((_, i) => {
-											return (
-												<div
-													key={i}
-													className="grid grid-cols-10 px-4 py-3 gap-4 relative"
-												>
-													<div className="col-span-3">
-														<form.AppField
-															name={`deliverables[${i}].title`}
-															children={(subField) => <subField.TextField />}
-														/>
-													</div>
-													<div className="col-span-2">
-														<form.AppField
-															name={`deliverables[${i}].cost`}
-															children={(subField) => <subField.PriceField />}
-														/>
-													</div>
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <CardTitle>Deliverables</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="rounded-md border">
+          <div className="grid grid-cols-10 border-b bg-muted/50 px-4 py-3 text-sm font-medium gap-4">
+            <div className="col-span-3">Title</div>
+            <div className="col-span-2">Extra Cost</div>
+            <div className="col-span-2">Quantity</div>
+            <div className="col-span-2">Due Date</div>
+          </div>
 
-													<div className="col-span-2">
-														<form.AppField
-															name={`deliverables[${i}].quantity`}
-															children={(subField) => (
-																<subField.TextField type="number" />
-															)}
-														/>
-													</div>
+          {fields.length === 0 && (
+            <div className="p-4 text-center text-sm text-muted-foreground">
+              No deliverables added yet.
+            </div>
+          )}
 
-													<div className="col-span-2">
-														<form.AppField
-															name={`deliverables[${i}].dueDate`}
-															children={(subField) => <subField.DateField />}
-														/>
-													</div>
+          {fields.map((field, index) => (
+            <div
+              key={field.id}
+              className="grid grid-cols-10 px-4 py-3 gap-4 relative"
+            >
+              <div className="col-span-3">
+                <FormField
+                  control={control}
+                  name={`deliverables.${index}.title`}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <Input placeholder="Deliverable title" {...field} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
 
-													<Button
-														variant={"outline"}
-														className="ml-auto cursor-pointer mt-1.5"
-														size="sm"
-														onClick={() => field.removeValue(i)}
-													>
-														<Trash className="h-4 w-4" />
-													</Button>
-												</div>
-											);
-										})}
-									</div>
-									<Button
-										size="sm"
-										type="button"
-										variant="outline"
-										className="mt-4"
-										onClick={() =>
-											field.pushValue({
-												title: "",
-												cost: "",
-												quantity: "",
-												dueDate: "",
-											})
-										}
-									>
-										<Plus className="mr-2 h-4 w-4" />
-										Add Deliverables
-									</Button>
-								</>
-							);
-						}}
-					</form.Field>
-				</CardContent>
-			</Card>
-		);
-	},
-});
+              <div className="col-span-2">
+                <FormField
+                  control={control}
+                  name={`deliverables.${index}.cost`}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          placeholder="0.00"
+                          {...field}
+                          onChange={(e) => field.onChange(e.target.value)}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="col-span-2">
+                <FormField
+                  control={control}
+                  name={`deliverables.${index}.quantity`}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          placeholder="1"
+                          {...field}
+                          onChange={(e) => field.onChange(e.target.value)}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="col-span-2">
+                <FormField
+                  control={control}
+                  name={`deliverables.${index}.dueDate`}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        {/* <DatePicker 
+                          date={field.value ? new Date(field.value) : undefined}
+                          onSelect={field.onChange}
+                        /> */}
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <Button
+                variant="outline"
+                className="ml-auto cursor-pointer mt-1.5"
+                size="sm"
+                onClick={() => remove(index)}
+              >
+                <Trash className="h-4 w-4" />
+              </Button>
+            </div>
+          ))}
+        </div>
+        <Button
+          size="sm"
+          type="button"
+          variant="outline"
+          className="mt-4"
+          onClick={() =>
+            append({
+              title: "",
+              cost: "",
+              quantity: "1",
+              dueDate: "",
+            })
+          }
+        >
+          <Plus className="mr-2 h-4 w-4" />
+          Add Deliverables
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
