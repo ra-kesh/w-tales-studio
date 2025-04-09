@@ -170,98 +170,163 @@ export const BookingDetailForm = () => {
 			</Card>
 			<Card>
 				<CardHeader>
-					<CardTitle>Client Detail</CardTitle>
+					<CardTitle>Client Details</CardTitle>
 				</CardHeader>
 				<CardContent className="space-y-4">
-					<div className="grid gap-4 lg:grid-cols-2">
-						<FormField
-							control={form.control}
-							name="brideName"
-							render={({ field }) => (
-								<FormItem>
-									<FormLabel>Bride Name</FormLabel>
-									<FormControl>
-										<Input {...field} />
-									</FormControl>
-									<FormMessage />
-								</FormItem>
-							)}
-						/>
-						<FormField
-							control={form.control}
-							name="groomName"
-							render={({ field }) => (
-								<FormItem>
-									<FormLabel>Groom Name</FormLabel>
-									<FormControl>
-										<Input {...field} />
-									</FormControl>
-									<FormMessage />
-								</FormItem>
-							)}
-						/>
-						<FormField
-							control={form.control}
-							name="phone"
-							render={({ field }) => (
-								<FormItem>
-									<FormLabel>Phone Number</FormLabel>
-									<FormControl>
-										<Input type="tel" placeholder="+91 xxxxxxxxxx" {...field} />
-									</FormControl>
-									<FormMessage />
-								</FormItem>
-							)}
-						/>
-						<FormField
-							control={form.control}
-							name="email"
-							render={({ field }) => (
-								<FormItem>
-									<FormLabel>Email</FormLabel>
-									<FormControl>
-										<Input
-											type="email"
-											placeholder="client@example.com"
-											{...field}
-										/>
-									</FormControl>
-									<FormMessage />
-								</FormItem>
-							)}
-						/>
-						<FormField
-							control={form.control}
-							name="address"
-							render={({ field }) => (
-								<FormItem>
-									<FormLabel>Address</FormLabel>
-									<FormControl>
-										<Textarea
-											placeholder="Add Client Address here "
-											{...field}
-										/>
-									</FormControl>
-									<FormMessage />
-								</FormItem>
-							)}
-						/>
-						<FormField
-							control={form.control}
-							name="note"
-							render={({ field }) => (
-								<FormItem>
-									<FormLabel>Notes</FormLabel>
-									<FormControl>
-										<Textarea
-											placeholder="Add any special request or client information"
-											{...field}
-										/>
-									</FormControl>
-									<FormMessage />
-								</FormItem>
-							)}
-						/>
+					<div className="grid gap-4 lg:grid-cols-9">
+						<div className="col-span-6 gap-4 grid grid-cols-6">
+							<div className="col-span-4">
+								<FormField
+									control={form.control}
+									name="clientName"
+									render={({ field }) => (
+										<FormItem>
+											<FormLabel>Client Name</FormLabel>
+											<FormControl>
+												<Input placeholder="full name" {...field} />
+											</FormControl>
+											<FormMessage />
+										</FormItem>
+									)}
+								/>
+							</div>
+							<div className="col-span-2">
+								<FormField
+									control={form.control}
+									name="relation"
+									render={({ field }) => (
+										<FormItem>
+											<FormLabel>Relation</FormLabel>
+											<Select
+												onValueChange={(value) => {
+													field.onChange(value);
+												}}
+												value={field.value}
+											>
+												<FormControl>
+													<SelectTrigger className="min-w-full">
+														<SelectValue placeholder="Select relation" />
+													</SelectTrigger>
+												</FormControl>
+												<SelectContent>
+													<SelectItem value={"bride"}>Bride</SelectItem>
+													<SelectItem value={"groom"}>Groom</SelectItem>
+													<SelectItem value={"family"}>Family</SelectItem>
+												</SelectContent>
+											</Select>
+											<FormMessage />
+										</FormItem>
+									)}
+								/>
+							</div>
+							<div className="col-span-3">
+								<FormField
+									control={form.control}
+									name="brideName"
+									render={({ field }) => (
+										<FormItem>
+											<FormLabel>Bride Name</FormLabel>
+											<FormControl>
+												<Input
+													placeholder="first name or full name"
+													{...field}
+												/>
+											</FormControl>
+											<FormMessage />
+										</FormItem>
+									)}
+								/>
+							</div>
+							<div className="col-span-3">
+								<FormField
+									control={form.control}
+									name="groomName"
+									render={({ field }) => (
+										<FormItem>
+											<FormLabel>Groom Name</FormLabel>
+											<FormControl>
+												<Input
+													placeholder="first name or full name"
+													{...field}
+												/>
+											</FormControl>
+											<FormMessage />
+										</FormItem>
+									)}
+								/>
+							</div>
+
+							<div className="col-span-6">
+								<FormField
+									control={form.control}
+									name="note"
+									render={({ field }) => (
+										<FormItem>
+											<FormLabel>Notes</FormLabel>
+											<FormControl>
+												<Textarea
+													placeholder="Add any special request or client information"
+													{...field}
+												/>
+											</FormControl>
+											<FormMessage />
+										</FormItem>
+									)}
+								/>
+							</div>
+						</div>
+						<div className="col-span-3  gap-4 space-y-4">
+							<FormField
+								control={form.control}
+								name="phone"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>Phone Number</FormLabel>
+										<FormControl>
+											<Input
+												type="tel"
+												placeholder="+91 xxxxxxxxxx"
+												{...field}
+											/>
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+							<FormField
+								control={form.control}
+								name="email"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>Email</FormLabel>
+										<FormControl>
+											<Input
+												type="email"
+												placeholder="client@example.com"
+												{...field}
+											/>
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+							<FormField
+								control={form.control}
+								name="address"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>Address</FormLabel>
+										<FormControl>
+											<Textarea
+												placeholder="Add Client Address here "
+												{...field}
+											/>
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+						</div>
 					</div>
 				</CardContent>
 			</Card>

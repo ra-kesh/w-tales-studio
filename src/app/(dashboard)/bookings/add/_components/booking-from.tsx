@@ -116,12 +116,12 @@ const BookingForm = ({
 		<Form {...form}>
 			<form
 				onSubmit={form.handleSubmit(onSubmit)}
-				className="container max-w-5xl py-6 md:py-10"
+				className="container max-w-5xl py-8"
 			>
 				<Tabs
 					value={activeTab}
 					onValueChange={handleTabChange}
-					className="space-y-8"
+					className="space-y-6"
 				>
 					<TabsList className="grid w-full grid-cols-4">
 						<TabsTrigger ref={detailsTabRef} value="details">
@@ -138,25 +138,25 @@ const BookingForm = ({
 						</TabsTrigger>
 					</TabsList>
 
-					<TabsContent value="details" className="space-y-6">
+					<TabsContent value="details" className="space-y-4">
 						<BookingDetailForm />
 					</TabsContent>
 
-					<TabsContent value="payments" className="space-y-6">
+					<TabsContent value="payments" className="space-y-4">
 						<BookingPaymentForm />
 					</TabsContent>
 
-					<TabsContent value="shoots" className="space-y-6">
+					<TabsContent value="shoots" className="space-y-4">
 						<ShootDetailForm />
 					</TabsContent>
 
-					<TabsContent value="deliverables" className="space-y-6">
+					<TabsContent value="deliverables" className="space-y-4">
 						<BookingDeliveryForm />
 					</TabsContent>
 				</Tabs>
 
-				<div className="flex justify-between mt-6">
-					<div className="flex items-center gap-6">
+				<div className="flex justify-between">
+					<div className="flex items-center gap-4">
 						<Button
 							type="button"
 							variant={"outline"}
