@@ -204,13 +204,13 @@ export const clients = pgTable("clients", {
 	organizationId: text("organization_id")
 		.notNull()
 		.references(() => organizations.id, { onDelete: "cascade" }),
-	name: text("name").notNull(), // PoC name
-	brideName: text("bride_name"), // Optional, for Wedding projects
-	groomName: text("groom_name"), // Optional, for Wedding projects
+	name: text("name").notNull(),
+	brideName: text("bride_name").notNull(),
+	groomName: text("groom_name").notNull(),
 	relationId: integer("relation_id").references(() => relationsTable.id),
-	phoneNumber: text("phone_number").notNull(), // Required
+	phoneNumber: text("phone_number").notNull(),
 	email: text("email"),
-	locations: jsonb("locations").notNull(), // Array of locations, at least one required
+	address: text("address").notNull(),
 	createdAt: timestamp("created_at").defaultNow(),
 	updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -230,7 +230,7 @@ export const bookings = pgTable("bookings", {
 	packageCost: decimal("package_cost", { precision: 10, scale: 2 }).notNull(),
 	clientId: integer("client_id")
 		.notNull()
-		.references(() => clients.id, { onDelete: "cascade" }),
+		.references(() => clients.id, { onDelete: "set null" }),
 	createdAt: timestamp("created_at").defaultNow(),
 	updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -244,14 +244,11 @@ export const shoots = pgTable("shoots", {
 		.notNull()
 		.references(() => organizations.id, { onDelete: "cascade" }),
 	title: text("title").notNull(),
-	date: date("date"),
-	time: text("time", {
-		enum: Object.values(ShootTime) as [string, ...string[]],
-	}), // Morning, Day, Night
+	date: date("date").notNull(),
+	time: text("time").notNull(), // Morning, Day, Night
 	reportingTime: time("reporting_time"), // Exact reporting time
-	duration: text("duration"), // e.g., "4 hours"
-	city: text("city"),
-	venue: text("venue"),
+	duration: text("duration"),
+	location: jsonb("location"), // e.g., "4 hours"
 	notes: text("notes"),
 	additionalServices: jsonb("additional_services"),
 	createdAt: timestamp("created_at").defaultNow(),
