@@ -50,18 +50,18 @@ export const DecimalString = z.string().transform((val, ctx) => {
 });
 
 export const BookingSchema = z.object({
-	bookingName: z.string().min(1, "Required field"),
-	bookingType: z.string().min(1, "Required field"),
-	packageType: z.string().min(1, "Required field"),
+	bookingName: z.string().min(1, "Booking Name is required"),
+	bookingType: z.string().min(1, "Booking Type is required"),
+	packageType: z.string().min(1, "Package Type is required"),
 	packageCost: DecimalString,
-	clientName: z.string(),
-	companyName: z.string(),
-	brideName: z.string().min(1, "Required field"),
-	groomName: z.string().min(1, "Required field"),
-	pocName: z.string(),
+	// clientName: z.string(),
+	// companyName: z.string(),
+	brideName: z.string().min(1, "Bride Name is required"),
+	groomName: z.string().min(1, "Groom Name is required"),
+	// pocName: z.string(),
 	note: z.string(),
 	address: z.string(),
-	relation: RelationType.optional(),
+	// relation: RelationType.optional(),
 	phone: z.string().min(1, "Phone number is required"),
 	email: z.string().email("Invalid email address").optional(),
 	shoots: z.array(
@@ -77,7 +77,7 @@ export const BookingSchema = z.object({
 			title: z.string().min(1, "Title is required"),
 			cost: DecimalString,
 			quantity: DecimalString,
-			dueDate: z.string(),
+			dueDate: z.string().optional(),
 		}),
 	),
 	payments: z.array(
@@ -98,19 +98,19 @@ export const BookingSchema = z.object({
 	// dueDate: z.string().min(1, "Due date is required"),
 	// contactMethod: ContactMethod,
 });
-export type Booking = z.infer<typeof BookingSchema>;
+export type BookingFormValues = z.infer<typeof BookingSchema>;
 
-export const defaultBooking: Booking = {
+export const defaultBooking: BookingFormValues = {
 	bookingName: "",
 	bookingType: "WEDDING",
 	packageType: "",
 	packageCost: "0.00",
-	clientName: "",
-	companyName: "",
+	// clientName: "",
+	// companyName: "",
 	brideName: "",
 	groomName: "",
-	pocName: "",
-	relation: undefined,
+	// pocName: "",
+	// relation: undefined,
 	phone: "",
 	email: "",
 	shoots: [],

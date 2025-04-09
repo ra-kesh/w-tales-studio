@@ -3,29 +3,26 @@
 import React, { useCallback, useEffect, useRef } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BookingDetailForm } from "./booking-detail-form";
-import {
-	type Booking,
-	BookingSchema,
-	defaultBooking,
-} from "./booking-form-schema";
+import { type BookingFormValues, BookingSchema } from "./booking-form-schema";
 import { ShootDetailForm } from "./shoot-detail-form";
 import { BookingDeliveryForm } from "./booking-delivery-form";
 import { BookingPaymentForm } from "./booking-payment-form";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { useActionState } from "react";
-import { initialFormState } from "@tanstack/react-form/nextjs";
-import someAction from "../action";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form } from "@/components/ui/form";
 
-const BookingForm = () => {
-	// const [state, action] = useActionState(someAction, initialFormState);
-
-	const form = useForm<Booking>({
+const BookingForm = ({
+	defaultValues,
+	onSubmit,
+}: {
+	defaultValues: BookingFormValues;
+	onSubmit: (data: BookingFormValues) => void;
+}) => {
+	const form = useForm<BookingFormValues>({
 		resolver: zodResolver(BookingSchema),
-		defaultValues: defaultBooking,
+		defaultValues: defaultValues,
 	});
 
 	console.log(form.getValues());
@@ -114,10 +111,6 @@ const BookingForm = () => {
 
 	const isFirstTab = tabOrder.indexOf(activeTab) === 0;
 	const isLastTab = tabOrder.indexOf(activeTab) === tabOrder.length - 1;
-
-	const onSubmit = async (data: Booking) => {
-		console.log(data);
-	};
 
 	return (
 		<Form {...form}>

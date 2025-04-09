@@ -1,24 +1,22 @@
+"use client";
+
 import React, { Suspense } from "react";
 import Bookingform from "./_components/booking-from";
-import {
-	dehydrate,
-	HydrationBoundary,
-	QueryClient,
-} from "@tanstack/react-query";
 import { getServerSession } from "@/lib/dal";
+import { defaultBooking } from "./_components/booking-form-schema";
+import { useBookingMutation } from "@/hooks/use-booking-mutation";
 
-const NewBooking = async () => {
-	const { session } = await getServerSession();
-
-	const queryClient = new QueryClient();
+const NewBooking = () => {
+	const { addBookingMutation } = useBookingMutation();
 
 	return (
 		<div className="flex items-center justify-center p-4 pt-0">
-			<HydrationBoundary state={dehydrate(queryClient)}>
-				<Suspense>
-					<Bookingform />
-				</Suspense>
-			</HydrationBoundary>
+			<Suspense>
+				<Bookingform
+					defaultValues={defaultBooking}
+					onSubmit={addBookingMutation.mutate}
+				/>
+			</Suspense>
 		</div>
 	);
 };
