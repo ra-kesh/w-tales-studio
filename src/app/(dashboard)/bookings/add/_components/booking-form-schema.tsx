@@ -16,12 +16,12 @@ export const ContactMethods = ContactMethod.options.map(({ value }) => ({
 export const RelationType = z.union([
 	z.literal("bride"),
 	z.literal("groom"),
-	z.literal("father"),
-	z.literal("mother"),
-	z.literal("brother"),
-	z.literal("sister"),
-	z.literal("cousin"),
-	z.literal("other"),
+	z.literal("family"),
+	// z.literal("mother"),
+	// z.literal("brother"),
+	// z.literal("sister"),
+	// z.literal("cousin"),
+	// z.literal("other"),
 ]);
 
 export type RelationType = z.infer<typeof RelationType>;
@@ -45,7 +45,6 @@ export const DecimalString = z.string().transform((val, ctx) => {
 		return z.NEVER;
 	}
 
-	// Format to 2 decimal places
 	return parsed.toFixed(2);
 });
 
@@ -55,48 +54,51 @@ export const BookingSchema = z.object({
 	packageType: z.string().min(1, "Package Type is required"),
 	packageCost: DecimalString,
 	clientName: z.string().min(1, "Client Name is required"),
-	// companyName: z.string(),
 	brideName: z.string().min(1, "Bride Name is required"),
 	groomName: z.string().min(1, "Groom Name is required"),
-	// pocName: z.string(),
-	note: z.string(),
-	address: z.string(),
+	note: z.string().optional(),
+	address: z.string().min(1, "Address is required"),
 	relation: RelationType.optional(),
 	phone: z.string().min(1, "Phone number is required"),
 	email: z.string().email("Invalid email address").optional(),
-	shoots: z.array(
-		z.object({
-			title: z.string().min(1, "Title is required"),
-			date: z.string().min(1, "Date is required"),
-			time: z.string().min(1, "Time is required"),
-			location: z.string().min(1, "location is required"),
-		}),
-	),
-	deliverables: z.array(
-		z.object({
-			title: z.string().min(1, "Title is required"),
-			cost: DecimalString,
-			quantity: DecimalString,
-			dueDate: z.string().optional(),
-		}),
-	),
-	payments: z.array(
-		z.object({
-			amount: DecimalString,
-			description: z.string().optional(),
-			date: z.string(),
-		}),
-	),
-	scheduledPayments: z.array(
-		z.object({
-			amount: DecimalString,
-			description: z.string(),
-			dueDate: z.string(),
-		}),
-	),
-	// receivedAmount: DecimalString,
-	// dueDate: z.string().min(1, "Due date is required"),
-	// contactMethod: ContactMethod,
+	shoots: z
+		.array(
+			z.object({
+				title: z.string().min(1, "Title is required"),
+				date: z.string().min(1, "Date is required"),
+				time: z.string().min(1, "Time is required"),
+				location: z.string().min(1, "location is required"),
+			}),
+		)
+		.optional(),
+	deliverables: z
+		.array(
+			z.object({
+				title: z.string().min(1, "Title is required"),
+				cost: DecimalString,
+				quantity: DecimalString,
+				dueDate: z.string().optional(),
+			}),
+		)
+		.optional(),
+	payments: z
+		.array(
+			z.object({
+				amount: DecimalString,
+				description: z.string().optional(),
+				date: z.string(),
+			}),
+		)
+		.optional(),
+	scheduledPayments: z
+		.array(
+			z.object({
+				amount: DecimalString,
+				description: z.string(),
+				dueDate: z.string(),
+			}),
+		)
+		.optional(),
 });
 export type BookingFormValues = z.infer<typeof BookingSchema>;
 
@@ -106,10 +108,8 @@ export const defaultBooking: BookingFormValues = {
 	packageType: "",
 	packageCost: "0.00",
 	clientName: "",
-	// companyName: "",
 	brideName: "",
 	groomName: "",
-	// pocName: "",
 	relation: undefined,
 	phone: "",
 	email: "",
@@ -119,9 +119,6 @@ export const defaultBooking: BookingFormValues = {
 	scheduledPayments: [],
 	note: "",
 	address: "",
-	// receivedAmount: "",
-	// dueDate: "",
-	// contactMethod: "phone",
 };
 
 export const formOpts = formOptions({

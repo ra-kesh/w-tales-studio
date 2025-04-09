@@ -20,8 +20,8 @@ export const useBookingMutation = () => {
 
 		const responseData = await response.json();
 
-		if (!responseData.success) {
-			throw new Error("Failed to add booking");
+		if (!response.ok) {
+			throw new Error(responseData.message || "Failed to add booking");
 		}
 
 		return responseData;

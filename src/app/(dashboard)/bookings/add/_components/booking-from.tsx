@@ -3,7 +3,11 @@
 import React, { useCallback, useEffect, useRef } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BookingDetailForm } from "./booking-detail-form";
-import { type BookingFormValues, BookingSchema } from "./booking-form-schema";
+import {
+	type BookingFormValues,
+	BookingSchema,
+	defaultBooking,
+} from "./booking-form-schema";
 import { ShootDetailForm } from "./shoot-detail-form";
 import { BookingDeliveryForm } from "./booking-delivery-form";
 import { BookingPaymentForm } from "./booking-payment-form";
@@ -25,7 +29,7 @@ const BookingForm = ({
 		defaultValues: defaultValues,
 	});
 
-	console.log(form.getValues());
+	// console.log(form.getValues());
 
 	const searchParams = useSearchParams();
 	const router = useRouter();
@@ -111,6 +115,12 @@ const BookingForm = ({
 
 	const isFirstTab = tabOrder.indexOf(activeTab) === 0;
 	const isLastTab = tabOrder.indexOf(activeTab) === tabOrder.length - 1;
+
+	React.useEffect(() => {
+		if (form.formState.isSubmitSuccessful) {
+			form.reset({ ...defaultBooking });
+		}
+	}, [form.formState, defaultBooking, form.reset]);
 
 	return (
 		<Form {...form}>
