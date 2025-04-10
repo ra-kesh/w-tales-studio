@@ -27,6 +27,7 @@ const BookingForm = ({
 	const form = useForm<BookingFormValues>({
 		resolver: zodResolver(BookingSchema),
 		defaultValues: defaultValues,
+		mode: "onChange",
 	});
 
 	// console.log(form.getValues());
@@ -119,8 +120,11 @@ const BookingForm = ({
 	React.useEffect(() => {
 		if (form.formState.isSubmitSuccessful) {
 			form.reset({ ...defaultBooking });
+			handleTabChange("details");
 		}
 	}, [form.formState, defaultBooking, form.reset]);
+
+	const isFormValid = form.formState.isValid;
 
 	return (
 		<Form {...form}>
@@ -184,7 +188,9 @@ const BookingForm = ({
 							Next
 						</Button>
 					</div>
-					<Button type="submit">Submit</Button>
+					<Button type="submit" disabled={!isFormValid}>
+						Submit
+					</Button>
 				</div>
 			</form>
 		</Form>
