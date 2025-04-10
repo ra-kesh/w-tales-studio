@@ -17,7 +17,7 @@ export function BookingDeliveryForm() {
 	});
 
 	return (
-		<Card>
+		<Card className="mb-6">
 			<CardHeader className="flex flex-row items-center justify-between">
 				<CardTitle>Deliverables</CardTitle>
 				<Button
