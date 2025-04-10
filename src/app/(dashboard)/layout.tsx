@@ -3,6 +3,7 @@ import { AppSidebar } from "@/components/app-sidebar";
 
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { SiteHeader } from "@/components/site-header";
+import { GlobalSheets } from "./global-sheet";
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
 	return (
@@ -14,6 +15,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
 					<div className="@container/main flex flex-1 flex-col gap-2">
 						{children}
 					</div>
+					<GlobalSheets />
 				</div>
 			</SidebarInset>
 		</SidebarProvider>

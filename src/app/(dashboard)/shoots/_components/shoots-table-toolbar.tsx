@@ -4,6 +4,7 @@ import type { Table } from "@tanstack/react-table";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { OpenShootsModal } from "./open-shoots-modal";
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
@@ -34,6 +35,7 @@ export function ShootsTableToolbar<TData>({
           </Button>
         )}
       </div>
+      <OpenShootsModal />
     </div>
   );
 }
