@@ -169,6 +169,13 @@ export enum ExpenseCategory {
 // 	BACKLOG = "Backlog",
 // }
 
+export const RelationType = pgEnum("relation_type", [
+	"bride",
+	"groom",
+	"family",
+	"",
+]);
+
 export const ConfigType = pgEnum("config_type", [
 	"task_status",
 	"task_priority",
@@ -207,7 +214,7 @@ export const clients = pgTable("clients", {
 	name: text("name").notNull(),
 	brideName: text("bride_name").notNull(),
 	groomName: text("groom_name").notNull(),
-	relationId: integer("relation_id").references(() => relationsTable.id),
+	relation: RelationType("relation").notNull(),
 	phoneNumber: text("phone_number").notNull(),
 	email: text("email"),
 	address: text("address").notNull(),
@@ -370,10 +377,6 @@ export const clientsRelations = relations(clients, ({ one, many }) => ({
 	organization: one(organizations, {
 		fields: [clients.organizationId],
 		references: [organizations.id],
-	}),
-	relation: one(relationsTable, {
-		fields: [clients.relationId],
-		references: [relationsTable.id],
 	}),
 	bookings: many(bookings),
 }));

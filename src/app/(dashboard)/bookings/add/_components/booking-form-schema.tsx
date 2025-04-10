@@ -17,11 +17,7 @@ export const RelationType = z.union([
 	z.literal("bride"),
 	z.literal("groom"),
 	z.literal("family"),
-	// z.literal("mother"),
-	// z.literal("brother"),
-	// z.literal("sister"),
-	// z.literal("cousin"),
-	// z.literal("other"),
+	z.literal(""),
 ]);
 
 export type RelationType = z.infer<typeof RelationType>;
@@ -58,7 +54,7 @@ export const BookingSchema = z.object({
 	groomName: z.string().min(1, "Groom Name is required"),
 	note: z.string().optional(),
 	address: z.string().min(1, "Address is required"),
-	relation: RelationType.optional(),
+	relation: RelationType,
 	phone: z.string().min(1, "Phone number is required"),
 	email: z.string().email("Invalid email address").optional(),
 	shoots: z
@@ -110,7 +106,7 @@ export const defaultBooking: BookingFormValues = {
 	clientName: "",
 	brideName: "",
 	groomName: "",
-	relation: undefined,
+	relation: "",
 	phone: "",
 	email: "",
 	shoots: [],

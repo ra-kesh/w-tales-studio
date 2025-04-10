@@ -50,6 +50,7 @@ export async function POST(request: Request) {
 				.values({
 					organizationId: userOrganizationId,
 					name: validatedData.clientName,
+					relation: validatedData.relation,
 					brideName: validatedData.brideName,
 					groomName: validatedData.groomName,
 					phoneNumber: validatedData.phone,
