@@ -11,7 +11,7 @@ import {
 	shoots,
 } from "@/lib/db/schema";
 import { z } from "zod";
-import { BookingSchema } from "@/app/(dashboard)/bookings/add/_components/booking-form-schema";
+import { BookingSchema } from "@/app/(dashboard)/bookings/_components/booking-form/booking-form-schema";
 
 export async function POST(request: Request) {
 	const { session } = await getServerSession();

@@ -102,6 +102,7 @@ export function BookingTable<TData, TValue>({
 								<TableRow
 									key={row.id}
 									data-state={row.getIsSelected() && "selected"}
+									// biome-ignore lint/suspicious/noExplicitAny: <explanation>
 									onClick={() => handleRowClick((row.original as any).id)}
 									className="cursor-pointer hover:bg-muted/50"
 								>

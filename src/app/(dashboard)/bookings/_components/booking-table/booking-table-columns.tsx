@@ -2,9 +2,9 @@
 
 import type { ColumnDef } from "@tanstack/react-table";
 import { Checkbox } from "@/components/ui/checkbox";
-import { BookingTableRowActions } from "./booking-table-row-actions";
 import type { Booking, Client, Shoot } from "@/lib/db/schema";
 import { format } from "date-fns";
+import { BookingTableRowActions } from "./booking-table-row-actions";
 
 export const useBookingColumns = () => {
 	const columns: ColumnDef<Booking>[] = [
@@ -107,7 +107,7 @@ export const useBookingColumns = () => {
 									- {shoot.time}
 								</div>
 								<div className="text-sm text-muted-foreground">
-									{shoot.venue}
+									{shoot.location as string}
 								</div>
 							</div>
 						))}

@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import { sanitizeEmptiness } from "@/lib/utils";
-import type { BookingFormValues } from "@/app/(dashboard)/bookings/add/_components/booking-form-schema";
+import type { BookingFormValues } from "@/app/(dashboard)/bookings/_components/booking-form/booking-form-schema";
 
 export const useBookingMutation = () => {
 	const queryClient = useQueryClient();

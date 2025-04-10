@@ -2,8 +2,8 @@
 
 import { useBookings } from "@/hooks/use-bookings";
 import React from "react";
-import { useBookingColumns } from "./_components/booking-table-columns";
-import { BookingTable } from "./_components/booking-table";
+import { useBookingColumns } from "./_components/booking-table/booking-table-columns";
+import { BookingTable } from "./_components/booking-table/booking-table";
 
 export default function Bookings() {
 	const { data } = useBookings();
