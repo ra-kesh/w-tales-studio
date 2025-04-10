@@ -1,31 +1,12 @@
 import { formOptions } from "@tanstack/react-form";
 import { z } from "zod";
 
-export const ContactMethod = z.union([
-	z.literal("email"),
-	z.literal("phone"),
-	z.literal("whatsapp"),
-]);
-export type ContactMethod = z.infer<typeof ContactMethod>;
-
-export const ContactMethods = ContactMethod.options.map(({ value }) => ({
-	value,
-	label: value.charAt(0).toUpperCase() + value.slice(1),
-}));
-
 export const RelationType = z.union([
 	z.literal("bride"),
 	z.literal("groom"),
 	z.literal("family"),
 	z.literal(""),
 ]);
-
-export type RelationType = z.infer<typeof RelationType>;
-
-export const RelationTypes = RelationType.options.map(({ value }) => ({
-	value,
-	label: value.charAt(0).toUpperCase() + value.slice(1),
-}));
 
 // First, create a decimal validator
 export const DecimalString = z.string().transform((val, ctx) => {
