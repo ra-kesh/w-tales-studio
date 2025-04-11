@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { useShootsParams } from "@/hooks/use-shoots-params";
 
-export function OpenShootsModal() {
+export function OpenShootsSheet() {
   const { setParams } = useShootsParams();
 
   return (

@@ -1,11 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useRef } from "react";
-import {
-	type BookingFormValues,
-	BookingSchema,
-	defaultBooking,
-} from "./booking-form-schema";
+
 import { ShootDetailForm } from "../../_components/booking-form/shoot-detail-form";
 import { BookingDeliveryForm } from "../../_components/booking-form/booking-delivery-form";
 import { BookingPaymentForm } from "../../_components/booking-form/booking-payment-form";
@@ -16,6 +12,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Form } from "@/components/ui/form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BookingDetailForm } from "../../_components/booking-form/booking-detail-form";
+import {
+	type BookingFormValues,
+	BookingSchema,
+	defaultBooking,
+} from "../../_components/booking-form/booking-form-schema";
 
 const BookingForm = ({
 	defaultValues,
