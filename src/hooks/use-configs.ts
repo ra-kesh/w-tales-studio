@@ -94,3 +94,26 @@ export function useBookingTypes() {
       })),
   });
 }
+
+export async function fetchConfigById(id: string): Promise<Configuration> {
+  const response = await fetch(`/api/configurations/${id}`);
+  if (!response.ok) {
+    throw new Error("Failed to fetch configuration");
+  }
+  return response.json();
+}
+
+export function usePackageDetail(id: string | null) {
+  return useQuery({
+    queryKey: ["configurations", "package_type", id],
+    queryFn: () => fetchConfigById(id as string),
+    enabled: Boolean(id),
+    staleTime: 5 * 60 * 1000,
+    select: (data) => ({
+      id: data.id,
+      key: data.key,
+      value: data.value,
+      metadata: data.metadata as PackageMetadata,
+    }),
+  });
+}
