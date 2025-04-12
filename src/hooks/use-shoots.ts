@@ -27,3 +27,17 @@ export function useShoots() {
     placeholderData: { data: [], total: 0 },
   });
 }
+
+export function useShootDetail(shootId: string) {
+  return useQuery({
+    queryKey: ["shoot", shootId],
+    queryFn: async () => {
+      const response = await fetch(`/api/shoots/${shootId}`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch shoot details");
+      }
+      return response.json();
+    },
+    enabled: !!shootId,
+  });
+}

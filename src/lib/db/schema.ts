@@ -169,6 +169,13 @@ export enum ExpenseCategory {
 // 	BACKLOG = "Backlog",
 // }
 
+export const RelationType = pgEnum("relation_type", [
+	"bride",
+	"groom",
+	"family",
+	"",
+]);
+
 export const ConfigType = pgEnum("config_type", [
 	"task_status",
 	"task_priority",
@@ -204,13 +211,13 @@ export const clients = pgTable("clients", {
 	organizationId: text("organization_id")
 		.notNull()
 		.references(() => organizations.id, { onDelete: "cascade" }),
-	name: text("name").notNull(), // PoC name
-	brideName: text("bride_name"), // Optional, for Wedding projects
-	groomName: text("groom_name"), // Optional, for Wedding projects
-	relationId: integer("relation_id").references(() => relationsTable.id),
-	phoneNumber: text("phone_number").notNull(), // Required
+	name: text("name").notNull(),
+	brideName: text("bride_name").notNull(),
+	groomName: text("groom_name").notNull(),
+	relation: RelationType("relation").notNull(),
+	phoneNumber: text("phone_number").notNull(),
 	email: text("email"),
-	locations: jsonb("locations").notNull(), // Array of locations, at least one required
+	address: text("address").notNull(),
 	createdAt: timestamp("created_at").defaultNow(),
 	updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -230,9 +237,10 @@ export const bookings = pgTable("bookings", {
 	packageCost: decimal("package_cost", { precision: 10, scale: 2 }).notNull(),
 	clientId: integer("client_id")
 		.notNull()
-		.references(() => clients.id, { onDelete: "cascade" }),
+		.references(() => clients.id, { onDelete: "set null" }),
 	createdAt: timestamp("created_at").defaultNow(),
 	updatedAt: timestamp("updated_at").defaultNow(),
+	note: text("note"),
 });
 
 export const shoots = pgTable("shoots", {
@@ -240,15 +248,15 @@ export const shoots = pgTable("shoots", {
 	bookingId: integer("booking_id")
 		.notNull()
 		.references(() => bookings.id, { onDelete: "cascade" }),
+	organizationId: text("organization_id")
+		.notNull()
+		.references(() => organizations.id, { onDelete: "cascade" }),
 	title: text("title").notNull(),
-	date: date("date"),
-	time: text("time", {
-		enum: Object.values(ShootTime) as [string, ...string[]],
-	}), // Morning, Day, Night
+	date: date("date").notNull(),
+	time: text("time").notNull(), // Morning, Day, Night
 	reportingTime: time("reporting_time"), // Exact reporting time
-	duration: text("duration"), // e.g., "4 hours"
-	city: text("city"),
-	venue: text("venue"),
+	duration: text("duration"),
+	location: jsonb("location"), // e.g., "4 hours"
 	notes: text("notes"),
 	additionalServices: jsonb("additional_services"),
 	createdAt: timestamp("created_at").defaultNow(),
@@ -301,6 +309,9 @@ export const expenses = pgTable("expenses", {
 	bookingId: integer("booking_id")
 		.notNull()
 		.references(() => bookings.id, { onDelete: "cascade" }),
+	organizationId: text("organization_id")
+		.notNull()
+		.references(() => organizations.id, { onDelete: "cascade" }),
 	billTo: text("bill_to", {
 		enum: Object.values(BillTo) as [string, ...string[]],
 	}).notNull(),
@@ -335,6 +346,9 @@ export const tasks = pgTable("tasks", {
 	bookingId: integer("booking_id")
 		.notNull()
 		.references(() => bookings.id, { onDelete: "cascade" }),
+	organizationId: text("organization_id")
+		.notNull()
+		.references(() => organizations.id, { onDelete: "cascade" }),
 	deliverableId: integer("deliverable_id").references(() => deliverables.id, {
 		onDelete: "cascade",
 	}),
@@ -365,10 +379,6 @@ export const clientsRelations = relations(clients, ({ one, many }) => ({
 		fields: [clients.organizationId],
 		references: [organizations.id],
 	}),
-	relation: one(relationsTable, {
-		fields: [clients.relationId],
-		references: [relationsTable.id],
-	}),
 	bookings: many(bookings),
 }));
 export const bookingsRelations = relations(bookings, ({ one, many }) => ({
@@ -393,6 +403,10 @@ export const shootsRelations = relations(shoots, ({ one }) => ({
 	booking: one(bookings, {
 		fields: [shoots.bookingId],
 		references: [bookings.id],
+	}),
+	organization: one(organizations, {
+		fields: [shoots.organizationId],
+		references: [organizations.id],
 	}),
 }));
 
@@ -436,6 +450,10 @@ export const expensesRelations = relations(expenses, ({ one }) => ({
 		fields: [expenses.bookingId],
 		references: [bookings.id],
 	}),
+	organization: one(organizations, {
+		fields: [expenses.organizationId],
+		references: [organizations.id],
+	}),
 	spentByUser: one(users, {
 		fields: [expenses.spentByUserId],
 		references: [users.id],
@@ -458,6 +476,10 @@ export const tasksRelations = relations(tasks, ({ one }) => ({
 		fields: [tasks.bookingId],
 		references: [bookings.id],
 	}),
+	organization: one(organizations, {
+		fields: [tasks.organizationId],
+		references: [organizations.id],
+	}),
 	deliverable: one(deliverables, {
 		fields: [tasks.deliverableId],
 		references: [deliverables.id],
@@ -475,6 +497,9 @@ export const organizationRelations = relations(organizations, ({ many }) => ({
 	clients: many(clients),
 	bookings: many(bookings),
 	deliverables: many(deliverables),
+	expenses: many(expenses),
+	shoots: many(shoots),
+	tasks: many(tasks),
 }));
 
 export const invitationsRelations = relations(invitations, ({ one }) => ({
@@ -599,3 +624,14 @@ export enum ActivityType {
 	UPDATE_CREW = "UPDATE_CREW",
 	DELETE_CREW = "DELETE_CREW",
 }
+
+export type BookingDetail = Booking & {
+	clients: Client;
+	shoots: Shoot[];
+	deliverables: Deliverable[];
+	receivedAmounts: ReceivedAmount[];
+	paymentSchedules: PaymentSchedule[];
+	expenses: Expense[];
+	crews: Crew[];
+	tasks: Task[];
+};

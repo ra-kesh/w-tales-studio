@@ -1,14 +1,25 @@
-import React, { Suspense } from "react";
-import ProjeectForm from "../project-form";
+"use client";
 
-const NewProject = () => {
-	return (
-		<div className="flex items-center justify-center p-4 pt-0">
-			<Suspense>
-				<ProjeectForm />
-			</Suspense>
-		</div>
-	);
+import React, { Suspense } from "react";
+import Bookingform from "../_components/booking-form/booking-from";
+import { getServerSession } from "@/lib/dal";
+import { defaultBooking } from "../_components/booking-form/booking-form-schema";
+import { useBookingMutation } from "@/hooks/use-booking-mutation";
+
+const NewBooking = () => {
+  const { addBookingMutation } = useBookingMutation();
+
+  return (
+    <div className="flex items-center justify-center p-4 pt-0">
+      <Suspense>
+        <Bookingform
+          defaultValues={defaultBooking}
+          onSubmit={addBookingMutation.mutate}
+          isPending={addBookingMutation.isPending}
+        />
+      </Suspense>
+    </div>
+  );
 };
 
-export default NewProject;
+export default NewBooking;

@@ -10,7 +10,7 @@ import { FileIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export const useExpenseColumns = () => {
-  const columns: ColumnDef<Expense>[] = [
+  const columns: ColumnDef<Expense & { booking: { name: string } }>[] = [
     {
       id: "select",
       header: ({ table }) => (
@@ -31,10 +31,10 @@ export const useExpenseColumns = () => {
       enableHiding: false,
     },
     {
-      accessorKey: "bookingName",
+      accessorKey: "booking",
       header: "Booking",
       cell: ({ row }) => (
-        <div className="font-medium">{row.getValue("bookingName")}</div>
+        <div className="font-medium">{row.original.booking.name}</div>
       ),
     },
     {

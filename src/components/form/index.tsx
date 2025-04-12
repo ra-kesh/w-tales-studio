@@ -5,21 +5,25 @@ import { CheckboxField } from "./checkbox-field";
 import { SubmitButton } from "./submit-button";
 import { PriceField } from "./price-field";
 import { DateField } from "./date-field";
+import { TimeField } from "./time-field";
+import { TextAreaField } from "./text-area-field";
 
 export const { fieldContext, useFieldContext, formContext, useFormContext } =
-  createFormHookContexts();
+	createFormHookContexts();
 
 export const { useAppForm, withForm } = createFormHook({
-  fieldComponents: {
-    TextField,
-    CheckboxField,
-    SelectField,
-    PriceField,
-    DateField,
-  },
-  formComponents: {
-    SubmitButton,
-  },
-  fieldContext,
-  formContext,
+	fieldComponents: {
+		TextField,
+		CheckboxField,
+		SelectField,
+		PriceField,
+		DateField,
+		TimeField,
+		TextAreaField,
+	},
+	formComponents: {
+		SubmitButton,
+	},
+	fieldContext,
+	formContext,
 });

@@ -1,82 +1,86 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useQuery } from "@tanstack/react-query";
-import { DollarSign, Users, Calendar, Package } from "lucide-react";
+import { motion } from "framer-motion";
+import { Camera, Calendar, Package, Wallet } from "lucide-react";
+import CountUp from "react-countup";
+import { Card, CardContent } from "@/components/ui/card";
 
-async function fetchDashboardMetrics() {
-  const response = await fetch("/api/dashboard/metrics");
-  if (!response.ok) throw new Error("Failed to fetch metrics");
-  return response.json();
-}
+const metrics = [
+  {
+    title: "Monthly Revenue",
+    value: 285000,
+    change: "+12.5%",
+    trend: "up",
+    icon: Wallet,
+    prefix: "₹",
+  },
+  {
+    title: "Upcoming Shoots",
+    value: 24,
+    change: "+3",
+    trend: "up",
+    icon: Camera,
+  },
+  {
+    title: "Bookings This Month",
+    value: 18,
+    change: "+2",
+    trend: "up",
+    icon: Calendar,
+  },
+  {
+    title: "Pending Deliveries",
+    value: 8,
+    change: "-2",
+    trend: "down",
+    icon: Package,
+  },
+];
 
 export function DashboardMetrics() {
-  const { data, isLoading } = useQuery({
-    queryKey: ["dashboard-metrics"],
-    queryFn: fetchDashboardMetrics,
-  });
-
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-          <DollarSign className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">
-            {isLoading ? "..." : `$${data?.totalRevenue.toLocaleString()}`}
-          </div>
-          <p className="text-xs text-muted-foreground">
-            +20.1% from last month
-          </p>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Active Bookings</CardTitle>
-          <Users className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">
-            {isLoading ? "..." : data?.activeBookings}
-          </div>
-          <p className="text-xs text-muted-foreground">
-            {data?.bookingsThisMonth} new this month
-          </p>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Upcoming Shoots</CardTitle>
-          <Calendar className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">
-            {isLoading ? "..." : data?.upcomingShoots}
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Next 30 days
-          </p>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Pending Deliverables</CardTitle>
-          <Package className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">
-            {isLoading ? "..." : data?.pendingDeliverables}
-          </div>
-          <p className="text-xs text-muted-foreground">
-            {data?.overdueDeliverables} overdue
-          </p>
-        </CardContent>
-      </Card>
+      {metrics.map((metric, index) => (
+        <motion.div
+          key={metric.title}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: index * 0.1 }}
+        >
+          <Card className="overflow-hidden">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <metric.icon className="h-5 w-5 text-muted-foreground" />
+                <span
+                  className={`text-sm font-medium ${
+                    metric.trend === "up"
+                      ? "text-emerald-500"
+                      : "text-rose-500"
+                  }`}
+                >
+                  {metric.change}
+                </span>
+              </div>
+              <div className="mt-4">
+                <h3 className="text-sm font-medium text-muted-foreground">
+                  {metric.title}
+                </h3>
+                <div className="mt-2 flex items-baseline">
+                  <span className="text-2xl font-bold">
+                    {metric.prefix}
+                    <CountUp
+                      end={metric.value}
+                      separator=","
+                      duration={2}
+                      decimals={metric.prefix ? 0 : 0}
+                    />
+                  </span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      ))}
     </div>
   );
 }

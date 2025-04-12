@@ -8,7 +8,7 @@ import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 
 export const useShootColumns = () => {
-	const columns: ColumnDef<Shoot>[] = [
+	const columns: ColumnDef<Shoot & { booking: { name: string } }>[] = [
 		{
 			id: "select",
 			header: ({ table }) => (
@@ -29,10 +29,10 @@ export const useShootColumns = () => {
 			enableHiding: false,
 		},
 		{
-			accessorKey: "bookingName",
+			accessorKey: "booking",
 			header: "Booking",
 			cell: ({ row }) => (
-				<div className="font-medium">{row.getValue("bookingName")}</div>
+				<div className="font-medium">{row.original.booking.name}</div>
 			),
 		},
 		{
@@ -55,16 +55,10 @@ export const useShootColumns = () => {
 			),
 		},
 		{
-			accessorKey: "venue",
-			header: "Venue",
+			accessorKey: "location",
+			header: "Location",
 			cell: ({ row }) => (
-				<div>
-					{row.getValue("venue")}
-					<br />
-					<span className="text-sm text-muted-foreground">
-						{row.original.city}
-					</span>
-				</div>
+				<div>{(row.original.location as string) ?? "N/a"}</div>
 			),
 		},
 		{

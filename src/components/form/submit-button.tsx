@@ -1,24 +1,18 @@
 "use client";
 
-import { useStore } from "@tanstack/react-form";
 import { useFormContext } from ".";
 import { Button } from "../ui/button";
 
-type SubmitButtonProps = {
-  children: React.ReactNode;
-};
-
-export const SubmitButton = ({ children }: SubmitButtonProps) => {
-  const form = useFormContext();
-
-  const [isSubmitting, canSubmit] = useStore(form.store, (state) => [
-    state.isSubmitting,
-    state.canSubmit,
-  ]);
-
-  return (
-    <Button type="submit" disabled={isSubmitting || !canSubmit}>
-      {children}
-    </Button>
-  );
+export const SubmitButton = ({ label }: { label: string }) => {
+	const form = useFormContext();
+	return (
+		<form.Subscribe
+			selector={(state) => [state.canSubmit, state.isSubmitting]}
+			children={([canSubmit, isSubmitting]) => (
+				<Button type="submit" disabled={isSubmitting || !canSubmit}>
+					{isSubmitting ? "..." : `${label}`}
+				</Button>
+			)}
+		/>
+	);
 };
