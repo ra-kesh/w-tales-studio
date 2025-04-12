@@ -14,7 +14,7 @@ const SettingsLayout = ({ children }: SettingsLayoutProps) => {
 	const pathname = usePathname();
 
 	const tabs = [
-		{ path: "/configurations", label: "Package Types" },
+		{ path: "/configurations/packages", label: "Package Types" },
 		{ path: "/configurations/deliverables", label: "Deliverables" },
 		{ path: "/configurations/booking", label: "Booking Types" },
 	];

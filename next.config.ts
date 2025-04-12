@@ -8,6 +8,15 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true,
   },
   devIndicators: false,
+  async redirects() {
+    return [
+      {
+        source: "/configurations",
+        destination: "/configurations/packages",
+        permanent: true,
+      },
+    ];
+  },
   /* config options here */
 };
 
