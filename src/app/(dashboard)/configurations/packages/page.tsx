@@ -1,45 +1,29 @@
-"use client";
+import { getServerSession } from "@/lib/dal";
+import PackageConfigs from "./package";
+import {
+  dehydrate,
+  HydrationBoundary,
+  QueryClient,
+} from "@tanstack/react-query";
+import { getConfigs } from "@/lib/db/queries";
 
-import { PackageTable } from "../_components/package-table";
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
-import { usePackageTypes } from "@/hooks/use-configs";
-// import { usePackageParams } from "@/hooks/use-package-params";
-// import { PackageEditSheet } from "./_components/package-edit-sheet";
+export default async function PackagePage() {
+  const { session } = await getServerSession();
+  const queryClient = new QueryClient();
+  await queryClient.prefetchQuery({
+    queryKey: ["configurations", "package_type"],
+    queryFn: () =>
+      getConfigs(
+        session?.session.activeOrganizationId as string,
+        "package_type"
+      ),
+  });
 
-export default function ConfigPage() {
-	const { data: packageTypes = [] } = usePackageTypes();
-	//   const { setParams } = usePackageParams();
-
-	//   const handleEdit = (id: number) => {
-	//     setParams({ packageId: id.toString() });
-	//   };
-
-	const handleDelete = (id: number) => {
-		// TODO: Implement delete functionality
-		console.log("Delete package:", id);
-	};
-
-	//   const handleCreate = () => {
-	//     setParams({ createPackage: "true" });
-	//   };
-
-	return (
-		<div className="space-y-6">
-			<PackageTable
-				data={packageTypes}
-				onEdit={() => {}}
-				onDelete={handleDelete}
-			/>
-			{/* <div className="flex justify-between items-center">
-			
-				<Button className="ml-auto">
-					<Plus className="h-4 w-4 mr-2" />
-					Add Package
-				</Button>
-			</div> */}
-
-			{/* <PackageEditSheet /> */}
-		</div>
-	);
+  return (
+    <div className="space-y-6">
+      <HydrationBoundary state={dehydrate(queryClient)}>
+        <PackageConfigs />
+      </HydrationBoundary>
+    </div>
+  );
 }
