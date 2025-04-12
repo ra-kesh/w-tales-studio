@@ -6,6 +6,7 @@ import {
 import { Shoots } from "./shoots";
 import { getShoots } from "@/lib/db/queries";
 import { getServerSession } from "@/lib/dal";
+import { Suspense } from "react";
 
 export default async function ShootsPage() {
 	const { session } = await getServerSession();
@@ -22,9 +23,11 @@ export default async function ShootsPage() {
 					<h2 className="text-2xl font-bold tracking-tight">Shoots</h2>
 				</div>
 			</div>
-			<HydrationBoundary state={dehydrate(queryClient)}>
-				<Shoots />
-			</HydrationBoundary>
+			<Suspense>
+				<HydrationBoundary state={dehydrate(queryClient)}>
+					<Shoots />
+				</HydrationBoundary>
+			</Suspense>
 		</div>
 	);
 }
