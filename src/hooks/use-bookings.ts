@@ -15,7 +15,7 @@ export async function fetchBookings(): Promise<BookingResponse> {
   });
 
   if (!response.ok) {
-    throw new Error("Failed to fetch tasks");
+    throw new Error("Failed to fetch bookings");
   }
 
   return response.json();
@@ -36,10 +36,8 @@ async function fetchBookingDetail(id: string): Promise<BookingDetail> {
     },
   });
 
-  console.log({ response });
-
   if (!response.ok) {
-    throw new Error("Failed to fetch booking details");
+    throw new Error("Failed to fetch booking details: " + response.statusText);
   }
 
   return response.json();
