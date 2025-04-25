@@ -59,6 +59,7 @@ export function useUpdateShootMutation() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["shoots"] });
+      queryClient.invalidateQueries({ queryKey: ["shoot", data.id] });
       queryClient.invalidateQueries({ queryKey: ["bookings"] });
       toast.success("Shoot updated successfully");
     },
