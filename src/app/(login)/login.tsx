@@ -163,9 +163,7 @@ export function Login({
 								</Button>
 							</div>
 
-							{/* todo: uncomment this main branch*/}
-
-							{/* <div className="text-center text-sm">
+							<div className="text-center text-sm">
 								<>
 									{mode === "signin"
 										? "Don't have an account? "
@@ -179,7 +177,7 @@ export function Login({
 										{mode === "signin" ? "SignUp" : "SignIn"}
 									</Link>
 								</>
-							</div> */}
+							</div>
 						</div>
 					</form>
 				</CardContent>

@@ -1,7 +1,6 @@
 "use server";
 
 import { auth } from "@/lib/auth";
-import type { ActionState } from "@/lib/auth/middleware";
 import { validatedAction } from "@/lib/auth/middleware";
 import { redirect } from "next/navigation";
 import { z } from "zod";
