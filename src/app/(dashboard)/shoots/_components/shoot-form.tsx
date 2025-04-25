@@ -48,9 +48,19 @@ export function ShootForm({
   onSubmit,
   mode = "create",
 }: ShootFormProps) {
+  // Clean up default values to only include fields we need
+  const cleanedDefaultValues = {
+    bookingId: defaultValues.bookingId?.toString() || "",
+    title: defaultValues.title || "",
+    date: defaultValues.date || "",
+    time: defaultValues.time || "",
+    location: defaultValues.location || "",
+    notes: defaultValues.notes || "",
+  };
+
   const form = useForm<ShootFormValues>({
     resolver: zodResolver(ShootSchema),
-    defaultValues,
+    defaultValues: cleanedDefaultValues,
     mode: "onChange",
   });
 
@@ -75,16 +85,16 @@ export function ShootForm({
                     <FormControl>
                       <Button
                         variant="outline"
-                        // biome-ignore lint/a11y/useSemanticElements: <explanation>
                         role="combobox"
                         className={cn(
                           "w-full justify-between",
                           !field.value && "text-muted-foreground"
                         )}
+                        disabled={mode === "edit"}
                       >
                         {field.value
                           ? bookings?.find(
-                              (booking) => booking.id.toString() === field.value
+                              (booking) => booking.id === parseInt(field.value)
                             )?.name || "Select a booking"
                           : "Select a booking"}
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -94,8 +104,9 @@ export function ShootForm({
                   <PopoverContent className="w-full p-0 relative z-50">
                     <Command
                       filter={(value, search) => {
-                        const booking = bookings?.find(
-                          (b) => b.id.toString() === value
+                        if (!bookings) return 0;
+                        const booking = bookings.find(
+                          (b) => b.id === parseInt(value)
                         );
                         if (!booking) return 0;
                         const searchString = `${booking.name}`.toLowerCase();
@@ -104,7 +115,7 @@ export function ShootForm({
                           : 0;
                       }}
                     >
-                      <CommandInput placeholder="Search bookings by ID..." />
+                      <CommandInput placeholder="Search bookings..." />
                       <CommandList>
                         <ScrollArea className="h-64">
                           <CommandEmpty>No booking found.</CommandEmpty>
@@ -116,7 +127,11 @@ export function ShootForm({
                                 onSelect={() => {
                                   form.setValue(
                                     "bookingId",
-                                    booking.id.toString()
+                                    booking.id.toString(),
+                                    {
+                                      shouldValidate: true,
+                                      shouldDirty: true,
+                                    }
                                   );
                                 }}
                               >
