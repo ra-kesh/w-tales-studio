@@ -10,6 +10,8 @@ export function EditBookingContent({ bookingId }: { bookingId: string }) {
 
   const updateBookingMutation = useUpdateBookingMutation(bookingId);
 
+  console.log(booking, isLoading, error);
+
   if (isLoading) {
     return <div>Loading booking details...</div>;
   }
