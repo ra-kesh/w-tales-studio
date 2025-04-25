@@ -1,4 +1,4 @@
-import { and, count, eq, or } from "drizzle-orm";
+import { and, count, desc, eq, or } from "drizzle-orm";
 import { client, db } from "./drizzle";
 import {
   members,
@@ -11,7 +11,7 @@ import {
   tasks,
   configurations,
   type ConfigType,
-  BookingDetail,
+  type BookingDetail,
 } from "./schema";
 
 export async function getActiveOrganization(userId: string) {
@@ -72,8 +72,12 @@ export async function getBookings(
       clients: true,
       shoots: true,
     },
-    limit,
-    offset,
+    orderBy: (bookings, { desc }) => [
+      desc(bookings.updatedAt),
+      desc(bookings.createdAt),
+    ],
+    // limit,
+    // offset,
   });
 
   const total = await db.$count(
@@ -84,8 +88,8 @@ export async function getBookings(
   return {
     data: bookingsData,
     total,
-    page,
-    limit,
+    // page,
+    // limit,
   };
 }
 
