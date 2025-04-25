@@ -6,6 +6,7 @@ import {
 import Bookings from "./bookings";
 import { getBookings } from "@/lib/db/queries";
 import { getServerSession } from "@/lib/dal";
+import { Suspense } from "react";
 
 export default async function BookingPage() {
 	const { session } = await getServerSession();
@@ -23,9 +24,11 @@ export default async function BookingPage() {
 					<h2 className="text-2xl font-bold tracking-tight">Bookings</h2>
 				</div>
 			</div>
-			<HydrationBoundary state={dehydrate(queryClient)}>
-				<Bookings />
-			</HydrationBoundary>
+			<Suspense>
+				<HydrationBoundary state={dehydrate(queryClient)}>
+					<Bookings />
+				</HydrationBoundary>
+			</Suspense>
 		</div>
 	);
 }

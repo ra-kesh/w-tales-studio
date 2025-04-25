@@ -1,4 +1,4 @@
-import { and, count, eq, or } from "drizzle-orm";
+import { and, count, desc, eq, or } from "drizzle-orm";
 import { client, db } from "./drizzle";
 import {
   members,
@@ -11,7 +11,7 @@ import {
   tasks,
   configurations,
   type ConfigType,
-  BookingDetail,
+  type BookingDetail,
 } from "./schema";
 
 export async function getActiveOrganization(userId: string) {
@@ -62,7 +62,8 @@ export async function getDeliverables(
 export async function getBookings(
   userOrganizationId: string,
   page = 1,
-  limit = 10
+  limit = 10,
+  fields = ""
 ) {
   const offset = (page - 1) * limit;
 
@@ -72,8 +73,12 @@ export async function getBookings(
       clients: true,
       shoots: true,
     },
-    limit,
-    offset,
+    orderBy: (bookings, { desc }) => [
+      desc(bookings.updatedAt),
+      desc(bookings.createdAt),
+    ],
+    // limit,
+    // offset,
   });
 
   const total = await db.$count(
@@ -84,8 +89,44 @@ export async function getBookings(
   return {
     data: bookingsData,
     total,
-    page,
-    limit,
+    // page,
+    // limit,
+  };
+}
+export async function getMinimalBookings(
+  userOrganizationId: string,
+  fields = ""
+) {
+  const fieldsArray = fields
+    ? fields.split(",").map((f) => f.trim())
+    : ["id", "name"];
+
+  const bookingColumns = {
+    id: fieldsArray.includes("id"),
+    name: fieldsArray.includes("name"),
+    packageType: fieldsArray.includes("packageType"),
+    packageCost: fieldsArray.includes("packageCost"),
+    updatedAt: fieldsArray.includes("updatedAt"),
+    createdAt: fieldsArray.includes("createdAt"),
+  };
+
+  const bookingsData = await db.query.bookings.findMany({
+    where: eq(bookings.organizationId, userOrganizationId),
+    columns: bookingColumns,
+    orderBy: (bookings, { desc }) => [
+      desc(bookings.updatedAt),
+      desc(bookings.createdAt),
+    ],
+  });
+
+  const total = await db.$count(
+    bookings,
+    eq(bookings.organizationId, userOrganizationId)
+  );
+
+  return {
+    data: bookingsData,
+    total,
   };
 }
 
@@ -163,8 +204,12 @@ export async function getShoots(
         },
       },
     },
-    limit,
-    offset,
+    orderBy: (shoots, { desc }) => [
+      desc(shoots.updatedAt),
+      desc(shoots.createdAt),
+    ],
+    // limit,
+    // offset,
   });
 
   const total = await db.$count(
@@ -175,8 +220,8 @@ export async function getShoots(
   return {
     data: shootsData,
     total,
-    page,
-    limit,
+    // page,
+    // limit,
   };
 }
 export async function getTasks(

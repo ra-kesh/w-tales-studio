@@ -12,15 +12,17 @@ import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
 import { ShootForm } from "./shoot-form";
 import type { ShootFormValues } from "./shoot-form-schema";
+import { useCreateShootMutation } from "@/hooks/use-shoot-mutation";
 
 export function ShootCreateSheet() {
   const { setParams, createShoot } = useShootsParams();
   const isOpen = Boolean(createShoot);
 
+  const createShootMutation = useCreateShootMutation();
+
   const handleSubmit = async (data: ShootFormValues) => {
     try {
-      // TODO: Implement create API call
-      console.log(data);
+      await createShootMutation.mutate(data);
       setParams(null);
     } catch (error) {
       console.error(error);

@@ -13,12 +13,16 @@ const EditBooking = (props: { params: Params; searchParams: SearchParams }) => {
   const params = use(props.params);
   const bookingId = params.bookingId;
 
-  const { data: booking, isLoading } = useBookingFormData(bookingId);
+  const { data: booking, isLoading, error } = useBookingFormData(bookingId);
 
   const updateBookingMutation = useUpdateBookingMutation(bookingId);
 
   if (isLoading) {
     return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error loading booking: {error.message}</div>;
   }
 
   return (

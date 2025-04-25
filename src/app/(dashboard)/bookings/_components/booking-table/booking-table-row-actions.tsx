@@ -2,6 +2,7 @@
 
 import type { Row } from "@tanstack/react-table";
 import { MoreHorizontal } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 import {
   DropdownMenu,
@@ -22,8 +23,13 @@ interface DataTableRowActionsProps<TData> {
 export function BookingTableRowActions<TData>({
   row,
 }: DataTableRowActionsProps<TData>) {
-  // Directly cast row.original to Booking type
+  const router = useRouter();
   const booking = row.original as Booking;
+
+  const handleEdit = (event: React.MouseEvent) => {
+    event.stopPropagation();
+    router.push(`/bookings/edit/${booking.id}`);
+  };
 
   return (
     <DropdownMenu>
@@ -37,14 +43,14 @@ export function BookingTableRowActions<TData>({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-[160px]">
-        <DropdownMenuItem>Edit</DropdownMenuItem>
-        <DropdownMenuItem>Make a copy</DropdownMenuItem>
+        <DropdownMenuItem onClick={handleEdit}>Edit</DropdownMenuItem>
+        {/* <DropdownMenuItem>Make a copy</DropdownMenuItem>
         <DropdownMenuItem>Favorite</DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem>
           Delete
           <DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>
-        </DropdownMenuItem>
+        </DropdownMenuItem> */}
       </DropdownMenuContent>
     </DropdownMenu>
   );
