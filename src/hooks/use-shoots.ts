@@ -30,7 +30,7 @@ export function useShoots() {
 
 export function useShootDetail(shootId: string) {
   return useQuery({
-    queryKey: ["shoot", shootId],
+    queryKey: ["shoot", { shootId }],
     queryFn: async () => {
       const response = await fetch(`/api/shoots/${shootId}`);
       if (!response.ok) {
@@ -39,5 +39,7 @@ export function useShootDetail(shootId: string) {
       return response.json();
     },
     enabled: !!shootId,
+    // refetchOnWindowFocus: true,
+    // refetchOnMount: true,
   });
 }

@@ -57,9 +57,16 @@ export function useUpdateShootMutation() {
 
       return response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: ({ data }) => {
       queryClient.invalidateQueries({ queryKey: ["shoots"] });
-      queryClient.invalidateQueries({ queryKey: ["shoot", data.id] });
+      queryClient.invalidateQueries({
+        queryKey: [
+          "shoot",
+          {
+            shootId: data.shootId.toString(),
+          },
+        ],
+      });
       queryClient.invalidateQueries({ queryKey: ["bookings"] });
       toast.success("Shoot updated successfully");
     },

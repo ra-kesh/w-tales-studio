@@ -73,16 +73,16 @@ export async function PUT(
     );
   }
 
-  const shootId = parseInt(params.id, 10);
+  const { id } = await params;
+
+  const shootId = parseInt(id, 10);
+
   const body = await request.json();
 
-  // Merge id from params into body for validation
   const validatedData = ShootSchema.parse({ ...body, id: shootId });
 
   try {
-    // Start a transaction to ensure atomicity
     const result = await db.transaction(async (tx) => {
-      // Verify the shoot exists and belongs to the user's organization
       const existingShoot = await tx.query.shoots.findFirst({
         where: and(
           eq(shoots.id, shootId),
@@ -97,7 +97,6 @@ export async function PUT(
         );
       }
 
-      // Update the shoot with provided fields, preserving unchanged ones
       const [updatedShoot] = await tx
         .update(shoots)
         .set({
@@ -113,7 +112,6 @@ export async function PUT(
         .where(eq(shoots.id, shootId))
         .returning();
 
-      // Update the booking's updatedAt timestamp
       const [updatedBooking] = await tx
         .update(bookings)
         .set({ updatedAt: new Date() })
