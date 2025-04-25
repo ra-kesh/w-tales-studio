@@ -6,9 +6,16 @@ interface BookingResponse {
   data: Booking[];
   total: number;
 }
+interface MinimalBookingResponse {
+  data: Pick<Booking, "id" | "name">[];
+  total: number;
+}
 
-export async function fetchBookings(): Promise<BookingResponse> {
-  const response = await fetch("/api/bookings", {
+export async function fetchBookings(
+  page = 1,
+  limit = 10
+): Promise<BookingResponse> {
+  const response = await fetch(`/api/bookings?page=${page}&limit=${limit}`, {
     headers: {
       "Content-Type": "application/json",
     },
@@ -21,10 +28,32 @@ export async function fetchBookings(): Promise<BookingResponse> {
   return response.json();
 }
 
-export function useBookings() {
+export async function fetchMinimalBookings(): Promise<MinimalBookingResponse> {
+  const response = await fetch("/api/bookings/minimal?fields=id,name", {
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch minimal bookings");
+  }
+
+  return response.json();
+}
+
+export function useBookings(page?: number, limit?: number) {
   return useQuery({
-    queryKey: ["bookings"],
-    queryFn: fetchBookings,
+    queryKey: ["bookings", page, limit],
+    queryFn: () => fetchBookings(page, limit),
+    placeholderData: { data: [], total: 0 },
+  });
+}
+
+export function useMinimalBookings() {
+  return useQuery({
+    queryKey: ["bookings-minimal"],
+    queryFn: fetchMinimalBookings,
     placeholderData: { data: [], total: 0 },
   });
 }
