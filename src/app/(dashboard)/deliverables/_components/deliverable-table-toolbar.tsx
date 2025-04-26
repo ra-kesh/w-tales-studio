@@ -4,6 +4,7 @@ import type { Table } from "@tanstack/react-table";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { OpenDeliverableSheet } from "./open-deliverable-sheet";
 
 interface DeliverableTableToolbarProps<TData> {
   table: Table<TData>;
@@ -36,9 +37,7 @@ export function DeliverableTableToolbar<TData>({
           </Button>
         )}
       </div>
-      <div>
-        <Button>Add deliverable</Button>
-      </div>
+      <OpenDeliverableSheet />
     </div>
   );
 }

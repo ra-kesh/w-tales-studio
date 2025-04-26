@@ -5,6 +5,7 @@ import { ShootCreateSheet } from "@/app/(dashboard)/shoots/_components/shoot-cre
 import { PackageEditSheet } from "./configurations/_components/package-edit-sheet";
 import { ShootEditSheet } from "./shoots/_components/shoot-edit-sheet";
 import { Suspense } from "react";
+import { DeliverableCreateSheet } from "./deliverables/_components/deliverable-create-sheet";
 
 export function GlobalSheets() {
   return (
@@ -14,6 +15,7 @@ export function GlobalSheets() {
         <ShootEditSheet />
       </Suspense>
       <PackageEditSheet />
+      <DeliverableCreateSheet />
     </>
   );
 }
