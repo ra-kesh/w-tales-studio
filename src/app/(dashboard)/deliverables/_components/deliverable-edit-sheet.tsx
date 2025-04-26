@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import {
 	Sheet,
 	SheetContent,
@@ -19,7 +19,11 @@ export function DeliverableEditSheet() {
 	const { setParams, deliverableId } = useDeliverableParams();
 	const isOpen = Boolean(deliverableId);
 
-	const { data: deliverable, isLoading } = useDeliverable(deliverableId);
+	const {
+		data: deliverable,
+		isLoading,
+		refetch,
+	} = useDeliverable(deliverableId);
 
 	const updateDeliverableMutation = useUpdateDeliverableMutation();
 
@@ -29,11 +33,16 @@ export function DeliverableEditSheet() {
 				data,
 				deliverableId: deliverableId as string,
 			});
-			setParams(null);
+			refetch();
+			// setParams(null);
 		} catch (error) {
 			console.error(error);
 		}
 	};
+
+	// useEffect(() => {
+	// 	refetch();
+	// }, [deliverableId]);
 
 	return (
 		<Sheet open={isOpen} onOpenChange={() => setParams(null)}>

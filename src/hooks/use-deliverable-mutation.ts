@@ -57,9 +57,13 @@ export function useUpdateDeliverableMutation() {
 
       return response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: ({ data }) => {
+      console.log(data);
+
       queryClient.invalidateQueries({ queryKey: ["deliverables"] });
-      queryClient.invalidateQueries({ queryKey: ["deliverable", data.id] });
+      queryClient.invalidateQueries({
+        queryKey: ["deliverable", data.deliverableId.toString()],
+      });
       queryClient.invalidateQueries({ queryKey: ["bookings"] });
       toast.success("Deliverable updated successfully");
     },
