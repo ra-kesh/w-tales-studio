@@ -29,7 +29,6 @@ const nextConfig: NextConfig = {
       "uploadthing.com", // If you plan to use UploadThing
     ],
   },
-  /* config options here */
 };
 
 export default nextConfig;

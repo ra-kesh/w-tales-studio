@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react"; // Import useEffect
-import { useQueryClient } from "@tanstack/react-query"; // Import useQueryClient
+import React from "react";
 import { useShootsParams } from "@/hooks/use-shoots-params";
 import {
   Sheet,
@@ -28,6 +27,7 @@ export function ShootEditSheet() {
     try {
       await updateShootMutation.mutate({ data, shootId: shootId as string });
       refetch();
+      //   setParams(null);
     } catch (error) {
       console.error(error);
     }
@@ -47,17 +47,15 @@ export function ShootEditSheet() {
             <XIcon className="size-4" />
           </Button>
         </SheetHeader>
-        {
-          isLoading && isOpen ? ( // Show loading only if open and loading
-            <div>Loading..</div>
-          ) : shoot ? ( // Render form only if shoot data exists
-            <ShootForm
-              defaultValues={shoot}
-              onSubmit={handleSubmit}
-              mode="edit"
-            />
-          ) : null /* Optionally show an error or empty state if shoot is null after loading */
-        }
+        {isLoading ? (
+          <div>Loading..</div>
+        ) : shoot && (
+          <ShootForm
+            defaultValues={shoot}
+            onSubmit={handleSubmit}
+            mode="edit"
+          />
+        )}
       </SheetContent>
     </Sheet>
   );

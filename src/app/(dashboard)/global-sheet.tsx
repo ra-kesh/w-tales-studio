@@ -4,12 +4,15 @@ import { ShootCreateSheet } from "@/app/(dashboard)/shoots/_components/shoot-cre
 
 import { PackageEditSheet } from "./configurations/_components/package-edit-sheet";
 import { ShootEditSheet } from "./shoots/_components/shoot-edit-sheet";
+import { Suspense } from "react";
 
 export function GlobalSheets() {
   return (
     <>
       <ShootCreateSheet />
-      <ShootEditSheet />
+      <Suspense fallback={<div>Loading...</div>}>
+        <ShootEditSheet />
+      </Suspense>
       <PackageEditSheet />
     </>
   );
