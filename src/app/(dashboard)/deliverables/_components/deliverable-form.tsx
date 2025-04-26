@@ -49,9 +49,20 @@ export function DeliverableForm({
 	onSubmit,
 	mode = "create",
 }: DeliverableFormProps) {
+	// Clean up default values to only include fields we need
+	const cleanedDefaultValues = {
+		bookingId: defaultValues.bookingId?.toString() || "",
+		title: defaultValues.title || "",
+		notes: defaultValues.notes || "",
+		dueDate: defaultValues.dueDate || "",
+		isPackageIncluded: defaultValues.isPackageIncluded || true,
+		quantity: defaultValues.quantity || "1",
+		cost: defaultValues.cost || "0",
+	};
+
 	const form = useForm<DeliverableFormValues>({
 		resolver: zodResolver(DeliverableSchema),
-		defaultValues,
+		defaultValues: cleanedDefaultValues,
 		mode: "onChange",
 	});
 

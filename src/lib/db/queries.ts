@@ -43,8 +43,12 @@ export async function getDeliverables(
         },
       },
     },
-    limit,
-    offset,
+    orderBy: (deliverables, { desc }) => [
+      desc(deliverables.updatedAt),
+      desc(deliverables.createdAt),
+    ],
+    // limit,
+    // offset,
   });
 
   const total = await db.$count(
@@ -55,8 +59,8 @@ export async function getDeliverables(
   return {
     data: deliverableData,
     total,
-    page,
-    limit,
+    // page,
+    // limit,
   };
 }
 export async function getBookings(
