@@ -323,7 +323,6 @@ export const expenses = pgTable("expenses", {
 	}).notNull(),
 	amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
 	date: date("date").notNull(),
-	spentBy: text("spent_by").notNull(), // "team" or user name
 	spentByUserId: text("spent_by_user_id").references(() => users.id), // Nullable, for individual users
 	description: text("description"),
 	fileUrls: jsonb("file_urls"), // Array of file URLs
