@@ -52,11 +52,7 @@ export function TaskEditSheet() {
 				{isLoading ? (
 					<div>Loading...</div>
 				) : (
-					<TaskForm
-						defaultValues={task?.data}
-						onSubmit={handleSubmit}
-						mode="edit"
-					/>
+					<TaskForm defaultValues={task} onSubmit={handleSubmit} mode="edit" />
 				)}
 			</SheetContent>
 		</Sheet>

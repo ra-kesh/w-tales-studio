@@ -30,7 +30,12 @@ export function useTasks() {
 
 export function useTaskDetails(taskId: string) {
   return useQuery({
-    queryKey: ["task", taskId],
+    queryKey: [
+      "task",
+      {
+        taskId,
+      },
+    ],
     queryFn: async () => {
       const response = await fetch(`/api/tasks/${taskId}`);
       if (!response.ok) {

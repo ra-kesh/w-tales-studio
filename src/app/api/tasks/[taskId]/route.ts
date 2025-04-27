@@ -1,6 +1,4 @@
 import { NextResponse } from "next/server";
-import { getTask, updateTask } from "@/lib/db/queries";
-import { getServerSession } from "@/lib/dal";
 
 export async function GET(
 	request: Request,

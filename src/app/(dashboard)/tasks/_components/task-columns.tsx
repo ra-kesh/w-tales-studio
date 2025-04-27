@@ -6,6 +6,7 @@ import { DataTableColumnHeader } from "./task-table-column-header";
 import { Badge } from "@/components/ui/badge";
 import type { Task } from "@/lib/db/schema";
 import { useTaskConfigs } from "@/hooks/use-configs";
+import { TaskTableRowActions } from "./task-table-row-actions";
 
 export function useTaskColumns() {
 	const { statuses, priorities } = useTaskConfigs();
@@ -141,6 +142,10 @@ export function useTaskColumns() {
 			filterFn: (row, id, value) => {
 				return value.includes(row.getValue(id));
 			},
+		},
+		{
+			id: "actions",
+			cell: ({ row }) => <TaskTableRowActions row={row} />,
 		},
 	];
 
