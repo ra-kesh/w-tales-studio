@@ -1,7 +1,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { TaskFormValues } from "@/app/(dashboard)/tasks/task-form-schema";
+import { toast } from "sonner";
 
-export async function useCreateTaskMutation() {
+export function useCreateTaskMutation() {
 	const queryClient = useQueryClient();
 
 	return useMutation({
@@ -22,6 +23,10 @@ export async function useCreateTaskMutation() {
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["tasks"] });
+			toast.success("Task created successfully");
+		},
+		onError: (error) => {
+			toast.error(error.message || "Failed to create Task");
 		},
 	});
 }

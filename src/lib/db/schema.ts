@@ -357,7 +357,9 @@ export const tasks = pgTable("tasks", {
 	}),
 	status: text("status").notNull().default("Todo"),
 	description: text("description").notNull(),
-	assignedTo: text("assigned_to").references(() => users.id),
+	assignedTo: text("assigned_to").references(() => users.id, {
+		onDelete: "set null",
+	}),
 	priority: text("priority").notNull(),
 	dueDate: date("due_date"),
 	createdAt: timestamp("created_at").defaultNow(),

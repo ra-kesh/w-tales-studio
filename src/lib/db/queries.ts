@@ -244,8 +244,13 @@ export async function getTasks(
         },
       },
     },
-    limit,
-    offset,
+    orderBy: (tasks, { desc }) => [
+      desc(tasks.updatedAt),
+      desc(tasks.createdAt),
+    ],
+
+    // limit,
+    // offset,
   });
 
   const total = await db.$count(
@@ -256,8 +261,8 @@ export async function getTasks(
   return {
     data: tasksData,
     total,
-    page,
-    limit,
+    // page,
+    // limit,
   };
 }
 
