@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DataTableFacetedFilter } from "./task-table-faceted-filter";
 import { useTaskConfigs } from "@/hooks/use-configs";
+import { OpenTaskSheet } from "./open-task-sheet";
 
 interface DataTableToolbarProps<TData> {
 	table: Table<TData>;
@@ -14,7 +15,7 @@ interface DataTableToolbarProps<TData> {
 export function TaskTableToolbar<TData>({
 	table,
 }: DataTableToolbarProps<TData>) {
-	const { statuses, priorities, isLoading } = useTaskConfigs();
+	const { statuses, priorities } = useTaskConfigs();
 	const isFiltered = table.getState().columnFilters.length > 0;
 
 	return (
@@ -51,13 +52,11 @@ export function TaskTableToolbar<TData>({
 						className="h-8 px-2 lg:px-3"
 					>
 						Reset
-						<X />
+						<X className="ml-2 h-4 w-4" />
 					</Button>
 				)}
 			</div>
-			<div>
-				<Button>Add task</Button>
-			</div>
+			<OpenTaskSheet />
 		</div>
 	);
 }
