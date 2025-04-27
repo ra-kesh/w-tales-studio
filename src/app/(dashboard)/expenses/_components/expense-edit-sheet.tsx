@@ -52,7 +52,7 @@ export function ExpenseEditSheet() {
 					<div>Loading...</div>
 				) : (
 					<ExpenseForm
-						defaultValues={expense?.data}
+						defaultValues={expense}
 						onSubmit={handleSubmit}
 						mode="edit"
 					/>

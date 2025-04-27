@@ -2,6 +2,7 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { ExpenseFormValues } from "@/app/(dashboard)/expenses/expense-form-schema";
+import { toast } from "sonner";
 
 export const useCreateExpenseMutation = () => {
 	const queryClient = useQueryClient();
@@ -21,6 +22,11 @@ export const useCreateExpenseMutation = () => {
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["expenses"] });
+			queryClient.invalidateQueries({ queryKey: ["bookings"] });
+			toast.success("Expense created");
+		},
+		onError: (error) => {
+			toast.error(error.message || "Failed to create expense");
 		},
 	});
 };
@@ -49,6 +55,11 @@ export const useUpdateExpenseMutation = () => {
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["expenses"] });
+			queryClient.invalidateQueries({ queryKey: ["bookings"] });
+			toast.success("Expense updated");
+		},
+		onError: (error) => {
+			toast.error(error.message || "Failed to update expense");
 		},
 	});
 };

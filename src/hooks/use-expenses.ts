@@ -17,7 +17,7 @@ export const useExpenses = () => {
 
 export const useExpense = (expenseId: string) => {
 	return useQuery({
-		queryKey: ["expenses", expenseId],
+		queryKey: ["expenses", { expenseId }],
 		queryFn: async () => {
 			if (!expenseId) return null;
 			const response = await fetch(`/api/expenses/${expenseId}`);

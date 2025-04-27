@@ -41,7 +41,7 @@ import {
 	PopoverTrigger,
 } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ExpenseCategory } from "@/lib/db/schema";
+import { ExpenseCategory, BillTo } from "@/lib/db/schema";
 
 interface ExpenseFormProps {
 	defaultValues?: ExpenseFormValues;
@@ -54,9 +54,20 @@ export function ExpenseForm({
 	onSubmit,
 	mode = "create",
 }: ExpenseFormProps) {
+	// Clean up default values to only include fields we need
+	const cleanedDefaultValues = {
+		bookingId: defaultValues.bookingId?.toString() ?? "",
+		description: defaultValues.description ?? "",
+		amount: defaultValues.amount?.toString() ?? "",
+		category: defaultValues.category ?? ExpenseCategory.CUSTOM,
+		billTo: defaultValues.billTo ?? BillTo.STUDIO,
+		date: defaultValues.date ?? "",
+		fileUrls: defaultValues.fileUrls ?? [],
+	};
+
 	const form = useForm<ExpenseFormValues>({
 		resolver: zodResolver(ExpenseSchema),
-		defaultValues,
+		defaultValues: cleanedDefaultValues,
 		mode: "onChange",
 	});
 
