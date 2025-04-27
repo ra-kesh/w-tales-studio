@@ -39,7 +39,5 @@ export function useShootDetail(shootId: string) {
       return response.json();
     },
     enabled: !!shootId,
-    // refetchOnWindowFocus: true,
-    // refetchOnMount: true,
   });
 }

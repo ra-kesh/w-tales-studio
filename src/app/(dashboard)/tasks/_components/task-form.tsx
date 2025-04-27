@@ -49,10 +49,8 @@ export function TaskForm({
 	onSubmit,
 	mode = "create",
 }: TaskFormProps) {
-	// Clean up default values to only include fields we need
 	const cleanedDefaultValues = {
 		bookingId: defaultValues.bookingId?.toString() ?? "",
-		// deliverableId: defaultValues.deliverableId?.toString() ?? "",
 		description: defaultValues.description ?? "",
 		assignedTo: defaultValues.assignedTo ?? "",
 		priority: defaultValues.priority ?? "",

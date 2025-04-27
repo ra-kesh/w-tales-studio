@@ -56,8 +56,22 @@ export function useUpdateTaskMutation() {
 
 			return response.json();
 		},
-		onSuccess: () => {
+
+		onSuccess: ({ data }) => {
 			queryClient.invalidateQueries({ queryKey: ["tasks"] });
+			queryClient.invalidateQueries({
+				queryKey: [
+					"task",
+					{
+						taskId: data.taskId.toString(),
+					},
+				],
+			});
+			queryClient.invalidateQueries({ queryKey: ["bookings"] });
+			toast.success("task updated successfully");
+		},
+		onError: (error) => {
+			toast.error(error.message || "Failed to update task");
 		},
 	});
 }
