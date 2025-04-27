@@ -7,6 +7,7 @@ import Tasks from "./tasks";
 
 import { getServerSession } from "@/lib/dal";
 import { getConfigs, getTasks } from "@/lib/db/queries";
+import { Suspense } from "react";
 
 export default async function TaskPage() {
 	const { session } = await getServerSession();
@@ -41,9 +42,11 @@ export default async function TaskPage() {
 					<h2 className="text-2xl font-bold tracking-tight">Tasks</h2>
 				</div>
 			</div>
-			<HydrationBoundary state={dehydrate(queryClient)}>
-				<Tasks />
-			</HydrationBoundary>
+			<Suspense fallback={<div>Loading...</div>}>
+				<HydrationBoundary state={dehydrate(queryClient)}>
+					<Tasks />
+				</HydrationBoundary>
+			</Suspense>
 		</div>
 	);
 }
