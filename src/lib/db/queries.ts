@@ -312,3 +312,18 @@ export async function getBookingDetail(
 
 	return response;
 }
+
+export async function getClientDetail(
+	userOrganizationId: string,
+	clientId: number,
+) {
+	const client = await db.query.clients.findFirst({
+		where: and(
+			eq(clients.id, clientId),
+			eq(clients.organizationId, userOrganizationId),
+		),
+		orderBy: (clients, { desc }) => [desc(clients.updatedAt)],
+	});
+
+	return client;
+}

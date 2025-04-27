@@ -36,7 +36,6 @@ export function ClientTableToolbar<TData>({
           </Button>
         )}
       </div>
-      <Button>Add client</Button>
     </div>
   );
 }

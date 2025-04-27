@@ -26,3 +26,19 @@ export function useClients() {
 		queryFn: fetchClients,
 	});
 }
+
+async function fetchClientDetail(id: string) {
+	const response = await fetch(`/api/clients/${id}`);
+	if (!response.ok) {
+		throw new Error(`Failed to fetch client details: ${response.statusText}`);
+	}
+	return response.json();
+}
+
+export function useClientDetail(id: string | undefined) {
+	return useQuery({
+		queryKey: ["client", { id }],
+		queryFn: () => fetchClientDetail(id as string),
+		enabled: Boolean(id),
+	});
+}
