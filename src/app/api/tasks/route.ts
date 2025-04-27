@@ -90,7 +90,7 @@ export async function POST(request: Request) {
 					priority: validatedData.priority,
 					dueDate: validatedData.dueDate,
 					status: validatedData.status,
-					assignedTo: validatedData.assignedTo ?? null,
+					assignedTo: validatedData.assignedTo || null,
 					createdAt: new Date(),
 					updatedAt: new Date(),
 				})
