@@ -8,6 +8,8 @@ import { DeliverableCreateSheet } from "./deliverables/_components/deliverable-c
 import { DeliverableEditSheet } from "./deliverables/_components/deliverable-edit-sheet";
 import { TaskCreateSheet } from "./tasks/_components/task-create-sheet";
 import { TaskEditSheet } from "./tasks/_components/task-edit-sheet";
+import { ExpenseCreateSheet } from "./expenses/_components/expense-create-sheet";
+import { ExpenseEditSheet } from "./expenses/_components/expense-edit-sheet";
 
 export function GlobalSheets() {
 	return (
@@ -24,6 +26,10 @@ export function GlobalSheets() {
 			<TaskCreateSheet />
 			<Suspense fallback={<div>Loading...</div>}>
 				<TaskEditSheet />
+			</Suspense>
+			<ExpenseCreateSheet />
+			<Suspense fallback={<div>Loading...</div>}>
+				<ExpenseEditSheet />
 			</Suspense>
 		</>
 	);

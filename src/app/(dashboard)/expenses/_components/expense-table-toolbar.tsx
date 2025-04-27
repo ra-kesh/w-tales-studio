@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/select";
 import type { Table } from "@tanstack/react-table";
 import { X } from "lucide-react";
+import { OpenExpenseSheet } from "./open-expense-sheet";
 
 interface ExpenseTableToolbarProps<TData> {
 	table: Table<TData>;
@@ -46,7 +47,7 @@ export function ExpenseTableToolbar<TData>({
 					</Button>
 				)}
 			</div>
-			<Button>Add expense</Button>
+			<OpenExpenseSheet />
 		</div>
 	);
 }
