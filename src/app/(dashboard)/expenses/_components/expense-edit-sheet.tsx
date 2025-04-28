@@ -24,11 +24,11 @@ export function ExpenseEditSheet() {
 
 	const handleSubmit = async (data: ExpenseFormValues) => {
 		try {
-			await updateExpenseMutation.mutate({
+			await updateExpenseMutation.mutateAsync({
 				data,
 				expenseId: expenseId as string,
 			});
-			refetch();
+			setParams(null);
 		} catch (error) {
 			console.error(error);
 		}

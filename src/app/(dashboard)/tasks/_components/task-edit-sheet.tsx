@@ -25,11 +25,11 @@ export function TaskEditSheet() {
 
 	const handleSubmit = async (data: TaskFormValues) => {
 		try {
-			await updateTaskMutation.mutate({
+			await updateTaskMutation.mutateAsync({
 				data,
 				taskId: taskId as string,
 			});
-			refetch();
+			setParams(null);
 		} catch (error) {
 			console.error(error);
 		}

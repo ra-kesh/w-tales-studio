@@ -28,12 +28,11 @@ export function ClientEditSheet() {
 
 	const handleSubmit = async (data: ClientFormValues) => {
 		try {
-			await updateClientMutation.mutate({
+			await updateClientMutation.mutateAsync({
 				data,
 				clientId: clientId as string,
 			});
-			await refetch();
-			//   setParams(null);
+			setParams(null);
 		} catch (error) {
 			console.error("Error updating client:", error);
 		}

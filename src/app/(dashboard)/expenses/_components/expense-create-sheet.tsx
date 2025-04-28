@@ -22,7 +22,7 @@ export function ExpenseCreateSheet() {
 
 	const handleSubmit = async (data: ExpenseFormValues) => {
 		try {
-			await createExpenseMutation.mutate(data);
+			await createExpenseMutation.mutateAsync(data);
 			setParams(null);
 		} catch (error) {
 			console.error(error);

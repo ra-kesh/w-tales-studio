@@ -29,20 +29,15 @@ export function DeliverableEditSheet() {
 
 	const handleSubmit = async (data: DeliverableFormValues) => {
 		try {
-			await updateDeliverableMutation.mutate({
+			await updateDeliverableMutation.mutateAsync({
 				data,
 				deliverableId: deliverableId as string,
 			});
-			refetch();
-			// setParams(null);
+			setParams(null);
 		} catch (error) {
 			console.error(error);
 		}
 	};
-
-	// useEffect(() => {
-	// 	refetch();
-	// }, [deliverableId]);
 
 	return (
 		<Sheet open={isOpen} onOpenChange={() => setParams(null)}>

@@ -22,7 +22,7 @@ export function DeliverableCreateSheet() {
 
 	const handleSubmit = async (data: DeliverableFormValues) => {
 		try {
-			await createDeliverableMutation.mutate(data);
+			await createDeliverableMutation.mutateAsync(data);
 			setParams(null);
 		} catch (error) {
 			console.error(error);
