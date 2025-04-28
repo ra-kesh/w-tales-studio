@@ -1,10 +1,10 @@
 "use client";
 
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
+	Sheet,
+	SheetContent,
+	SheetHeader,
+	SheetTitle,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
@@ -15,55 +15,55 @@ import { ClientForm } from "./client-form";
 import type { ClientFormValues } from "./client-form-schema";
 
 export function ClientEditSheet() {
-  const { setParams, clientId } = useClientParams();
-  const isOpen = Boolean(clientId);
+	const { setParams, clientId } = useClientParams();
+	const isOpen = Boolean(clientId);
 
-  const {
-    data: client,
-    refetch,
-    isLoading,
-  } = useClientDetail(clientId as string);
+	const {
+		data: client,
+		refetch,
+		isLoading,
+	} = useClientDetail(clientId as string);
 
-  const updateClientMutation = useUpdateClientMutation();
+	const updateClientMutation = useUpdateClientMutation();
 
-  const handleSubmit = async (data: ClientFormValues) => {
-    try {
-      await updateClientMutation.mutate({
-        data,
-        clientId: clientId as string,
-      });
-      await refetch();
-      setParams(null);
-    } catch (error) {
-      console.error("Error updating client:", error);
-    }
-  };
+	const handleSubmit = async (data: ClientFormValues) => {
+		try {
+			await updateClientMutation.mutate({
+				data,
+				clientId: clientId as string,
+			});
+			await refetch();
+			//   setParams(null);
+		} catch (error) {
+			console.error("Error updating client:", error);
+		}
+	};
 
-  return (
-    <Sheet open={isOpen} onOpenChange={() => setParams(null)}>
-      <SheetContent side="right" className="min-w-xl">
-        <SheetHeader className="mb-6 flex justify-between items-center flex-row">
-          <SheetTitle className="text-xl">Edit Client</SheetTitle>
-          <Button
-            size="icon"
-            variant="ghost"
-            onClick={() => setParams(null)}
-            className="p-0 m-0 size-auto hover:bg-transparent"
-          >
-            <X className="size-4" />
-          </Button>
-        </SheetHeader>
+	return (
+		<Sheet open={isOpen} onOpenChange={() => setParams(null)}>
+			<SheetContent side="right" className="min-w-xl">
+				<SheetHeader className="mb-6 flex justify-between items-center flex-row">
+					<SheetTitle className="text-xl">Edit Client</SheetTitle>
+					<Button
+						size="icon"
+						variant="ghost"
+						onClick={() => setParams(null)}
+						className="p-0 m-0 size-auto hover:bg-transparent"
+					>
+						<X className="size-4" />
+					</Button>
+				</SheetHeader>
 
-        {isLoading ? (
-          <div>Loading...</div>
-        ) : (
-          <ClientForm
-            defaultValues={client}
-            onSubmit={handleSubmit}
-            mode="edit"
-          />
-        )}
-      </SheetContent>
-    </Sheet>
-  );
+				{isLoading ? (
+					<div>Loading...</div>
+				) : (
+					<ClientForm
+						defaultValues={client}
+						onSubmit={handleSubmit}
+						mode="edit"
+					/>
+				)}
+			</SheetContent>
+		</Sheet>
+	);
 }

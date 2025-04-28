@@ -6,6 +6,7 @@ import {
 } from "@tanstack/react-query";
 import { getExpenses } from "@/lib/db/queries";
 import { getServerSession } from "@/lib/dal";
+import { Suspense } from "react";
 
 export default async function ExpensesPage() {
 	const { session } = await getServerSession();
@@ -25,9 +26,11 @@ export default async function ExpensesPage() {
 					</p>
 				</div>
 			</div>
-			<HydrationBoundary state={dehydrate(queryClient)}>
-				<Expenses />
-			</HydrationBoundary>
+			<Suspense fallback={<div>Loadding...</div>}>
+				<HydrationBoundary state={dehydrate(queryClient)}>
+					<Expenses />
+				</HydrationBoundary>
+			</Suspense>
 		</div>
 	);
 }

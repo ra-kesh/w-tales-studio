@@ -6,6 +6,7 @@ import {
 } from "@tanstack/react-query";
 import { getServerSession } from "@/lib/dal";
 import { getClients } from "@/lib/db/queries";
+import { Suspense } from "react";
 
 export default async function ClientsPage() {
 	const { session } = await getServerSession();
@@ -27,9 +28,11 @@ export default async function ClientsPage() {
 					</p>
 				</div>
 			</div>
-			<HydrationBoundary state={dehydrate(queryClient)}>
-				<Clients />
-			</HydrationBoundary>
+			<Suspense fallback={<div>Loading...</div>}>
+				<HydrationBoundary state={dehydrate(queryClient)}>
+					<Clients />
+				</HydrationBoundary>
+			</Suspense>
 		</div>
 	);
 }
