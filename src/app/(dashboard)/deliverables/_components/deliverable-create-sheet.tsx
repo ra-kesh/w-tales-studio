@@ -13,6 +13,7 @@ import { useDeliverableParams } from "@/hooks/use-deliverable-params";
 import { DeliverableForm } from "./deliverable-form";
 import { useCreateDeliverableMutation } from "@/hooks/use-deliverable-mutation";
 import type { DeliverableFormValues } from "../deliverable-form-schema";
+import { toast } from "sonner";
 
 export function DeliverableCreateSheet() {
 	const { setParams, createDeliverable } = useDeliverableParams();
@@ -24,8 +25,12 @@ export function DeliverableCreateSheet() {
 		try {
 			await createDeliverableMutation.mutateAsync(data);
 			setParams(null);
-		} catch (error) {
-			console.error(error);
+		} catch (error: unknown) {
+			if (error instanceof Error) {
+				toast.error(error.message);
+			} else {
+				toast.error("An unknown error occurred");
+			}
 		}
 	};
 

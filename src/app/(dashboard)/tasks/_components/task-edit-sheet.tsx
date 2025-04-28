@@ -14,12 +14,13 @@ import type { TaskFormValues } from "../task-form-schema";
 import { useTaskDetails } from "@/hooks/use-tasks";
 import { useTaskParams } from "@/hooks/use-task-params";
 import { useUpdateTaskMutation } from "@/hooks/use-task-mutation";
+import { toast } from "sonner";
 
 export function TaskEditSheet() {
 	const { setParams, taskId } = useTaskParams();
 	const isOpen = Boolean(taskId);
 
-	const { data: task, isLoading, refetch } = useTaskDetails(taskId as string);
+	const { data: task, isLoading } = useTaskDetails(taskId as string);
 
 	const updateTaskMutation = useUpdateTaskMutation();
 
@@ -30,8 +31,12 @@ export function TaskEditSheet() {
 				taskId: taskId as string,
 			});
 			setParams(null);
-		} catch (error) {
-			console.error(error);
+		} catch (error: unknown) {
+			if (error instanceof Error) {
+				toast.error(error.message);
+			} else {
+				toast.error("An unknown error occurred");
+			}
 		}
 	};
 

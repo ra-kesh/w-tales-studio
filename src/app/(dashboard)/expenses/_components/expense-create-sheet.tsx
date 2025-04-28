@@ -13,6 +13,7 @@ import { useExpenseParams } from "@/hooks/use-expense-params";
 import { ExpenseForm } from "./expense-form";
 import type { ExpenseFormValues } from "../expense-form-schema";
 import { useCreateExpenseMutation } from "@/hooks/use-expense-mutation";
+import { toast } from "sonner";
 
 export function ExpenseCreateSheet() {
 	const { setParams, createExpense } = useExpenseParams();
@@ -24,8 +25,12 @@ export function ExpenseCreateSheet() {
 		try {
 			await createExpenseMutation.mutateAsync(data);
 			setParams(null);
-		} catch (error) {
-			console.error(error);
+		} catch (error: unknown) {
+			if (error instanceof Error) {
+				toast.error(error.message);
+			} else {
+				toast.error("An unknown error occurred");
+			}
 		}
 	};
 

@@ -13,6 +13,7 @@ import { TaskForm } from "./task-form";
 import type { TaskFormValues } from "../task-form-schema";
 import { useTaskParams } from "@/hooks/use-task-params";
 import { useCreateTaskMutation } from "@/hooks/use-task-mutation";
+import { toast } from "sonner";
 
 export function TaskCreateSheet() {
 	const { setParams, createTask } = useTaskParams();
@@ -24,8 +25,12 @@ export function TaskCreateSheet() {
 		try {
 			await createTaskMutation.mutateAsync(data);
 			setParams(null);
-		} catch (error) {
-			console.error(error);
+		} catch (error: unknown) {
+			if (error instanceof Error) {
+				toast.error(error.message);
+			} else {
+				toast.error("An unknown error occurred");
+			}
 		}
 	};
 

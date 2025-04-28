@@ -13,6 +13,7 @@ import { X } from "lucide-react";
 import { ShootForm } from "./shoot-form";
 import type { ShootFormValues } from "./shoot-form-schema";
 import { useCreateShootMutation } from "@/hooks/use-shoot-mutation";
+import { toast } from "sonner";
 
 export function ShootCreateSheet() {
 	const { setParams, createShoot } = useShootsParams();
@@ -24,8 +25,12 @@ export function ShootCreateSheet() {
 		try {
 			await createShootMutation.mutateAsync(data);
 			setParams(null);
-		} catch (error) {
-			console.error(error);
+		} catch (error: unknown) {
+			if (error instanceof Error) {
+				toast.error(error.message);
+			} else {
+				toast.error("An unknown error occurred");
+			}
 		}
 	};
 

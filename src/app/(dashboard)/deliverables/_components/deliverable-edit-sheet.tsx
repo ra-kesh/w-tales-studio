@@ -14,16 +14,13 @@ import { DeliverableForm } from "./deliverable-form";
 import { useUpdateDeliverableMutation } from "@/hooks/use-deliverable-mutation";
 import type { DeliverableFormValues } from "../deliverable-form-schema";
 import { useDeliverable } from "@/hooks/use-deliverable";
+import { toast } from "sonner";
 
 export function DeliverableEditSheet() {
 	const { setParams, deliverableId } = useDeliverableParams();
 	const isOpen = Boolean(deliverableId);
 
-	const {
-		data: deliverable,
-		isLoading,
-		refetch,
-	} = useDeliverable(deliverableId);
+	const { data: deliverable, isLoading } = useDeliverable(deliverableId);
 
 	const updateDeliverableMutation = useUpdateDeliverableMutation();
 
@@ -34,8 +31,12 @@ export function DeliverableEditSheet() {
 				deliverableId: deliverableId as string,
 			});
 			setParams(null);
-		} catch (error) {
-			console.error(error);
+		} catch (error: unknown) {
+			if (error instanceof Error) {
+				toast.error(error.message);
+			} else {
+				toast.error("An unknown error occurred");
+			}
 		}
 	};
 

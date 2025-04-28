@@ -13,16 +13,13 @@ import { useUpdateClientMutation } from "@/hooks/use-client-mutation";
 import { useClientDetail } from "@/hooks/use-clients";
 import { ClientForm } from "./client-form";
 import type { ClientFormValues } from "./client-form-schema";
+import { toast } from "sonner";
 
 export function ClientEditSheet() {
 	const { setParams, clientId } = useClientParams();
 	const isOpen = Boolean(clientId);
 
-	const {
-		data: client,
-		refetch,
-		isLoading,
-	} = useClientDetail(clientId as string);
+	const { data: client, isLoading } = useClientDetail(clientId as string);
 
 	const updateClientMutation = useUpdateClientMutation();
 
@@ -33,8 +30,12 @@ export function ClientEditSheet() {
 				clientId: clientId as string,
 			});
 			setParams(null);
-		} catch (error) {
-			console.error("Error updating client:", error);
+		} catch (error: unknown) {
+			if (error instanceof Error) {
+				toast.error(error.message);
+			} else {
+				toast.error("An unknown error occurred");
+			}
 		}
 	};
 

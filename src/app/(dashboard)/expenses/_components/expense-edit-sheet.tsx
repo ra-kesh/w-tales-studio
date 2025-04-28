@@ -14,12 +14,13 @@ import { ExpenseForm } from "./expense-form";
 import { useUpdateExpenseMutation } from "@/hooks/use-expense-mutation";
 import type { ExpenseFormValues } from "../expense-form-schema";
 import { useExpense } from "@/hooks/use-expenses";
+import { toast } from "sonner";
 
 export function ExpenseEditSheet() {
 	const { setParams, expenseId } = useExpenseParams();
 	const isOpen = Boolean(expenseId);
 
-	const { data: expense, isLoading, refetch } = useExpense(expenseId as string);
+	const { data: expense, isLoading } = useExpense(expenseId as string);
 	const updateExpenseMutation = useUpdateExpenseMutation();
 
 	const handleSubmit = async (data: ExpenseFormValues) => {
@@ -29,8 +30,12 @@ export function ExpenseEditSheet() {
 				expenseId: expenseId as string,
 			});
 			setParams(null);
-		} catch (error) {
-			console.error(error);
+		} catch (error: unknown) {
+			if (error instanceof Error) {
+				toast.error(error.message);
+			} else {
+				toast.error("An unknown error occurred");
+			}
 		}
 	};
 
