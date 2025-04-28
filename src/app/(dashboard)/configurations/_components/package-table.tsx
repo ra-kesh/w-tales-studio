@@ -1,12 +1,14 @@
 "use client";
 
 import * as React from "react";
+import { cn } from "@/lib/utils";
 import {
 	useReactTable,
 	type ColumnDef,
 	type ColumnFiltersState,
 	type SortingState,
 	type VisibilityState,
+	type ExpandedState,
 	flexRender,
 	getCoreRowModel,
 	getFacetedRowModel,
@@ -24,6 +26,7 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import { usePackageColumns } from "./package-table-columns";
 import { PackageTableToolbar } from "./package-table-toolbar";
 import { PackageTablePagination } from "./package-table-pagination";
@@ -55,8 +58,8 @@ export function PackageTable({ data, onEdit, onDelete }: PackageTableProps) {
 		[],
 	);
 	const [sorting, setSorting] = React.useState<SortingState>([]);
+	const [expanded, setExpanded] = React.useState<ExpandedState>({});
 
-	// Add onEdit and onDelete to each row's data
 	const dataWithActions = React.useMemo(
 		() =>
 			data.map((item) => ({
@@ -77,7 +80,10 @@ export function PackageTable({ data, onEdit, onDelete }: PackageTableProps) {
 			columnVisibility,
 			rowSelection,
 			columnFilters,
+			expanded,
 		},
+		onExpandedChange: setExpanded,
+		enableExpanding: true,
 		enableRowSelection: true,
 		onRowSelectionChange: setRowSelection,
 		onSortingChange: setSorting,
@@ -117,19 +123,76 @@ export function PackageTable({ data, onEdit, onDelete }: PackageTableProps) {
 					<TableBody>
 						{table.getRowModel().rows?.length ? (
 							table.getRowModel().rows.map((row) => (
-								<TableRow
-									key={row.id}
-									data-state={row.getIsSelected() && "selected"}
-								>
-									{row.getVisibleCells().map((cell) => (
-										<TableCell key={cell.id}>
-											{flexRender(
-												cell.column.columnDef.cell,
-												cell.getContext(),
-											)}
-										</TableCell>
-									))}
-								</TableRow>
+								<React.Fragment key={row.id}>
+									<TableRow
+										data-state={row.getIsSelected() && "selected"}
+										className={cn(
+											"transition-colors hover:bg-muted/50",
+											row.getIsExpanded() && "bg-muted/50",
+										)}
+									>
+										{row.getVisibleCells().map((cell) => (
+											<TableCell key={cell.id}>
+												{flexRender(
+													cell.column.columnDef.cell,
+													cell.getContext(),
+												)}
+											</TableCell>
+										))}
+									</TableRow>
+									{row.getIsExpanded() &&
+										row.original.metadata.defaultDeliverables && (
+											<TableRow className="bg-muted/30">
+												<TableCell colSpan={columns.length} className="p-0">
+													<div className="py-2 px-4">
+														<Table>
+															<TableHeader>
+																<TableRow className="hover:bg-transparent">
+																	<TableHead className="w-[50%]">
+																		Title
+																	</TableHead>
+																	{/* <TableHead>Status</TableHead> */}
+																	<TableHead className="text-right">
+																		Quantity
+																	</TableHead>
+																</TableRow>
+															</TableHeader>
+															<TableBody>
+																{row.original.metadata.defaultDeliverables.map(
+																	(deliverable, index) => (
+																		<TableRow
+																			key={index}
+																			className="hover:bg-muted/50 border-0"
+																		>
+																			<TableCell className="py-2">
+																				{deliverable.title}
+																			</TableCell>
+																			{/* <TableCell className="py-2">
+																				<Badge
+																					variant={
+																						deliverable.is_package_included
+																							? "default"
+																							: "secondary"
+																					}
+																				>
+																					{deliverable.is_package_included
+																						? "Included"
+																						: "Add-on"}
+																				</Badge>
+																			</TableCell> */}
+																			<TableCell className="text-right py-2">
+																				{deliverable.quantity}
+																			</TableCell>
+																		</TableRow>
+																	),
+																)}
+															</TableBody>
+														</Table>
+													</div>
+												</TableCell>
+											</TableRow>
+										)}
+								</React.Fragment>
 							))
 						) : (
 							<TableRow>
