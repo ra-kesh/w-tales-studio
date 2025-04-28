@@ -103,12 +103,12 @@ export function PackageTable({ data, onEdit, onDelete }: PackageTableProps) {
 			<div className="rounded-md border">
 				<Table>
 					<colgroup>
-						<col style={{ width: "60px" }} />
+						<col style={{ width: "5%" }} />
 						<col style={{ width: "20%" }} />
 						<col style={{ width: "15%" }} />
 						<col style={{ width: "15%" }} />
 						<col style={{ width: "40%" }} />
-						<col style={{ width: "10%" }} />
+						<col style={{ width: "5%" }} />
 					</colgroup>
 					<TableHeader>
 						{table.getHeaderGroups().map((headerGroup) => (
