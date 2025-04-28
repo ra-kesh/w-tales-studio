@@ -102,6 +102,14 @@ export function PackageTable({ data, onEdit, onDelete }: PackageTableProps) {
 			<PackageTableToolbar table={table} />
 			<div className="rounded-md border">
 				<Table>
+					<colgroup>
+						<col style={{ width: "60px" }} />
+						<col style={{ width: "20%" }} />
+						<col style={{ width: "15%" }} />
+						<col style={{ width: "15%" }} />
+						<col style={{ width: "40%" }} />
+						<col style={{ width: "10%" }} />
+					</colgroup>
 					<TableHeader>
 						{table.getHeaderGroups().map((headerGroup) => (
 							<TableRow key={headerGroup.id}>
@@ -143,15 +151,14 @@ export function PackageTable({ data, onEdit, onDelete }: PackageTableProps) {
 									{row.getIsExpanded() &&
 										row.original.metadata.defaultDeliverables && (
 											<TableRow className="bg-muted/30">
-												<TableCell colSpan={columns.length} className="p-0">
-													<div className="py-2 px-4">
+												<TableCell className="p-0" colSpan={4} />
+												<TableCell className="p-0" colSpan={1}>
+													<div className="p-4">
 														<Table>
 															<TableHeader>
 																<TableRow className="hover:bg-transparent">
-																	<TableHead className="w-[50%]">
-																		Title
-																	</TableHead>
-																	{/* <TableHead>Status</TableHead> */}
+																	<TableHead>Title</TableHead>
+																	<TableHead>Status</TableHead>
 																	<TableHead className="text-right">
 																		Quantity
 																	</TableHead>
@@ -167,7 +174,7 @@ export function PackageTable({ data, onEdit, onDelete }: PackageTableProps) {
 																			<TableCell className="py-2">
 																				{deliverable.title}
 																			</TableCell>
-																			{/* <TableCell className="py-2">
+																			<TableCell className="py-2">
 																				<Badge
 																					variant={
 																						deliverable.is_package_included
@@ -179,7 +186,7 @@ export function PackageTable({ data, onEdit, onDelete }: PackageTableProps) {
 																						? "Included"
 																						: "Add-on"}
 																				</Badge>
-																			</TableCell> */}
+																			</TableCell>
 																			<TableCell className="text-right py-2">
 																				{deliverable.quantity}
 																			</TableCell>
@@ -190,6 +197,7 @@ export function PackageTable({ data, onEdit, onDelete }: PackageTableProps) {
 														</Table>
 													</div>
 												</TableCell>
+												<TableCell className="p-0" colSpan={1} />
 											</TableRow>
 										)}
 								</React.Fragment>

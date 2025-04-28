@@ -2,16 +2,10 @@
 
 import type { ColumnDef } from "@tanstack/react-table";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-	Package,
-	Edit,
-	Trash,
-	MoreHorizontal,
-	ChevronRight,
-} from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
+import { ChevronRight, Package } from "lucide-react";
 import { PackageTableRowActions } from "./package-table-row-actions";
 
 interface PackageType {
@@ -31,27 +25,6 @@ interface PackageType {
 
 export const usePackageColumns = () => {
 	const columns: ColumnDef<PackageType>[] = [
-		{
-			id: "expander",
-			header: () => null,
-			cell: ({ row }) => {
-				return row.original.metadata.defaultDeliverables?.length ? (
-					<Button
-						variant="ghost"
-						size="icon"
-						className="h-8 w-8 p-0 hover:bg-transparent"
-						onClick={() => row.toggleExpanded()}
-					>
-						<ChevronRight
-							className={cn("h-4 w-4 transition-transform duration-200", {
-								"transform rotate-90": row.getIsExpanded(),
-							})}
-						/>
-						<span className="sr-only">Toggle row expanded</span>
-					</Button>
-				) : null;
-			},
-		},
 		{
 			id: "select",
 			header: ({ table }) => (
@@ -106,20 +79,30 @@ export const usePackageColumns = () => {
 				const hasDeliverables = count > 0;
 
 				return (
-					<Button
-						variant="ghost"
-						size="sm"
-						className={cn(
-							"gap-2 text-muted-foreground hover:text-foreground transition-colors",
-							hasDeliverables ? "cursor-pointer" : "opacity-50 cursor-default",
-						)}
-						onClick={hasDeliverables ? () => row.toggleExpanded() : undefined}
-					>
-						<Package className="h-4 w-4" />
-						<span className="tabular-nums">
-							{count} {count === 1 ? "item" : "items"}
-						</span>
-					</Button>
+					<div className="relative">
+						<Button
+							variant="ghost"
+							size="sm"
+							className={cn(
+								"gap-2 text-muted-foreground hover:text-foreground transition-colors group",
+								hasDeliverables
+									? "cursor-pointer"
+									: "opacity-50 cursor-default",
+							)}
+							onClick={hasDeliverables ? () => row.toggleExpanded() : undefined}
+						>
+							<ChevronRight
+								className={cn(
+									"h-4 w-4 transition-transform duration-200",
+									row.getIsExpanded() && "transform rotate-90",
+								)}
+							/>
+							<Package className="h-4 w-4" />
+							<span className="tabular-nums">
+								{count} {count === 1 ? "item" : "items"}
+							</span>
+						</Button>
+					</div>
 				);
 			},
 		},
