@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -38,6 +39,19 @@ export function PackageForm({
     defaultValues,
     mode: "onChange",
   });
+
+  const lastDeliverableRef = useRef<HTMLDivElement | null>(null);
+
+  const deliverables = form.watch("metadata.defaultDeliverables");
+
+  useEffect(() => {
+    if (lastDeliverableRef.current) {
+      lastDeliverableRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }
+  }, [deliverables.length]);
 
   return (
     <Form {...form}>
@@ -106,7 +120,15 @@ export function PackageForm({
             <div className="max-h-[400px] overflow-y-auto pr-4 pl-1 pb-1">
               <div className="space-y-4">
                 {form.watch("metadata.defaultDeliverables")?.map((_, index) => (
-                  <div key={index} className="grid grid-cols-6 gap-4">
+                  <div
+                    ref={
+                      index === deliverables.length - 1
+                        ? lastDeliverableRef
+                        : null
+                    }
+                    key={index}
+                    className="grid grid-cols-6 gap-4"
+                  >
                     <div className="col-span-3">
                       <FormField
                         control={form.control}
