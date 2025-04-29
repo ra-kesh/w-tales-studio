@@ -26,7 +26,6 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { usePackageColumns } from "./package-table-columns";
 import { PackageTableToolbar } from "./package-table-toolbar";
 import { PackageTablePagination } from "./package-table-pagination";
@@ -35,10 +34,10 @@ interface PackageType {
 	id: number;
 	label: string;
 	metadata: {
-		defaultCost: number;
+		defaultCost: string;
 		defaultDeliverables?: {
 			title: string;
-			quantity: number;
+			quantity: string;
 			is_package_included: boolean;
 		}[];
 	};

@@ -12,10 +12,10 @@ interface PackageType {
 	id: number;
 	label: string;
 	metadata: {
-		defaultCost: number;
+		defaultCost: string;
 		defaultDeliverables?: {
 			title: string;
-			quantity: number;
+			quantity: string;
 			is_package_included: boolean;
 		}[];
 	};
@@ -81,10 +81,10 @@ export const usePackageColumns = () => {
 				return (
 					<div className="relative">
 						<Button
-							variant="ghost"
+							variant="outline"
 							size="sm"
 							className={cn(
-								"gap-2 text-muted-foreground hover:text-foreground transition-colors group",
+								"gap-2  transition-colors group",
 								hasDeliverables
 									? "cursor-pointer"
 									: "opacity-50 cursor-default",

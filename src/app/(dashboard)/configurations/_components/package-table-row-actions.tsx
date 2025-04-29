@@ -8,8 +8,23 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
+interface PackageType {
+	id: number;
+	label: string;
+	metadata: {
+		defaultCost: string;
+		defaultDeliverables?: {
+			title: string;
+			quantity: string;
+			is_package_included: boolean;
+		}[];
+	};
+	onEdit?: (id: number) => void;
+	onDelete?: (id: number) => void;
+}
+
 interface PackageTableRowActionsProps<TData> {
-	row: Row<TData>;
+	row: Row<PackageType>;
 }
 
 export function PackageTableRowActions<TData>({
