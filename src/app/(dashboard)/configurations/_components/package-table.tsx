@@ -174,21 +174,9 @@ export function PackageTable({ data, onEdit, onDelete }: PackageTableProps) {
 																			<TableCell className="py-2">
 																				{deliverable.title}
 																			</TableCell>
-																			{/* <TableCell className="py-2">
-																				<Badge
-																					variant={
-																						deliverable.is_package_included
-																							? "default"
-																							: "secondary"
-																					}
-																				>
-																					{deliverable.is_package_included
-																						? "Included"
-																						: "Add-on"}
-																				</Badge>
-																			</TableCell> */}
+
 																			<TableCell className="text-right py-2">
-																				{deliverable.quantity}
+																				{deliverable.quantity || "N/a"}
 																			</TableCell>
 																		</TableRow>
 																	),

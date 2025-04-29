@@ -80,3 +80,11 @@ const isEmpty = (value: any): boolean => {
 	}
 	return false;
 };
+
+export function generateKey(value: string): string {
+	return value
+		.toLowerCase()
+		.replace(/[^a-z0-9\s-]/g, "") // Remove special characters except spaces and hyphens
+		.trim()
+		.replace(/[\s-]+/g, "_"); // Replace both spaces and hyphens with underscores
+}

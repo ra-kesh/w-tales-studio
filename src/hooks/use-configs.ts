@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { Configuration, NewConfiguration } from "@/lib/db/schema";
+import { toast } from "sonner";
 
 export async function fetchConfigs(type: string): Promise<Configuration[]> {
 	const response = await fetch(`/api/configurations?type=${type}`);
@@ -122,7 +123,7 @@ export function useCreatePackageMutation() {
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: async (data: Omit<NewConfiguration, "type" | "key">) => {
-			const response = await fetch("/api/configurations", {
+			const response = await fetch("/api/configurations/package_types", {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
@@ -139,6 +140,9 @@ export function useCreatePackageMutation() {
 				queryKey: ["configurations", "package_type"],
 			});
 		},
+		onError: (error) => {
+			toast.error(error.message || "Failed to create package");
+		},
 	});
 }
 
@@ -149,13 +153,16 @@ export function useUpdatePackageMutation() {
 			data,
 			packageId,
 		}: { data: Partial<NewConfiguration>; packageId: string }) => {
-			const response = await fetch(`/api/configurations/${packageId}`, {
-				method: "PATCH",
-				headers: {
-					"Content-Type": "application/json",
+			const response = await fetch(
+				`/api/configurations/package_types/${packageId}`,
+				{
+					method: "PUT",
+					headers: {
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify({ ...data, type: "package_type" }),
 				},
-				body: JSON.stringify({ ...data, type: "package_type" }),
-			});
+			);
 			if (!response.ok) {
 				throw new Error("Failed to update package");
 			}
