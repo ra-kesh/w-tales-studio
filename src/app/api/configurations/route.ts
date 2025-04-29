@@ -37,7 +37,6 @@ export async function GET(request: Request) {
 		}
 
 		if (!configTypeValues.includes(type)) {
-			// Validate that type is a valid ConfigType value
 			return NextResponse.json(
 				{
 					message: `Invalid type. Must be one of: ${configTypeValues.join(

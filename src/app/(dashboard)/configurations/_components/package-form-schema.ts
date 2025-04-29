@@ -15,6 +15,18 @@ export const PackageSchema = z.object({
 
 export type PackageFormValues = z.infer<typeof PackageSchema>;
 
+export const PackageMetadataSchema = z.object({
+	defaultCost: z.string(),
+	defaultDeliverables: z.array(
+		z.object({
+			title: z.string(),
+			quantity: z.string(),
+		}),
+	),
+});
+
+export type PackageMetadata = z.infer<typeof PackageMetadataSchema>;
+
 export const defaultPackage: PackageFormValues = {
 	value: "",
 	metadata: {

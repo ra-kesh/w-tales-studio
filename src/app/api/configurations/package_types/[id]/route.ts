@@ -3,72 +3,11 @@ import { getServerSession } from "@/lib/dal";
 import { db } from "@/lib/db/drizzle";
 import { configurations } from "@/lib/db/schema";
 import { and, eq, not } from "drizzle-orm";
-
-import { auth } from "@/lib/auth"; // Adjust path
-import { headers } from "next/headers";
-import { generateKey } from "@/lib/utils"; // Adjust path
-import { PackageSchema } from "@/app/(dashboard)/configurations/_components/package-form-schema";
-
-export async function PATCH(
-	request: Request,
-	{ params }: { params: { id: string } },
-) {
-	const { session } = await getServerSession();
-
-	if (!session || !session.user) {
-		return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-	}
-
-	const userOrganizationId = session.session.activeOrganizationId;
-
-	if (!userOrganizationId) {
-		return NextResponse.json(
-			{ message: "User not associated with an organization" },
-			{ status: 403 },
-		);
-	}
-
-	try {
-		const { id } = await params;
-		const configId = Number.parseInt(id, 10);
-		const body = await request.json();
-
-		const existingConfig = await db.query.configurations.findFirst({
-			where: eq(configurations.id, configId),
-		});
-
-		if (!existingConfig) {
-			return NextResponse.json(
-				{ message: "Configuration not found" },
-				{ status: 404 },
-			);
-		}
-
-		const [updatedConfig] = await db
-			.update(configurations)
-			.set({
-				key:
-					body.key ||
-					body.value?.toLowerCase().replace(/\s+/g, "_") ||
-					existingConfig.key,
-				value: body.value || existingConfig.value,
-				metadata: body.metadata || existingConfig.metadata,
-				updatedAt: new Date(),
-			})
-			.where(eq(configurations.id, configId))
-			.returning();
-
-		return NextResponse.json(updatedConfig);
-	} catch (error) {
-		console.error("Error updating configuration:", error);
-		const errorMessage =
-			error instanceof Error ? error.message : "Unknown error";
-		return NextResponse.json(
-			{ message: "Internal server error", error: errorMessage },
-			{ status: 500 },
-		);
-	}
-}
+import { generateKey } from "@/lib/utils";
+import {
+	type PackageMetadata,
+	PackageSchema,
+} from "@/app/(dashboard)/configurations/_components/package-form-schema";
 
 export async function PUT(
 	request: Request,
@@ -115,22 +54,21 @@ export async function PUT(
 			});
 
 			if (!existingConfig) {
-				return NextResponse.json(
-					{ message: "Package type not found or access denied" },
-					{ status: 404 },
-				);
+				throw new Error("Package type not found or access denied");
 			}
-
 			const newKey = validatedData.value
 				? generateKey(validatedData.value)
 				: existingConfig.key;
 
 			const newValue = validatedData.value ?? existingConfig.value;
 
-			// Merge existing metadata with updated metadata
-			const existingMetadata = existingConfig.metadata || {};
+			const existingMetadata =
+				(existingConfig.metadata as PackageMetadata | null) || {
+					defaultCost: 0,
+					defaultDeliverables: [],
+				};
 
-			const newMetadata = {
+			const newMetadata: PackageMetadata = {
 				defaultCost:
 					validatedData.metadata?.defaultCost ?? existingMetadata.defaultCost,
 				defaultDeliverables:
@@ -147,12 +85,8 @@ export async function PUT(
 					not(eq(configurations.id, packageTypeId)),
 				),
 			});
-
 			if (conflictingConfig) {
-				return NextResponse.json(
-					{ message: "Package type  already exists" },
-					{ status: 409 },
-				);
+				throw new Error("Package type already exists");
 			}
 
 			// Check for duplicate value (excluding the current one)
@@ -166,10 +100,7 @@ export async function PUT(
 			});
 
 			if (conflictingValue) {
-				return NextResponse.json(
-					{ message: "Package type already exists" },
-					{ status: 409 },
-				);
+				throw new Error("Package type  already exists");
 			}
 
 			// Update the package type configuration
@@ -186,7 +117,6 @@ export async function PUT(
 
 			return updatedConfig;
 		});
-
 		return NextResponse.json(
 			{
 				data: { packageTypeId: updatedConfig.id },
