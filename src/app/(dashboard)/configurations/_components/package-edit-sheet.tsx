@@ -7,25 +7,60 @@ import {
 	SheetHeader,
 	SheetTitle,
 } from "@/components/ui/sheet";
-import { XIcon } from "lucide-react";
+import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { usePackageParams } from "@/hooks/use-package-params";
 import { PackageForm } from "./package-form";
-import { usePackageDetail } from "@/hooks/use-configs";
-import { defaultPackage } from "./package-form-schema";
+import {
+	usePackageDetail,
+	useUpdatePackageMutation,
+} from "@/hooks/use-configs";
+import type { PackageFormValues } from "./package-form-schema";
+import { toast } from "sonner";
 
 export function PackageEditSheet() {
 	const { setParams, packageId } = usePackageParams();
-	const { data: packageData, isLoading } = usePackageDetail(packageId ?? "");
-
 	const isOpen = Boolean(packageId);
 
-	// biome-ignore lint/suspicious/noExplicitAny: <explanation>
-	const handleSubmit = async (data: any) => {
-		// TODO: Implement update logic
-		console.log(data);
-		setParams(null);
+	const { data: packageData, isLoading } = usePackageDetail(packageId ?? "");
+	const updatePackageMutation = useUpdatePackageMutation();
+
+	const handleSubmit = async (data: PackageFormValues) => {
+		try {
+			await updatePackageMutation.mutateAsync({
+				data: {
+					key: data.key,
+					value: data.value,
+					metadata: data.metadata,
+					isSystem: false,
+				},
+				packageId: packageId as string,
+			});
+			setParams(null);
+		} catch (error: unknown) {
+			if (error instanceof Error) {
+				toast.error(error.message);
+			} else {
+				toast.error("An unknown error occurred");
+			}
+		}
 	};
+
+	const cleanedDefaultValues = packageData
+		? {
+				key: packageData.key,
+				value: packageData.value,
+				metadata: {
+					defaultCost: packageData.metadata.defaultCost ?? "",
+					defaultDeliverables:
+						packageData.metadata.defaultDeliverables?.map((d) => ({
+							title: d.title,
+							quantity: d.quantity,
+							is_package_included: d.is_package_included,
+						})) ?? [],
+				},
+			}
+		: undefined;
 
 	return (
 		<Sheet open={isOpen} onOpenChange={() => setParams(null)}>
@@ -38,24 +73,14 @@ export function PackageEditSheet() {
 						onClick={() => setParams(null)}
 						className="p-0 m-0 size-auto hover:bg-transparent"
 					>
-						<XIcon className="size-4" />
+						<X className="size-4" />
 					</Button>
 				</SheetHeader>
 				{isLoading ? (
 					<div>Loading...</div>
 				) : (
 					<PackageForm
-						defaultValues={
-							packageData
-								? {
-										...packageData,
-										metadata: {
-											...packageData.metadata,
-											defaultCost: packageData.metadata.defaultCost ?? "",
-										},
-									}
-								: defaultPackage
-						}
+						defaultValues={cleanedDefaultValues}
 						onSubmit={handleSubmit}
 						mode="edit"
 					/>
