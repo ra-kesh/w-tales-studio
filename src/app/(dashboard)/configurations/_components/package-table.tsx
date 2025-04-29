@@ -104,10 +104,10 @@ export function PackageTable({ data, onEdit, onDelete }: PackageTableProps) {
 				<Table>
 					<colgroup>
 						<col style={{ width: "5%" }} />
-						<col style={{ width: "15%" }} />
-						<col style={{ width: "15%" }} />
-						<col style={{ width: "15%" }} />
-						<col style={{ width: "45%" }} />
+						<col style={{ width: "20%" }} />
+						<col style={{ width: "20%" }} />
+						<col style={{ width: "20%" }} />
+						<col style={{ width: "30%" }} />
 						<col style={{ width: "5%" }} />
 					</colgroup>
 					<TableHeader>
@@ -158,7 +158,7 @@ export function PackageTable({ data, onEdit, onDelete }: PackageTableProps) {
 															<TableHeader>
 																<TableRow className="hover:bg-transparent">
 																	<TableHead>Title</TableHead>
-																	<TableHead>Status</TableHead>
+																	{/* <TableHead>Status</TableHead> */}
 																	<TableHead className="text-right">
 																		Quantity
 																	</TableHead>
@@ -174,7 +174,7 @@ export function PackageTable({ data, onEdit, onDelete }: PackageTableProps) {
 																			<TableCell className="py-2">
 																				{deliverable.title}
 																			</TableCell>
-																			<TableCell className="py-2">
+																			{/* <TableCell className="py-2">
 																				<Badge
 																					variant={
 																						deliverable.is_package_included
@@ -186,7 +186,7 @@ export function PackageTable({ data, onEdit, onDelete }: PackageTableProps) {
 																						? "Included"
 																						: "Add-on"}
 																				</Badge>
-																			</TableCell>
+																			</TableCell> */}
 																			<TableCell className="text-right py-2">
 																				{deliverable.quantity}
 																			</TableCell>

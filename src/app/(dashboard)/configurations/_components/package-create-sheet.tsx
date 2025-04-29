@@ -24,10 +24,8 @@ export function PackageCreateSheet() {
 	const handleSubmit = async (data: PackageFormValues) => {
 		try {
 			await createPackageMutation.mutateAsync({
-				key: data.key,
 				value: data.value,
 				metadata: data.metadata,
-				isSystem: false,
 			});
 			setParams(null);
 		} catch (error: unknown) {

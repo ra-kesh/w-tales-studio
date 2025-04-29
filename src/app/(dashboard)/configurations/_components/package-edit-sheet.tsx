@@ -29,10 +29,8 @@ export function PackageEditSheet() {
 		try {
 			await updatePackageMutation.mutateAsync({
 				data: {
-					key: data.key,
 					value: data.value,
 					metadata: data.metadata,
-					isSystem: false,
 				},
 				packageId: packageId as string,
 			});
@@ -55,8 +53,7 @@ export function PackageEditSheet() {
 					defaultDeliverables:
 						packageData.metadata.defaultDeliverables?.map((d) => ({
 							title: d.title,
-							quantity: d.quantity,
-							is_package_included: d.is_package_included,
+							quantity: d.quantity.toString(),
 						})) ?? [],
 				},
 			}

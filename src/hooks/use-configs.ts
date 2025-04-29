@@ -121,7 +121,7 @@ export function usePackageDetail(id: string | null) {
 export function useCreatePackageMutation() {
 	const queryClient = useQueryClient();
 	return useMutation({
-		mutationFn: async (data: Omit<NewConfiguration, "type">) => {
+		mutationFn: async (data: Omit<NewConfiguration, "type" | "key">) => {
 			const response = await fetch("/api/configurations", {
 				method: "POST",
 				headers: {

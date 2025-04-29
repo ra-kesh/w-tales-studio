@@ -42,41 +42,45 @@ export function PackageForm({
 		<Form {...form}>
 			<form
 				onSubmit={form.handleSubmit(onSubmit)}
-				className="grid grid-cols-2 gap-6 px-4"
+				className="grid grid-cols-5 gap-6 px-4"
 			>
-				<FormField
-					control={form.control}
-					name="value"
-					render={({ field }) => (
-						<FormItem>
-							<FormLabel>Package Name</FormLabel>
-							<FormControl>
-								<Input placeholder="e.g. Basic Package" {...field} />
-							</FormControl>
-							<FormMessage />
-						</FormItem>
-					)}
-				/>
-				<FormField
-					control={form.control}
-					name="metadata.defaultCost"
-					render={({ field }) => (
-						<FormItem>
-							<FormLabel>Default Cost</FormLabel>
-							<FormControl>
-								<div className="relative">
-									<span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-										₹
-									</span>
-									<Input className="pl-7" {...field} />
-								</div>
-							</FormControl>
-							<FormMessage />
-						</FormItem>
-					)}
-				/>
+				<div className="col-span-3">
+					<FormField
+						control={form.control}
+						name="value"
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel>Package Name</FormLabel>
+								<FormControl>
+									<Input placeholder="e.g. Basic Package" {...field} />
+								</FormControl>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
+				</div>
+				<div className="col-span-2">
+					<FormField
+						control={form.control}
+						name="metadata.defaultCost"
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel>Default Cost</FormLabel>
+								<FormControl>
+									<div className="relative">
+										<span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+											₹
+										</span>
+										<Input className="pl-7" {...field} />
+									</div>
+								</FormControl>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
+				</div>
 
-				<Card className="col-span-2">
+				<Card className="col-span-5">
 					<CardHeader className="flex flex-row items-center justify-between">
 						<CardTitle>Deliverables</CardTitle>
 						<Button
@@ -89,7 +93,7 @@ export function PackageForm({
 								);
 								form.setValue("metadata.defaultDeliverables", [
 									...currentDeliverables,
-									{ title: "", quantity: 1, is_package_included: true },
+									{ title: "", quantity: "1" },
 								]);
 							}}
 						>
@@ -101,56 +105,55 @@ export function PackageForm({
 						<div className="max-h-[400px] overflow-y-auto pr-4">
 							<div className="space-y-4">
 								{form.watch("metadata.defaultDeliverables")?.map((_, index) => (
-									<div key={index} className="flex items-end gap-4">
-										<FormField
-											control={form.control}
-											name={`metadata.defaultDeliverables.${index}.title`}
-											render={({ field }) => (
-												<FormItem className="flex-1">
-													<FormLabel>Title</FormLabel>
-													<FormControl>
-														<Input {...field} />
-													</FormControl>
-													<FormMessage />
-												</FormItem>
-											)}
-										/>
-										<FormField
-											control={form.control}
-											name={`metadata.defaultDeliverables.${index}.quantity`}
-											render={({ field }) => (
-												<FormItem>
-													<FormLabel>Quantity</FormLabel>
-													<FormControl>
-														<Input
-															type="number"
-															className="w-24"
-															{...field}
-															onChange={(e) =>
-																field.onChange(Number(e.target.value))
-															}
-														/>
-													</FormControl>
-													<FormMessage />
-												</FormItem>
-											)}
-										/>
-										<Button
-											type="button"
-											variant="ghost"
-											size="icon"
-											onClick={() => {
-												const currentDeliverables = form.getValues(
-													"metadata.defaultDeliverables",
-												);
-												form.setValue(
-													"metadata.defaultDeliverables",
-													currentDeliverables.filter((_, i) => i !== index),
-												);
-											}}
-										>
-											<Trash className="h-4 w-4" />
-										</Button>
+									<div key={index} className="grid grid-cols-6 gap-4">
+										<div className="col-span-3">
+											<FormField
+												control={form.control}
+												name={`metadata.defaultDeliverables.${index}.title`}
+												render={({ field }) => (
+													<FormItem className="flex-1">
+														<FormLabel>Title</FormLabel>
+														<FormControl>
+															<Input {...field} />
+														</FormControl>
+														<FormMessage />
+													</FormItem>
+												)}
+											/>
+										</div>
+										<div className="col-span-2">
+											<FormField
+												control={form.control}
+												name={`metadata.defaultDeliverables.${index}.quantity`}
+												render={({ field }) => (
+													<FormItem>
+														<FormLabel>Quantity</FormLabel>
+														<FormControl>
+															<Input type="number" step="1" {...field} />
+														</FormControl>
+														<FormMessage />
+													</FormItem>
+												)}
+											/>
+										</div>
+										<div className="col-span-1 flex items-end justify-end">
+											<Button
+												type="button"
+												variant="ghost"
+												size="icon"
+												onClick={() => {
+													const currentDeliverables = form.getValues(
+														"metadata.defaultDeliverables",
+													);
+													form.setValue(
+														"metadata.defaultDeliverables",
+														currentDeliverables.filter((_, i) => i !== index),
+													);
+												}}
+											>
+												<Trash className="h-4 w-4" />
+											</Button>
+										</div>
 									</div>
 								))}
 							</div>
@@ -158,7 +161,7 @@ export function PackageForm({
 					</CardContent>
 				</Card>
 
-				<div className="col-span-2">
+				<div className="col-span-5">
 					<Button
 						type="submit"
 						className="w-full"

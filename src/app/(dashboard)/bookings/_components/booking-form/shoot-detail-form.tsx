@@ -7,7 +7,6 @@ import {
 	useFieldArray,
 	useFormContext,
 } from "react-hook-form";
-import type { Booking } from "./booking-form-schema";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash } from "lucide-react";
 import {
@@ -17,9 +16,10 @@ import {
 	FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import type { BookingFormValues } from "./booking-form-schema";
 
 interface ShootDetailFormProps {
-	form: UseFormReturn<Booking>;
+	form: UseFormReturn<BookingFormValues>;
 }
 
 export const ShootDetailForm = () => {
