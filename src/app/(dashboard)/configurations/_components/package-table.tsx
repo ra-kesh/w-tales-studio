@@ -104,10 +104,10 @@ export function PackageTable({ data, onEdit, onDelete }: PackageTableProps) {
 				<Table>
 					<colgroup>
 						<col style={{ width: "5%" }} />
-						<col style={{ width: "20%" }} />
 						<col style={{ width: "15%" }} />
 						<col style={{ width: "15%" }} />
-						<col style={{ width: "40%" }} />
+						<col style={{ width: "15%" }} />
+						<col style={{ width: "45%" }} />
 						<col style={{ width: "5%" }} />
 					</colgroup>
 					<TableHeader>
