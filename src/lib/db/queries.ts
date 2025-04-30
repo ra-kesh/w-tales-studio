@@ -1,4 +1,4 @@
-import { and, count, desc, eq, or } from "drizzle-orm";
+import { and, count, desc, eq, or, sql } from "drizzle-orm";
 import { client, db } from "./drizzle";
 import {
 	members,
@@ -12,7 +12,9 @@ import {
 	configurations,
 	type ConfigType,
 	type BookingDetail,
+	type Shoot,
 } from "./schema";
+import { alias } from "drizzle-orm/pg-core";
 
 export async function getActiveOrganization(userId: string) {
 	const result = await db
@@ -63,6 +65,10 @@ export async function getDeliverables(
 		// limit,
 	};
 }
+
+const packageConfigs = alias(configurations, "package_configs");
+const bookingConfigs = alias(configurations, "booking_configs");
+
 export async function getBookings(
 	userOrganizationId: string,
 	page = 1,
@@ -71,24 +77,92 @@ export async function getBookings(
 ) {
 	const offset = (page - 1) * limit;
 
-	const bookingsData = await db.query.bookings.findMany({
-		where: eq(bookings.organizationId, userOrganizationId),
-		with: {
-			clients: true,
-			shoots: true,
-		},
-		orderBy: (bookings, { desc }) => [
-			desc(bookings.updatedAt),
-			desc(bookings.createdAt),
-		],
-		// limit,
-		// offset,
-	});
+	const bookingsData = await db
+		.select({
+			id: bookings.id,
+			organizationId: bookings.organizationId,
+			name: bookings.name,
+			bookingType: sql<string>`booking_configs.value`,
+			packageType: sql<string>`package_configs.value`,
+			packageCost: bookings.packageCost,
+			clientId: bookings.clientId,
+			createdAt: bookings.createdAt,
+			updatedAt: bookings.updatedAt,
+			note: bookings.note,
+			clients: clients,
+			shoots: sql<Shoot[]>`
+        COALESCE(
+          json_agg(
+            json_build_object(
+              'id', ${shoots.id},
+              'bookingId', ${shoots.bookingId},
+			        'title', ${shoots.title},
+              'organizationId', ${shoots.organizationId},
+			        'time', ${shoots.time},
+              'date', ${shoots.date},
+              'location', ${shoots.location},
+              'createdAt', ${shoots.createdAt},
+              'updatedAt', ${shoots.updatedAt}
+            )
+          ) FILTER (WHERE ${shoots.id} IS NOT NULL),
+          '[]'
+        )
+      `.as("shoots"),
+		})
+		.from(bookings)
+		.leftJoin(
+			packageConfigs,
+			and(
+				eq(bookings.packageType, sql`package_configs.key`),
+				eq(sql`package_configs.type`, "package_type"),
+				eq(sql`package_configs.organization_id`, userOrganizationId),
+			),
+		)
+		.leftJoin(
+			bookingConfigs,
+			and(
+				eq(bookings.bookingType, sql`booking_configs.key`),
+				eq(sql`booking_configs.type`, "booking_type"),
+				eq(sql`booking_configs.organization_id`, userOrganizationId),
+			),
+		)
+		.leftJoin(clients, eq(bookings.clientId, clients.id))
+		.leftJoin(shoots, eq(shoots.bookingId, bookings.id))
+		.where(eq(bookings.organizationId, userOrganizationId))
+		.groupBy(
+			bookings.id,
+			bookings.organizationId,
+			bookings.name,
+			bookings.bookingType,
+			bookings.packageType,
+			bookings.packageCost,
+			bookings.clientId,
+			bookings.createdAt,
+			bookings.updatedAt,
+			bookings.note,
+			clients.id,
+			clients.organizationId,
+			clients.name,
+			clients.brideName,
+			clients.groomName,
+			clients.relation,
+			clients.phoneNumber,
+			clients.email,
+			clients.address,
+			clients.createdAt,
+			clients.updatedAt,
+			packageConfigs.value,
+			bookingConfigs.value,
+		)
+		.orderBy(desc(bookings.updatedAt), desc(bookings.createdAt));
+	// .limit(limit)
+	// .offset(offset);
 
-	const total = await db.$count(
-		bookings,
-		eq(bookings.organizationId, userOrganizationId),
-	);
+	const total = await db
+		.select({ count: sql<number>`count(*)` })
+		.from(bookings)
+		.where(eq(bookings.organizationId, userOrganizationId))
+		.then((result) => result[0]?.count || 0);
 
 	return {
 		data: bookingsData,
