@@ -61,7 +61,7 @@ export const useBookingColumns = () => {
       header: "Shoots",
       cell: ({ row }) => {
         const shoots = row.getValue("shoots") as Shoot[];
-        const count = shoots.length || 0;
+        const count = shoots.length;
         const hasShootDetails = count > 0;
 
         const shootDetailHandler = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -88,7 +88,7 @@ export const useBookingColumns = () => {
               />
               <Camera className="h-4 w-4" />
               <span className="tabular-nums">
-                {count} {count === 1 ? "shoot" : "shoots"}
+                {count ? `${count} shoot(s) scheduled` : "No shoots scheduled"}
               </span>
             </Button>
           </div>
@@ -98,7 +98,7 @@ export const useBookingColumns = () => {
 
     {
       accessorKey: "clients",
-      header: "Client Contact",
+      header: "Contact",
       cell: ({ row }) => {
         const clients = row.getValue("clients") as Client;
         return (

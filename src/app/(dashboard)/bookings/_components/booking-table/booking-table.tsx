@@ -30,6 +30,9 @@ import { BookingTableToolbar } from "./booking-table-toolbar";
 import { useRouter } from "next/navigation";
 import type { Booking, Shoot } from "@/lib/db/schema";
 import { format } from "date-fns";
+import { Clock, MapPin } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Calendar } from "lucide-react";
 
 interface BookingTableProps {
   columns: ColumnDef<Booking & { shoots: Shoot[] }>[];
@@ -123,33 +126,61 @@ export function BookingTable({ columns, data }: BookingTableProps) {
                       </TableCell>
                     ))}
                   </TableRow>
-                  {row.getIsExpanded() && row.original.shoots && (
-                    <TableRow className="bg-muted/30">
+                  {row.getIsExpanded() && (
+                    <TableRow className="bg-muted/30 transition-colors">
                       <TableCell className="p-0" colSpan={5} />
                       <TableCell className="p-0" colSpan={1}>
-                        <div className="p-4">
+                        <div className="p-4 rounded-md bg-card border border-border/50 m-2 shadow-sm">
+                          <div className="flex items-center justify-between mb-3">
+                            <h4 className="text-sm font-medium flex items-center">
+                              <span className="bg-primary/10 text-primary p-1 rounded-md mr-2">
+                                <Calendar className="h-4 w-4" />
+                              </span>
+                              Shoot Details
+                            </h4>
+                            <Badge
+                              variant="outline"
+                              className="text-xs font-normal"
+                            >
+                              {row.original.shoots.length}{" "}
+                              {row.original.shoots.length === 1
+                                ? "shoot"
+                                : "shoots"}
+                            </Badge>
+                          </div>
                           <Table>
                             <TableBody>
                               {row.original.shoots.map((shoot, index) => (
-                                <TableRow
-                                  key={index}
-                                  className="hover:bg-muted/50 border-0"
-                                >
-                                  <TableCell className="py-2">
-                                    <div>{shoot.title}</div>
-                                    <div>{shoot.location as string}</div>
+                                <TableRow key={index}>
+                                  <TableCell className="space-y-1">
+                                    <div className="font-medium text-sm">
+                                      {shoot.title || "Untitled Shoot"}
+                                    </div>
+                                    <div className="text-xs text-muted-foreground flex items-center">
+                                      <MapPin className="h-3 w-3 mr-1 inline" />
+                                      {(shoot.location as string) ||
+                                        "No location specified"}
+                                    </div>
                                   </TableCell>
 
-                                  <TableCell className="text-right py-2">
-                                    <div>{shoot.time}</div>
-                                    <div>
+                                  <TableCell className="space-y-1">
+                                    <div className="font-medium text-sm flex items-center justify-end">
+                                      <Clock className="h-3 w-3 mr-1 inline" />
+                                      {shoot.time || "Time not specified"}
+                                    </div>
+                                    <div className="text-xs text-muted-foreground">
                                       {shoot.date
                                         ? format(
                                             new Date(shoot.date),
-                                            "MMM dd, yyyy"
+                                            "EEEE, MMM dd, yyyy"
                                           )
-                                        : "No date"}
+                                        : "Date not specified"}
                                     </div>
+                                    {row.original.shoots.length === 0 && (
+                                      <div className="text-center py-6 text-sm text-muted-foreground">
+                                        No shoots scheduled for this booking
+                                      </div>
+                                    )}
                                   </TableCell>
                                 </TableRow>
                               ))}
