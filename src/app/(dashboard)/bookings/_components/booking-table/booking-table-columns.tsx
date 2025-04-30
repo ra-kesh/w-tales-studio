@@ -3,8 +3,10 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { Checkbox } from "@/components/ui/checkbox";
 import type { Booking, Client, Shoot } from "@/lib/db/schema";
-import { format } from "date-fns";
 import { BookingTableRowActions } from "./booking-table-row-actions";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { Camera, ChevronRight } from "lucide-react";
 
 export const useBookingColumns = () => {
   const columns: ColumnDef<Booking>[] = [
@@ -24,15 +26,13 @@ export const useBookingColumns = () => {
           aria-label="Select row"
         />
       ),
-      enableHiding: false,
       enableSorting: false,
+      enableHiding: false,
     },
     {
       accessorKey: "name",
-      header: "Booking Name",
-      cell: ({ row }) => (
-        <div className="w-[200px]">{row.getValue("name")}</div>
-      ),
+      header: "Name",
+      cell: ({ row }) => <div>{row.getValue("name")}</div>,
     },
     {
       accessorKey: "bookingType",
@@ -57,64 +57,60 @@ export const useBookingColumns = () => {
       ),
     },
     {
-      accessorKey: "clients",
-      header: "Couple",
+      accessorKey: "shoots",
+      header: "Shoots",
       cell: ({ row }) => {
-        const clients = row.getValue("clients") as Client;
+        const shoots = row.getValue("shoots") as Shoot[];
+        const count = shoots.length || 0;
+        const hasShootDetails = count > 0;
+
+        const shootDetailHandler = (e: React.MouseEvent<HTMLButtonElement>) => {
+          e.stopPropagation();
+          row.toggleExpanded();
+        };
+
         return (
-          <div className="w-[200px]">
-            {clients.brideName} & {clients.groomName}
+          <div className="relative">
+            <Button
+              variant="outline"
+              size="sm"
+              className={cn(
+                "gap-2 w-full justify-start transition-colors group",
+                hasShootDetails ? "cursor-pointer" : "opacity-50 cursor-default"
+              )}
+              onClick={hasShootDetails ? shootDetailHandler : undefined}
+            >
+              <ChevronRight
+                className={cn(
+                  " h-4 w-4 transition-transform duration-200",
+                  row.getIsExpanded() && "transform rotate-90"
+                )}
+              />
+              <Camera className="h-4 w-4" />
+              <span className="tabular-nums">
+                {count} {count === 1 ? "shoot" : "shoots"}
+              </span>
+            </Button>
           </div>
         );
       },
     },
 
     {
-      accessorKey: "clientContact",
-      header: "Contact",
+      accessorKey: "clients",
+      header: "Client Contact",
       cell: ({ row }) => {
         const clients = row.getValue("clients") as Client;
         return (
-          <div className="w-[200px]">
-            {clients.email}
-            <br />
+          <div>
             {clients.phoneNumber}
+            <br />
+            {clients.email}
           </div>
         );
       },
     },
-    {
-      accessorKey: "createdAt",
-      header: "Created",
-      cell: ({ row }) => (
-        <div>{format(new Date(row.getValue("createdAt")), "MMM dd, yyyy")}</div>
-      ),
-    },
-    {
-      accessorKey: "shoots",
-      header: "Shoot Details",
-      cell: ({ row }) => {
-        const shoots = row.getValue("shoots") as Shoot[];
-        return (
-          <div className="w-full">
-            {shoots.map((shoot, index) => (
-              <div key={shoot.id} className="mb-2 last:mb-0">
-                <div className="font-medium">{shoot.title}</div>
-                <div className="text-sm text-muted-foreground">
-                  {shoot.date
-                    ? format(new Date(shoot.date), "MMM dd, yyyy")
-                    : "No date"}{" "}
-                  - {shoot.time}
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  {shoot.location as string}
-                </div>
-              </div>
-            ))}
-          </div>
-        );
-      },
-    },
+
     {
       id: "actions",
       cell: ({ row }) => <BookingTableRowActions row={row} />,

@@ -28,16 +28,15 @@ import {
 import { BookingTablePagination } from "./booking-table-pagination";
 import { BookingTableToolbar } from "./booking-table-toolbar";
 import { useRouter } from "next/navigation";
+import type { Booking, Shoot } from "@/lib/db/schema";
+import { format } from "date-fns";
 
-interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[];
-  data: TData[];
+interface BookingTableProps {
+  columns: ColumnDef<Booking & { shoots: Shoot[] }>[];
+  data: (Booking & { shoots: Shoot[] })[];
 }
 
-export function BookingTable<TData, TValue>({
-  columns,
-  data,
-}: DataTableProps<TData, TValue>) {
+export function BookingTable({ columns, data }: BookingTableProps) {
   const router = useRouter();
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] =
@@ -78,6 +77,16 @@ export function BookingTable<TData, TValue>({
       <BookingTableToolbar table={table} />
       <div className="rounded-md border">
         <Table>
+          <colgroup>
+            <col style={{ width: "5%" }} />
+            <col style={{ width: "20%" }} />
+            <col style={{ width: "10%" }} />
+            <col style={{ width: "10%" }} />
+            <col style={{ width: "10%" }} />
+            <col style={{ width: "30%" }} />
+            <col style={{ width: "10%" }} />
+            <col style={{ width: "5%" }} />
+          </colgroup>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
@@ -99,22 +108,60 @@ export function BookingTable<TData, TValue>({
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-                  onClick={() => handleRowClick((row.original as any).id)}
-                  className="cursor-pointer hover:bg-muted/50"
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
+                <React.Fragment key={row.id}>
+                  <TableRow
+                    data-state={row.getIsSelected() && "selected"}
+                    onClick={() => handleRowClick((row.original as Booking).id)}
+                    className="cursor-pointer hover:bg-muted/50"
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                  {row.getIsExpanded() && row.original.shoots && (
+                    <TableRow className="bg-muted/30">
+                      <TableCell className="p-0" colSpan={5} />
+                      <TableCell className="p-0" colSpan={1}>
+                        <div className="p-4">
+                          <Table>
+                            <TableBody>
+                              {row.original.shoots.map((shoot, index) => (
+                                <TableRow
+                                  key={index}
+                                  className="hover:bg-muted/50 border-0"
+                                >
+                                  <TableCell className="py-2">
+                                    <div>{shoot.title}</div>
+                                    <div>{shoot.location as string}</div>
+                                  </TableCell>
+
+                                  <TableCell className="text-right py-2">
+                                    <div>{shoot.time}</div>
+                                    <div>
+                                      {shoot.date
+                                        ? format(
+                                            new Date(shoot.date),
+                                            "MMM dd, yyyy"
+                                          )
+                                        : "No date"}
+                                    </div>
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </div>
+                      </TableCell>
+                      <TableCell className="p-0" colSpan={1} />
+                      <TableCell className="p-0" colSpan={1} />
+                    </TableRow>
+                  )}
+                </React.Fragment>
               ))
             ) : (
               <TableRow>
