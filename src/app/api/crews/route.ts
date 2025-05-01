@@ -28,28 +28,29 @@ export async function GET(request: Request) {
 		const offset = (page - 1) * limit;
 
 		const [crewData, totalData] = await Promise.all([
-			db
-				.select({
-					id: crews.id,
-					name: crews.name,
-					email: crews.email,
-					phoneNumber: crews.phoneNumber,
-					equipment: crews.equipment,
-					role: crews.role,
-					specialization: crews.specialization,
-					status: crews.status,
-					memberId: crews.memberId,
-					memberName: members.id,
-					memberEmail: users.email,
-					createdAt: crews.createdAt,
-					updatedAt: crews.updatedAt,
-				})
-				.from(crews)
-				.leftJoin(members, eq(crews.memberId, members.id))
-				.leftJoin(users, eq(members.userId, users.id))
-				.where(eq(crews.organizationId, userOrganizationId)),
-			// .limit(limit)
-			// .offset(offset)
+			db.query.crews.findMany({
+				where: eq(crews.organizationId, userOrganizationId),
+				with: {
+					member: {
+						with: {
+							user: {
+								columns: {
+									name: true,
+									email: true,
+									image: true,
+								},
+							},
+						},
+					},
+				},
+				orderBy: (crews, { desc }) => [
+					desc(crews.updatedAt),
+					desc(crews.createdAt),
+				],
+
+				// limit,
+				// offset,
+			}),
 			db
 				.select({ count: count() })
 				.from(crews)
@@ -303,7 +304,7 @@ export async function DELETE(request: Request) {
 		const existingCrew = await db.query.crews.findFirst({
 			where: (crews, { eq, and }) =>
 				and(
-					eq(crews.id, Number.parseInt(id)),
+					eq(crews.id, Number.parseInt(id, 10)),
 					eq(crews.organizationId, userOrganizationId),
 				),
 		});
@@ -317,7 +318,7 @@ export async function DELETE(request: Request) {
 			.delete(crews)
 			.where(
 				and(
-					eq(crews.id, Number.parseInt(id)),
+					eq(crews.id, Number.parseInt(id, 10)),
 					eq(crews.organizationId, userOrganizationId),
 				),
 			)
