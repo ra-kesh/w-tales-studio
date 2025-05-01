@@ -1,4 +1,4 @@
-import { relations } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 import {
   varchar,
   pgTable,
@@ -13,6 +13,7 @@ import {
   time,
   pgEnum,
   uniqueIndex,
+  check,
 } from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
@@ -331,22 +332,33 @@ export const expenses = pgTable("expenses", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export const crews = pgTable("crews", {
-  id: serial("id").primaryKey(),
-  memberId: text("member_id").references(() => members.id, {
-    onDelete: "cascade",
-  }),
-  name: text("name"),
-  email: text("email"),
-  phoneNumber: text("phone_number"),
-  equipment: text("equipment").array(),
-  role: text("role"),
-  specialization: text("specialization"),
-  status: text("status").notNull().default("available"),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
-
+export const crews = pgTable(
+  "crews",
+  {
+    id: serial("id").primaryKey(),
+    memberId: text("member_id").references(() => members.id, {
+      onDelete: "cascade",
+    }),
+    name: text("name"),
+    email: text("email"),
+    phoneNumber: text("phone_number"),
+    equipment: text("equipment").array(),
+    role: text("role"),
+    specialization: text("specialization"),
+    status: text("status").notNull().default("available"),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  },
+  (t) => [
+    check(
+      "name_or_member_id",
+      sql`(member_id IS NOT NULL OR name IS NOT NULL)`
+    ),
+  ]
+);
 export const assignments = pgTable(
   "assignments",
   {
@@ -358,6 +370,9 @@ export const assignments = pgTable(
     entityId: integer("entity_id").notNull(),
     isLead: boolean("is_lead").notNull().default(false),
     assignedAt: timestamp("assigned_at").defaultNow(),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
     createdAt: timestamp("created_at").defaultNow(),
     updatedAt: timestamp("updated_at").defaultNow(),
   },
@@ -365,7 +380,8 @@ export const assignments = pgTable(
     uniqueIndex("assignments_unique_idx").on(
       t.crewId,
       t.entityType,
-      t.entityId
+      t.entityId,
+      t.organizationId // Include organizationId in unique constraint
     ),
   ]
 );
@@ -474,6 +490,10 @@ export const crewRelations = relations(crews, ({ one, many }) => ({
     references: [members.id],
   }),
   assignments: many(assignments),
+  organization: one(organizations, {
+    fields: [crews.organizationId],
+    references: [organizations.id],
+  }),
 }));
 
 // Add new relations for assignments
@@ -482,6 +502,10 @@ export const assignmentsRelations = relations(assignments, ({ one }) => ({
     fields: [assignments.crewId],
     references: [crews.id],
   }),
+  organization: one(organizations, {
+    fields: [assignments.organizationId],
+    references: [organizations.id],
+  }), // Optional, for explicit relation
 }));
 
 // Example: Add relation from shoots to assignments
