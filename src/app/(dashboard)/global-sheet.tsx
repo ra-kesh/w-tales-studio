@@ -12,6 +12,8 @@ import { TaskEditSheet } from "./tasks/_components/task-edit-sheet";
 import { ExpenseCreateSheet } from "./expenses/_components/expense-create-sheet";
 import { ExpenseEditSheet } from "./expenses/_components/expense-edit-sheet";
 import { ClientEditSheet } from "./clients/_components/client-edit-sheet";
+import { CrewCreateSheet } from "./crews/_components/crew-create-sheet";
+import { CrewEditSheet } from "./crews/_components/crew-edit-sheet";
 
 export function GlobalSheets() {
 	return (
@@ -36,6 +38,10 @@ export function GlobalSheets() {
 			</Suspense>
 			<Suspense fallback={<div>Loading...</div>}>
 				<ClientEditSheet />
+			</Suspense>
+			<CrewCreateSheet />
+			<Suspense fallback={<div>Loading...</div>}>
+				<CrewEditSheet />
 			</Suspense>
 		</>
 	);
