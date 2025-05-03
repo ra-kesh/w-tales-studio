@@ -4,8 +4,18 @@ import { toast } from "sonner";
 
 interface CrewsResponse {
 	data: (Crew & {
-		memberName?: string | null;
-		memberEmail?: string | null;
+		member: {
+			id: string;
+			organizationId: string;
+			userId: string;
+			role: string;
+			createdAt: string;
+			user: {
+				name: string | null;
+				email: string | null;
+				image: string | null;
+			};
+		} | null;
 	})[];
 	total: number;
 	page: number;

@@ -1,5 +1,6 @@
 "use client";
 
+import * as React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -36,6 +37,8 @@ import {
 } from "@/components/ui/popover";
 import { useMinimalBookings } from "@/hooks/use-bookings";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useCrews } from "@/hooks/use-crews";
+import { MultiSelect } from "@/components/ui/multi-select";
 
 interface ShootFormProps {
 	defaultValues?: ShootFormValues;
@@ -52,6 +55,7 @@ export function ShootForm({
 	const cleanedDefaultValues = {
 		bookingId: defaultValues.bookingId?.toString() || "",
 		title: defaultValues.title || "",
+		crewMembers: defaultValues.crewMembers || [],
 		date: defaultValues.date || "",
 		time: defaultValues.time || "",
 		location: defaultValues.location || "",
@@ -65,7 +69,26 @@ export function ShootForm({
 	});
 
 	const { data: MinimalBookings } = useMinimalBookings();
+	const { data: crewData } = useCrews();
 	const bookings = MinimalBookings?.data;
+
+	const crewOptions = React.useMemo(() => {
+		if (!crewData?.data) return [];
+		return crewData.data.map((crew) => {
+			const displayName = crew.member?.user?.name || crew.name;
+			const role = crew.role ? ` (${crew.role})` : "";
+			const statusBadge =
+				crew.status !== "available" ? ` [${crew.status}]` : "";
+
+			return {
+				label: `${displayName}${role}${statusBadge}`,
+				value: crew.id.toString(),
+				disabled: crew.status === "unavailable" || crew.status === "on_leave",
+			};
+		});
+	}, [crewData?.data]);
+
+	console.log({ crewOptions });
 
 	return (
 		<Form {...form}>
@@ -168,6 +191,29 @@ export function ShootForm({
 								<FormLabel>Title</FormLabel>
 								<FormControl>
 									<Input placeholder="Enter shoot title" {...field} />
+								</FormControl>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
+				</div>
+
+				<div className="col-span-2">
+					<FormField
+						control={form.control}
+						name="crewMembers"
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel>Crew Members</FormLabel>
+								<FormControl>
+									<MultiSelect
+										options={crewOptions}
+										onValueChange={field.onChange}
+										defaultValue={field.value}
+										maxCount={5}
+										placeholder="Select crew members"
+										className="w-full"
+									/>
 								</FormControl>
 								<FormMessage />
 							</FormItem>
