@@ -27,7 +27,7 @@ interface Option {
 	value: string; // should be unique, and not empty
 }
 
-interface Props extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface Props extends React.HTMLAttributes<HTMLDivElement> {
 	/**
 	 * An array of objects to be displayed in the Select.Option.
 	 */
@@ -110,7 +110,7 @@ interface Props extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 	onSearch?: (value: string) => void;
 }
 
-export const MultiAsyncSelect = React.forwardRef<HTMLButtonElement, Props>(
+export const MultiAsyncSelect = React.forwardRef<HTMLDivElement, Props>(
 	(
 		{
 			options,
@@ -139,11 +139,9 @@ export const MultiAsyncSelect = React.forwardRef<HTMLButtonElement, Props>(
 		const handleInputKeyDown = (
 			event: React.KeyboardEvent<HTMLInputElement>,
 		) => {
-			// 如果按下的是回车键，则保持弹窗打开
 			if (event.key === "Enter") {
 				setIsPopoverOpen(true);
 			} else if (event.key === "Backspace" && !event.currentTarget.value) {
-				// 如果按下的是退格键并且输入框为空，则删除最后一个选中的值
 				const newSelectedValues = [...selectedValues];
 				newSelectedValues.pop();
 				setSelectedValues(newSelectedValues);
@@ -185,7 +183,6 @@ export const MultiAsyncSelect = React.forwardRef<HTMLButtonElement, Props>(
 			}
 		};
 
-		// 使用 optionsRef 来记录 options 已选项目，同时控制其 size 减少对性能的影响
 		useEffect(() => {
 			const temp = options.reduce(
 				(acc, option) => {
@@ -195,7 +192,6 @@ export const MultiAsyncSelect = React.forwardRef<HTMLButtonElement, Props>(
 				{} as Record<string, Option>,
 			);
 			if (async) {
-				// 当 options 变化时，仅保留上一次 selectedValues 中存在的选项
 				const temp2 = selectedValues.reduce(
 					(acc, value) => {
 						const option = optionsRef.current[value];
@@ -213,6 +209,16 @@ export const MultiAsyncSelect = React.forwardRef<HTMLButtonElement, Props>(
 			}
 		}, [options]);
 
+		const handleKeyPress = (
+			event: React.KeyboardEvent<HTMLDivElement>,
+			value: string,
+		) => {
+			if (event.key === "Enter" || event.key === " ") {
+				event.preventDefault();
+				toggleOption(value);
+			}
+		};
+
 		return (
 			<Popover
 				open={isPopoverOpen}
@@ -220,72 +226,100 @@ export const MultiAsyncSelect = React.forwardRef<HTMLButtonElement, Props>(
 				modal={modalPopover}
 			>
 				<PopoverTrigger asChild>
-					<Button
+					<div
 						ref={ref}
 						{...props}
 						onClick={handleTogglePopover}
+						aria-expanded={isPopoverOpen}
+						aria-haspopup="listbox"
+						aria-controls="select-options"
 						className={cn(
-							"flex h-9 w-full items-center justify-between whitespace-nowrap rounded-md border border-zinc-200 bg-transparent px-3 py-2 text-sm shadow-sm ring-offset-white hover:bg-transparent focus:outline-none focus:ring-1 focus:ring-zinc-950 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 dark:border-zinc-800 dark:ring-offset-zinc-950 dark:focus:ring-zinc-300 dark:bg-black dark:hover:bg-black [&_svg]:pointer-events-auto",
+							"flex w-full px-3 py-1 rounded-md border min-h-10 h-auto items-center justify-between bg-inherit hover:bg-inherit [&_svg]:pointer-events-auto",
 							className,
 						)}
 					>
 						{selectedValues.length > 0 ? (
 							<div className="flex justify-between items-center w-full">
-								<div className="flex flex-nowrap items-center gap-1 overflow-x-auto">
-									{selectedValues.slice(0, maxCount).map((value) => {
-										let option: Option | undefined;
-										if (async) {
-											option = optionsRef.current[value];
-										} else {
-											option = options.find((option) => option.value === value);
-										}
-										return (
-											<Badge key={value}>
-												<span>{option?.label}</span>
+								<div className="flex justify-between items-center w-full">
+									<div className="flex flex-wrap items-center gap-2">
+										{selectedValues.slice(0, maxCount).map((value) => {
+											let option: Option | undefined;
+											if (async) {
+												option = optionsRef.current[value];
+											} else {
+												option = options.find(
+													(option) => option.value === value,
+												);
+											}
+											return (
+												<Badge variant={"outline"} key={value}>
+													<span>{option?.label}</span>
 
-												<div
-													role="button"
+													<Button
+														type="button"
+														variant={"ghost"}
+														aria-label={`Remove ${option?.label}`}
+														className="ml-2 size-4 cursor-pointer rounded"
+														onClick={(event) => {
+															event.stopPropagation();
+															toggleOption(value);
+														}}
+													>
+														<XIcon />
+													</Button>
+												</Badge>
+											);
+										})}
+										{selectedValues.length > maxCount && (
+											<Badge variant={"outline"}>
+												<span>{`+ ${selectedValues.length - maxCount}`}</span>
+
+												<Button
+													type="button"
+													variant={"ghost"}
+													aria-label="Clear extra selections"
 													className="ml-2 size-4 cursor-pointer"
 													onClick={(event) => {
 														event.stopPropagation();
-														toggleOption(value);
+														clearExtraOptions();
+													}}
+													onKeyDown={(event) => {
+														if (event.key === "Enter" || event.key === " ") {
+															event.preventDefault();
+															clearExtraOptions();
+														}
 													}}
 												>
 													<XIcon />
-												</div>
+												</Button>
 											</Badge>
-										);
-									})}
-									{selectedValues.length > maxCount && (
-										<Badge>
-											<span>{`+ ${selectedValues.length - maxCount}`}</span>
-
-											<div
-												role="button"
-												className="ml-2 size-4 cursor-pointer"
-												onClick={(event) => {
-													event.stopPropagation();
-													clearExtraOptions();
-												}}
-											>
-												<XIcon />
-											</div>
-										</Badge>
-									)}
-								</div>
-								<div className="flex items-center justify-between">
-									<XIcon
-										className="h-4 cursor-pointer text-zinc-500"
-										onClick={(event) => {
-											event.stopPropagation();
-											handleClear();
-										}}
-									/>
-									<Separator
-										orientation="vertical"
-										className="flex min-h-6 h-full mx-2"
-									/>
-									<ChevronDown className="h-4 cursor-pointer text-zinc-300 dark:text-zinc-500" />
+										)}
+									</div>
+									<div className="flex items-center justify-between">
+										<Button
+											type="button"
+											variant={"ghost"}
+											aria-label="Clear all selections"
+											className=" cursor-pointer text-zinc-500"
+											onClick={(event) => {
+												event.stopPropagation();
+												handleClear();
+											}}
+											onKeyDown={(event) => {
+												if (event.key === "Enter" || event.key === " ") {
+													event.preventDefault();
+													handleClear();
+												}
+											}}
+										>
+											<XIcon className="h-4 w-4" />
+										</Button>
+										<Separator
+											orientation="vertical"
+											className="flex min-h-6 h-full mx-2"
+										/>
+										<ChevronDown className="h-4 cursor-pointer text-zinc-300 dark:text-zinc-500" />
+									</div>
 								</div>
 							</div>
 						) : (
@@ -296,7 +330,7 @@ export const MultiAsyncSelect = React.forwardRef<HTMLButtonElement, Props>(
 								<ChevronDown className="h-4 cursor-pointer text-zinc-300 dark:text-zinc-500" />
 							</div>
 						)}
-					</Button>
+					</div>
 				</PopoverTrigger>
 				<PopoverContent
 					className="w-auto p-0"
@@ -321,15 +355,7 @@ export const MultiAsyncSelect = React.forwardRef<HTMLButtonElement, Props>(
 							)}
 							{async && loading && options.length === 0 && (
 								<div className="flex justify-center py-6 items-center h-full">
-									Loading..
-									{/* <FadeLoader
-										color="#ffa500"
-										style={{
-											transform: "scale(0.38)",
-											position: "relative",
-											top: "-1px",
-										}}
-									/> */}
+									Loading...
 								</div>
 							)}
 							{async ? (
@@ -346,7 +372,6 @@ export const MultiAsyncSelect = React.forwardRef<HTMLButtonElement, Props>(
 								</CommandEmpty>
 							)}
 							<CommandGroup>
-								{/* 异步模式不需要全选 */}
 								{!async && (
 									<CommandItem
 										key="all"
