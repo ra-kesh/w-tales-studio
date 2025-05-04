@@ -1,8 +1,24 @@
 import { useQuery } from "@tanstack/react-query";
 import type { Shoot } from "@/lib/db/schema";
 
+type ShootAssignment = {
+	crew: {
+		name: string | null;
+		role: string | null;
+		member?: {
+			user?: {
+				name: string | null;
+			};
+		};
+	};
+	isLead?: boolean;
+};
+
 interface ShootsResponse {
-	data: Shoot[];
+	data: (Shoot & {
+		booking: { name: string };
+		shootsAssignments: ShootAssignment[];
+	})[];
 	total: number;
 }
 
