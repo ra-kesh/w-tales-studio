@@ -39,7 +39,6 @@ import { useMinimalBookings } from "@/hooks/use-bookings";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useCrews } from "@/hooks/use-crews";
 import { MultiAsyncSelect } from "@/components/ui/multi-select";
-// import { MultiSelect } from "@/components/ui/multi-select";
 
 interface ShootFormProps {
 	defaultValues?: ShootFormValues;
@@ -52,7 +51,6 @@ export function ShootForm({
 	onSubmit,
 	mode = "create",
 }: ShootFormProps) {
-	// Clean up default values to only include fields we need
 	const cleanedDefaultValues = {
 		bookingId: defaultValues.bookingId?.toString() || "",
 		title: defaultValues.title || "",

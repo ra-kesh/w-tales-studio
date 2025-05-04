@@ -36,17 +36,7 @@ export function useShootDetail(shootId: string) {
 			if (!response.ok) {
 				throw new Error("Failed to fetch shoot details");
 			}
-			const data = await response.json();
-
-			// Transform the API response to match the form schema
-			return {
-				...data,
-				bookingId: data.bookingId.toString(),
-				crewMembers:
-					data.shootsAssignments?.map((assignment: { crewId: number }) =>
-						assignment.crewId.toString(),
-					) || [],
-			};
+			return response.json();
 		},
 		enabled: !!shootId,
 	});

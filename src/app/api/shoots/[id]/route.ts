@@ -26,7 +26,6 @@ export async function GET(
 
 	try {
 		const { id } = await params;
-
 		const shootId = Number.parseInt(id, 10);
 
 		const shoot = await db.query.shoots.findFirst({
@@ -75,7 +74,30 @@ export async function GET(
 			return NextResponse.json({ message: "Shoot not found" }, { status: 404 });
 		}
 
-		return NextResponse.json(shoot, { status: 200 });
+		// Transform the data to match the form schema
+		const formattedShoot = {
+			id: shoot.id,
+			bookingId: shoot.bookingId.toString(),
+			title: shoot.title,
+			date: shoot.date,
+			time: shoot.time,
+			location: shoot.location,
+			notes: shoot.notes,
+			crewMembers: shoot.shootsAssignments.map((assignment) =>
+				assignment.crewId.toString(),
+			),
+			// Include raw data for table display
+			booking: shoot.booking,
+			shootsAssignments: shoot.shootsAssignments.map((assignment) => ({
+				...assignment,
+				crew: {
+					...assignment.crew,
+					name: assignment.crew.member?.user?.name || assignment.crew.name,
+				},
+			})),
+		};
+
+		return NextResponse.json(formattedShoot, { status: 200 });
 	} catch (error: unknown) {
 		console.error("Error fetching shoot:", error);
 		const errorMessage =
