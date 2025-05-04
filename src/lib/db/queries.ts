@@ -14,7 +14,6 @@ import {
 	type BookingDetail,
 	type Shoot,
 	crews,
-	assignments,
 } from "./schema";
 import { alias } from "drizzle-orm/pg-core";
 
@@ -340,82 +339,53 @@ export async function getShoots(
 ) {
 	const offset = (page - 1) * limit;
 
-	// Fetch shoots with manual joins
-	const shootsData = await db
-		.select({
-			shoot: {
-				id: shoots.id,
-				bookingId: shoots.bookingId,
-				organizationId: shoots.organizationId,
-				title: shoots.title,
-				date: shoots.date,
-				time: shoots.time,
-				location: shoots.location,
-				notes: shoots.notes,
-				createdAt: shoots.createdAt,
-				updatedAt: shoots.updatedAt,
-			},
+	const shootsData = await db.query.shoots.findMany({
+		where: eq(shoots.organizationId, userOrganizationId),
+		with: {
 			booking: {
-				name: bookings.name,
-			},
-			assignment: {
-				id: assignments.id,
-				crewId: assignments.crewId,
-				isLead: assignments.isLead,
-				assignedAt: assignments.assignedAt,
-				crew: {
-					id: crews.id,
-					name: crews.name,
-					role: crews.role,
-					specialization: crews.specialization,
-					status: crews.status,
+				columns: {
+					name: true,
 				},
 			},
-		})
-		.from(shoots)
-		.leftJoin(bookings, eq(shoots.bookingId, bookings.id))
-		.leftJoin(
-			assignments,
-			and(
-				eq(assignments.entityId, shoots.id),
-				eq(assignments.entityType, "shoot"),
-				eq(assignments.organizationId, userOrganizationId),
-			),
-		)
-		.leftJoin(crews, eq(assignments.crewId, crews.id))
-		.where(eq(shoots.organizationId, userOrganizationId))
-		.orderBy(shoots.updatedAt, shoots.createdAt);
-	// .limit(limit)
-	// .offset(offset);
+			shootsAssignments: {
+				columns: {
+					id: true,
+					crewId: true,
+					isLead: true,
+					assignedAt: true,
+				},
+				with: {
+					crew: {
+						columns: {
+							id: true,
+							name: true,
+							role: true,
+							specialization: true,
+							status: true,
+						},
+					},
+				},
+			},
+		},
+		orderBy: (shoots, { desc }) => [
+			desc(shoots.updatedAt),
+			desc(shoots.createdAt),
+		],
+		limit,
+		offset,
+	});
 
-	// Group the results to nest assignments under each shoot
-	// const groupedShoots = shootsData.reduce((acc, row) => {
-	// 	const { shoot, booking, assignment } = row;
-
-	// 	// Find or create the shoot entry in the accumulator
-	// 	let shootEntry = acc.find((s: any) => s.id === shoot.id);
-	// 	if (!shootEntry) {
-	// 		shootEntry = {
-	// 			...shoot,
-	// 			booking,
-	// 			assignments: [],
-	// 		};
-	// 		acc.push(shootEntry);
-	// 	}
-
-	// 	// Add the assignment (if it exists) to the shoot's assignments array
-	// 	if (assignment && assignment.id) {
-	// 		shootEntry.assignments.push({
-	// 			id: assignment.id,
-	// 			crewId: assignment.crewId,
-	// 			isLead: assignment.isLead,
-	// 			assignedAt: assignment.assignedAt,
-	// 			crew: assignment.crew,
-	// 		});
-	// 	}
-
-	// 	return acc;
-	// }, [] as any[]);
+	// // Map shootsAssignments to assignments for consistency with the previous API
+	// const formattedShoots = shootsData.map((shoot) => ({
+	// 	...shoot,
+	// 	assignments: shoot.shootsAssignments.map((assignment) => ({
+	// 		id: assignment.id,
+	// 		crewId: assignment.crewId,
+	// 		isLead: assignment.isLead,
+	// 		assignedAt: assignment.assignedAt,
+	// 		crew: assignment.crew,
+	// 	})),
+	// }));
 
 	// Calculate total count for pagination
 	const total = await db.$count(

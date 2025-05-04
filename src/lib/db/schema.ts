@@ -359,32 +359,6 @@ export const crews = pgTable(
 		),
 	],
 );
-export const assignments = pgTable(
-	"assignments",
-	{
-		id: serial("id").primaryKey(),
-		crewId: integer("crew_id")
-			.notNull()
-			.references(() => crews.id, { onDelete: "cascade" }),
-		entityType: text("entity_type").notNull(),
-		entityId: integer("entity_id").notNull(),
-		isLead: boolean("is_lead").notNull().default(false),
-		assignedAt: timestamp("assigned_at").defaultNow(),
-		organizationId: text("organization_id")
-			.notNull()
-			.references(() => organizations.id, { onDelete: "cascade" }),
-		createdAt: timestamp("created_at").defaultNow(),
-		updatedAt: timestamp("updated_at").defaultNow(),
-	},
-	(t) => [
-		uniqueIndex("assignments_unique_idx").on(
-			t.crewId,
-			t.entityType,
-			t.entityId,
-			t.organizationId, // Include organizationId in unique constraint
-		),
-	],
-);
 
 export const shootsAssignments = pgTable(
 	"shoots_assignments",
@@ -598,19 +572,6 @@ export const crewRelations = relations(crews, ({ one, many }) => ({
 	deliverablesAssignments: many(deliverablesAssignments),
 }));
 
-// Add new relations for assignments
-export const assignmentsRelations = relations(assignments, ({ one }) => ({
-	crew: one(crews, {
-		fields: [assignments.crewId],
-		references: [crews.id],
-	}),
-	organization: one(organizations, {
-		fields: [assignments.organizationId],
-		references: [organizations.id],
-	}), // Optional, for explicit relation
-}));
-
-// Example: Add relation from shoots to assignments
 export const shootsRelations = relations(shoots, ({ one, many }) => ({
 	booking: one(bookings, {
 		fields: [shoots.bookingId],

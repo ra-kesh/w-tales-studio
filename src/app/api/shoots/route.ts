@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getShoots } from "@/lib/db/queries";
 import { getServerSession } from "@/lib/dal";
 import { db } from "@/lib/db/drizzle";
-import { shoots, bookings, crews, assignments } from "@/lib/db/schema";
+import { shoots, bookings, crews, shootsAssignments } from "@/lib/db/schema";
 import { eq, and, inArray } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
@@ -137,20 +137,22 @@ export async function POST(request: Request) {
 			const assignmentResults = [];
 			if (crewAssignments.length > 0) {
 				const assignmentValues = crewAssignments.map((assignment) => ({
+					shootId: newShoot.id,
 					crewId: assignment.crewId,
-					entityType: "shoot",
-					entityId: newShoot.id,
 					organizationId: userOrganizationId,
-					isLead: false, // You can make this configurable if needed
+					isLead: false,
 					assignedAt: new Date(),
 					createdAt: new Date(),
 					updatedAt: new Date(),
 				}));
 
 				const assignmentsInserted = await tx
-					.insert(assignments)
+					.insert(shootsAssignments)
 					.values(assignmentValues)
-					.returning({ id: assignments.id, crewId: assignments.crewId });
+					.returning({
+						id: shootsAssignments.id,
+						crewId: shootsAssignments.crewId,
+					});
 
 				assignmentResults.push(...assignmentsInserted);
 			}

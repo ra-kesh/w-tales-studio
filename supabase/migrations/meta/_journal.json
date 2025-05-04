@@ -141,6 +141,13 @@
       "when": 1746349292247,
       "tag": "0019_conscious_sharon_carter",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1746351032835,
+      "tag": "0020_open_polaris",
+      "breakpoints": true
     }
   ]
 }
