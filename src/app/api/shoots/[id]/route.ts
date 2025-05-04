@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "@/lib/dal";
 import { db } from "@/lib/db/drizzle";
-import { bookings, shoots } from "@/lib/db/schema";
-import { and, eq } from "drizzle-orm";
+import { bookings, crews, shoots, shootsAssignments } from "@/lib/db/schema";
+import { and, eq, inArray } from "drizzle-orm";
 import { ShootSchema } from "@/app/(dashboard)/shoots/_components/shoot-form-schema";
 
 export async function GET(
@@ -36,6 +36,38 @@ export async function GET(
 			),
 			with: {
 				booking: true,
+				shootsAssignments: {
+					columns: {
+						id: true,
+						crewId: true,
+						isLead: true,
+						assignedAt: true,
+					},
+					with: {
+						crew: {
+							columns: {
+								id: true,
+								name: true,
+								role: true,
+								specialization: true,
+								status: true,
+							},
+							with: {
+								member: {
+									with: {
+										user: {
+											columns: {
+												name: true,
+												email: true,
+												image: true,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
 			},
 		});
 
@@ -97,6 +129,38 @@ export async function PUT(
 				);
 			}
 
+			let crewAssignments: { crewId: number }[] = [];
+			if (validatedData.crewMembers && validatedData.crewMembers.length > 0) {
+				const crewIds = validatedData.crewMembers;
+
+				const existingCrews = await tx
+					.select({ id: crews.id })
+					.from(crews)
+					.where(
+						and(
+							inArray(crews.id, crewIds.map(Number)),
+							eq(crews.organizationId, userOrganizationId),
+						),
+					);
+
+				const foundCrewIds = new Set(existingCrews.map((crew) => crew.id));
+				const invalidCrewIds = crewIds.filter(
+					(id) => !foundCrewIds.has(Number(id)),
+				);
+
+				if (invalidCrewIds.length > 0) {
+					return NextResponse.json(
+						{
+							message: "Invalid crew members",
+							invalidCrewIds,
+						},
+						{ status: 400 },
+					);
+				}
+
+				crewAssignments = crewIds.map((crewId) => ({ crewId: Number(crewId) }));
+			}
+
 			const [updatedShoot] = await tx
 				.update(shoots)
 				.set({
@@ -111,6 +175,58 @@ export async function PUT(
 				})
 				.where(eq(shoots.id, shootId))
 				.returning();
+
+			const existingAssignments = await tx
+				.select({ crewId: shootsAssignments.crewId })
+				.from(shootsAssignments)
+				.where(
+					and(
+						eq(shootsAssignments.shootId, shootId),
+						eq(shootsAssignments.organizationId, userOrganizationId),
+					),
+				);
+
+			const existingCrewIds = new Set(existingAssignments.map((a) => a.crewId));
+			const newCrewIds = new Set(crewAssignments.map((a) => a.crewId));
+
+			if (existingCrewIds.size > 0) {
+				// Delete assignments that are no longer needed
+				const crewIdsToDelete = [...existingCrewIds].filter(
+					(id) => !newCrewIds.has(id),
+				);
+				if (crewIdsToDelete.length > 0) {
+					await tx
+						.delete(shootsAssignments)
+						.where(
+							and(
+								eq(shootsAssignments.shootId, shootId),
+								inArray(shootsAssignments.crewId, crewIdsToDelete),
+								eq(shootsAssignments.organizationId, userOrganizationId),
+							),
+						);
+				}
+			}
+
+			// Add new assignments
+			const crewIdsToAdd = [...newCrewIds].filter(
+				(id) => !existingCrewIds.has(id),
+			);
+			if (crewIdsToAdd.length > 0) {
+				const assignmentValues = crewIdsToAdd.map((crewId) => ({
+					shootId: shootId,
+					crewId: crewId,
+					organizationId: userOrganizationId,
+					isLead: false, // Can make this configurable if needed
+					assignedAt: new Date(),
+					createdAt: new Date(),
+					updatedAt: new Date(),
+				}));
+
+				await tx.insert(shootsAssignments).values(assignmentValues).returning({
+					id: shootsAssignments.id,
+					crewId: shootsAssignments.crewId,
+				});
+			}
 
 			const [updatedBooking] = await tx
 				.update(bookings)
