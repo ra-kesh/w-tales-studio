@@ -7,8 +7,24 @@ import type { Shoot } from "@/lib/db/schema";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 
+type ShootRowData = Shoot & {
+	booking: { name: string };
+	shootsAssignments: Array<{
+		crew: {
+			name: string | null;
+			role: string | null;
+			member?: {
+				user?: {
+					name: string | null;
+				};
+			};
+		};
+		isLead?: boolean;
+	}>;
+};
+
 export const useShootColumns = () => {
-	const columns: ColumnDef<Shoot & { booking: { name: string } }>[] = [
+	const columns: ColumnDef<ShootRowData>[] = [
 		{
 			id: "select",
 			header: ({ table }) => (
@@ -62,9 +78,30 @@ export const useShootColumns = () => {
 			),
 		},
 		{
-			accessorKey: "duration",
-			header: "Duration",
-			cell: ({ row }) => <div>{row.getValue("duration")}</div>,
+			accessorKey: "shootsAssignments",
+			header: "Assigned Crews",
+			cell: ({ row }) => (
+				<div className="space-y-1">
+					{row.original.shootsAssignments.map((assignment, index) => {
+						const crewName =
+							assignment.crew.member?.user?.name || assignment.crew.name;
+						const crewRole = assignment.crew.role;
+						const isLead = assignment.isLead;
+
+						return (
+							<Badge
+								key={index}
+								variant={isLead ? "default" : "secondary"}
+								className="mr-1"
+							>
+								{crewName || "Unnamed"}
+								{crewRole && ` (${crewRole})`}
+								{isLead && " 🎯"}
+							</Badge>
+						);
+					})}
+				</div>
+			),
 		},
 		{
 			id: "actions",

@@ -13,7 +13,15 @@ import type { Row } from "@tanstack/react-table";
 import { useShootsParams } from "@/hooks/use-shoots-params";
 import type { Shoot } from "@/lib/db/schema";
 
-type ShootRowData = Shoot & { booking: { name: string } };
+type ShootRowData = Shoot & {
+	booking: { name: string };
+	shootsAssignments: Array<{
+		crew: {
+			name: string | null;
+			role: string | null;
+		};
+	}>;
+};
 
 interface ShootTableRowActionsProps {
 	row: Row<ShootRowData>;

@@ -276,61 +276,6 @@ export async function getExpenses(
 		// limit,
 	};
 }
-// export async function getShoots(
-// 	userOrganizationId: string,
-// 	page = 1,
-// 	limit = 10,
-// ) {
-// 	const offset = (page - 1) * limit;
-
-// 	const shootsData = await db.query.shoots.findMany({
-// 		where: eq(shoots.organizationId, userOrganizationId),
-// 		with: {
-// 			booking: {
-// 				columns: {
-// 					name: true,
-// 				},
-// 			},
-// 			assignments: {
-// 				columns: {
-// 					id: true,
-// 					crewId: true,
-// 					isLead: true,
-// 					assignedAt: true,
-// 				},
-// 				with: {
-// 					crew: {
-// 						columns: {
-// 							id: true,
-// 							name: true,
-// 							role: true,
-// 							specialization: true,
-// 							status: true,
-// 						},
-// 					},
-// 				},
-// 			},
-// 		},
-// 		orderBy: (shoots, { desc }) => [
-// 			desc(shoots.updatedAt),
-// 			desc(shoots.createdAt),
-// 		],
-// 		// limit,
-// 		// offset,
-// 	});
-
-// 	const total = await db.$count(
-// 		shoots,
-// 		eq(shoots.organizationId, userOrganizationId),
-// 	);
-
-// 	return {
-// 		data: shootsData,
-// 		total,
-// 		// page,
-// 		// limit,
-// 	};
-// }
 
 export async function getShoots(
 	userOrganizationId: string,
@@ -363,6 +308,19 @@ export async function getShoots(
 							specialization: true,
 							status: true,
 						},
+						with: {
+							member: {
+								with: {
+									user: {
+										columns: {
+											name: true,
+											email: true,
+											image: true,
+										},
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -371,23 +329,10 @@ export async function getShoots(
 			desc(shoots.updatedAt),
 			desc(shoots.createdAt),
 		],
-		limit,
-		offset,
+		// limit,
+		// offset,
 	});
 
-	// // Map shootsAssignments to assignments for consistency with the previous API
-	// const formattedShoots = shootsData.map((shoot) => ({
-	// 	...shoot,
-	// 	assignments: shoot.shootsAssignments.map((assignment) => ({
-	// 		id: assignment.id,
-	// 		crewId: assignment.crewId,
-	// 		isLead: assignment.isLead,
-	// 		assignedAt: assignment.assignedAt,
-	// 		crew: assignment.crew,
-	// 	})),
-	// }));
-
-	// Calculate total count for pagination
 	const total = await db.$count(
 		shoots,
 		eq(shoots.organizationId, userOrganizationId),
@@ -396,8 +341,8 @@ export async function getShoots(
 	return {
 		data: shootsData,
 		total,
-		page,
-		limit,
+		// page,
+		// limit,
 	};
 }
 
