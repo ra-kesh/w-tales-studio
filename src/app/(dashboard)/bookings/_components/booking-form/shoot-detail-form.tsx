@@ -17,6 +17,8 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import type { BookingFormValues } from "./booking-form-schema";
+import { useCrews } from "@/hooks/use-crews";
+import { MultiAsyncSelect } from "@/components/ui/multi-select";
 
 interface ShootDetailFormProps {
 	form: UseFormReturn<BookingFormValues>;
@@ -29,6 +31,22 @@ export const ShootDetailForm = () => {
 		control: form.control,
 		name: "shoots",
 	});
+
+	const { data: crewData, isLoading } = useCrews();
+	const crewOptions = React.useMemo(() => {
+		if (!crewData?.data) return [];
+		return crewData.data.map((crew) => {
+			const displayName = crew.member?.user?.name || crew.name;
+			const role = crew.role ? ` (${crew.role})` : "";
+			const statusBadge =
+				crew.status !== "available" ? ` [${crew.status}]` : "";
+
+			return {
+				label: `${displayName}${role}${statusBadge}`,
+				value: crew.id.toString(),
+			};
+		});
+	}, [crewData?.data]);
 
 	return (
 		<Card>
@@ -44,6 +62,7 @@ export const ShootDetailForm = () => {
 							date: "",
 							time: "",
 							location: "",
+							crews: [],
 						})
 					}
 				>
@@ -53,11 +72,12 @@ export const ShootDetailForm = () => {
 			</CardHeader>
 			<CardContent>
 				<div className="rounded-md border">
-					<div className="grid grid-cols-10 border-b bg-muted/50 px-4 py-3 text-sm font-medium gap-4">
+					<div className="grid grid-cols-11 border-b bg-muted/50 px-4 py-3 text-sm font-medium gap-4">
 						<div className="col-span-2">Title</div>
 						<div className="col-span-2">Date</div>
 						<div className="col-span-2">Time</div>
-						<div className="col-span-3">Location</div>
+						<div className="col-span-2">Location</div>
+						<div className="col-span-2">Crew</div>
 					</div>
 
 					{fields.length === 0 && (
@@ -69,7 +89,7 @@ export const ShootDetailForm = () => {
 					{fields.map((field, index) => (
 						<div
 							key={field.id}
-							className="grid grid-cols-10 px-4 py-3 gap-4 relative"
+							className="grid grid-cols-11 px-4 py-3 gap-4 relative"
 						>
 							<div className="col-span-2">
 								<FormField
@@ -116,7 +136,7 @@ export const ShootDetailForm = () => {
 								/>
 							</div>
 
-							<div className="col-span-3">
+							<div className="col-span-2">
 								<FormField
 									control={form.control}
 									name={`shoots.${index}.location`}
@@ -131,10 +151,35 @@ export const ShootDetailForm = () => {
 								/>
 							</div>
 
+							<div className="col-span-2">
+								<FormField
+									control={form.control}
+									name={`shoots.${index}.crews`}
+									render={({ field }) => (
+										<FormItem>
+											<FormControl>
+												<MultiAsyncSelect
+													options={crewOptions}
+													onValueChange={field.onChange}
+													defaultValue={field.value}
+													maxCount={5}
+													placeholder="Select crew"
+													searchPlaceholder="Search crew members..."
+													className="w-full"
+													loading={isLoading}
+													async={true}
+												/>
+											</FormControl>
+											<FormMessage />
+										</FormItem>
+									)}
+								/>
+							</div>
+
 							<div className="col-span-1 flex flex-row items-center h-min">
 								<Button
 									variant="outline"
-									className="ml-auto cursor-pointer "
+									className="ml-auto cursor-pointer"
 									size="sm"
 									onClick={() => remove(index)}
 								>

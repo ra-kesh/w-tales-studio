@@ -38,7 +38,8 @@ import {
 import { useMinimalBookings } from "@/hooks/use-bookings";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useCrews } from "@/hooks/use-crews";
-import { MultiSelect } from "@/components/ui/multi-select";
+import { MultiAsyncSelect } from "@/components/ui/multi-select";
+// import { MultiSelect } from "@/components/ui/multi-select";
 
 interface ShootFormProps {
 	defaultValues?: ShootFormValues;
@@ -69,9 +70,9 @@ export function ShootForm({
 	});
 
 	const { data: MinimalBookings } = useMinimalBookings();
-	const { data: crewData } = useCrews();
 	const bookings = MinimalBookings?.data;
 
+	const { data: crewData, isLoading } = useCrews();
 	const crewOptions = React.useMemo(() => {
 		if (!crewData?.data) return [];
 		return crewData.data.map((crew) => {
@@ -83,12 +84,9 @@ export function ShootForm({
 			return {
 				label: `${displayName}${role}${statusBadge}`,
 				value: crew.id.toString(),
-				disabled: crew.status === "unavailable" || crew.status === "on_leave",
 			};
 		});
 	}, [crewData?.data]);
-
-	console.log({ crewOptions });
 
 	return (
 		<Form {...form}>
@@ -203,20 +201,17 @@ export function ShootForm({
 						control={form.control}
 						name="crewMembers"
 						render={({ field }) => (
-							<FormItem>
-								<FormLabel>Crew Members</FormLabel>
-								<FormControl>
-									<MultiSelect
-										options={crewOptions}
-										onValueChange={field.onChange}
-										defaultValue={field.value}
-										maxCount={5}
-										placeholder="Select crew members"
-										className="w-full"
-									/>
-								</FormControl>
-								<FormMessage />
-							</FormItem>
+							<MultiAsyncSelect
+								options={crewOptions}
+								onValueChange={field.onChange}
+								defaultValue={field.value}
+								maxCount={5}
+								placeholder="Select crew"
+								searchPlaceholder="Search crew members..."
+								className="w-full"
+								loading={isLoading}
+								async={true}
+							/>
 						)}
 					/>
 				</div>

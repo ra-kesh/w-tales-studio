@@ -45,6 +45,7 @@ export const BookingSchema = z.object({
 				date: z.string().min(1, "Date is required"),
 				time: z.string().min(1, "Time is required"),
 				location: z.string().min(1, "location is required"),
+				crews: z.array(z.string()).optional(),
 			}),
 		)
 		.optional(),
