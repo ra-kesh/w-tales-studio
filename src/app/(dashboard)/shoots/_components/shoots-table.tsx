@@ -27,34 +27,18 @@ import {
 
 import { ShootsTablePagination } from "./shoots-table-pagination";
 import { ShootsTableToolbar } from "./shoots-table-toolbar";
-import type { Shoot } from "@/lib/db/schema";
 import { Badge } from "@/components/ui/badge";
-import { Crown } from "lucide-react";
-
-type ShootAssignment = {
-	crew: {
-		name: string | null;
-		role: string | null;
-		member?: {
-			user?: {
-				name: string | null;
-			};
-		};
-	};
-	isLead?: boolean;
-};
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Crown, Users } from "lucide-react";
+import { cn } from "@/lib/utils";
+import type { ShootRowData } from "@/types/shoots";
 
 interface ShootTableProps {
-	columns: ColumnDef<
-		Shoot & { booking: { name: string }; shootsAssignments: ShootAssignment[] }
-	>[];
-	data: (Shoot & {
-		booking: { name: string };
-		shootsAssignments: ShootAssignment[];
-	})[];
+	columns: ColumnDef<ShootRowData>[];
+	data: ShootRowData[];
 }
 
-export function ShootsTable({ columns, data }: ShootTableProps) {
+export function ShootTable({ columns, data }: ShootTableProps) {
 	const [rowSelection, setRowSelection] = React.useState({});
 	const [columnVisibility, setColumnVisibility] =
 		React.useState<VisibilityState>({});
@@ -131,12 +115,17 @@ export function ShootsTable({ columns, data }: ShootTableProps) {
 											<TableCell className="p-0" colSpan={6} />
 											<TableCell className="p-0" colSpan={2}>
 												<div className="p-4">
-													<div className="flex items-center justify-between mb-3">
-														<h4 className="text-sm font-medium flex items-center">
-															Assigned Crew Members
-														</h4>
+													<div className="flex items-center justify-between mb-4">
+														<div className="flex items-center gap-2">
+															<span className="bg-primary/10 text-primary p-1.5 rounded-md">
+																<Users className="h-4 w-4" />
+															</span>
+															<h4 className="text-sm font-medium">
+																Assigned Crew
+															</h4>
+														</div>
 														<Badge
-															variant="outline"
+															variant="secondary"
 															className="text-xs font-normal"
 														>
 															{row.original.shootsAssignments.length}{" "}
@@ -145,30 +134,62 @@ export function ShootsTable({ columns, data }: ShootTableProps) {
 																: "members"}
 														</Badge>
 													</div>
-													<div className="space-y-2">
+													<div className="space-y-3">
 														{row.original.shootsAssignments.map(
-															(assignment, index) => (
-																<div
-																	key={index}
-																	className="flex items-center justify-between py-2 border-b last:border-0"
-																>
-																	<div>
-																		<div className="font-medium flex items-center gap-2">
-																			{assignment.crew.member?.user?.name ||
-																				assignment.crew.name}
-																			{assignment.isLead && (
-																				<Crown className="h-4 w-4 text-primary" />
-																			)}
-																		</div>
-																		<div className="text-sm text-muted-foreground">
-																			{assignment.crew.role}
+															(assignment, index) => {
+																const name =
+																	assignment.crew.member?.user?.name ||
+																	assignment.crew.name;
+																const initials = name
+																	?.split(" ")
+																	.map((n) => n[0])
+																	.join("");
+
+																return (
+																	<div
+																		key={index}
+																		className="flex items-center justify-between py-2 px-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
+																	>
+																		<div className="flex items-center gap-3">
+																			<Avatar className="h-8 w-8">
+																				<AvatarFallback className="bg-primary/10 text-primary">
+																					{initials}
+																				</AvatarFallback>
+																			</Avatar>
+																			<div>
+																				<div className="font-medium flex items-center gap-2">
+																					{name}
+																					{assignment.isLead && (
+																						<Badge
+																							variant="secondary"
+																							className="h-5 text-xs gap-1 flex items-center"
+																						>
+																							<Crown className="h-3 w-3" />
+																							Lead
+																						</Badge>
+																					)}
+																				</div>
+																				<div className="text-sm text-muted-foreground flex items-center gap-2">
+																					<span>{assignment.crew.role}</span>
+																					{assignment.crew.specialization && (
+																						<>
+																							<span className="text-muted-foreground/30">
+																								•
+																							</span>
+																							<span>
+																								{assignment.crew.specialization}
+																							</span>
+																						</>
+																					)}
+																				</div>
+																			</div>
 																		</div>
 																	</div>
-																</div>
-															),
+																);
+															},
 														)}
 														{row.original.shootsAssignments.length === 0 && (
-															<div className="text-center py-6 text-sm text-muted-foreground">
+															<div className="text-center py-6 text-sm text-muted-foreground bg-muted/50 rounded-lg border border-dashed">
 																No crew members assigned to this shoot
 															</div>
 														)}

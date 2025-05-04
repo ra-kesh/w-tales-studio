@@ -3,28 +3,12 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ShootTableRowActions } from "./shoots-table-row-actions";
-import type { Shoot } from "@/lib/db/schema";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ChevronRight, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-type ShootRowData = Shoot & {
-	booking: { name: string };
-	shootsAssignments: Array<{
-		crew: {
-			name: string | null;
-			role: string | null;
-			member?: {
-				user?: {
-					name: string | null;
-				};
-			};
-		};
-		isLead?: boolean;
-	}>;
-};
+import type { ShootRowData } from "@/types/shoots";
 
 export const useShootColumns = () => {
 	const columns: ColumnDef<ShootRowData>[] = [

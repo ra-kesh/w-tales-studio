@@ -11,21 +11,12 @@ import {
 import { MoreHorizontal } from "lucide-react";
 import type { Row } from "@tanstack/react-table";
 import { useShootsParams } from "@/hooks/use-shoots-params";
-import type { Shoot } from "@/lib/db/schema";
-
-type ShootRowData = Shoot & {
-	booking: { name: string };
-	shootsAssignments: Array<{
-		crew: {
-			name: string | null;
-			role: string | null;
-		};
-	}>;
-};
+import type { ShootRowData } from "@/types/shoots";
 
 interface ShootTableRowActionsProps {
 	row: Row<ShootRowData>;
 }
+
 export function ShootTableRowActions({ row }: ShootTableRowActionsProps) {
 	const { setParams } = useShootsParams();
 
@@ -37,7 +28,6 @@ export function ShootTableRowActions({ row }: ShootTableRowActionsProps) {
 				</Button>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="end">
-				{/* <DropdownMenuItem>View details</DropdownMenuItem> */}
 				<DropdownMenuItem
 					onClick={() =>
 						setParams({

@@ -2,7 +2,7 @@
 
 import { useShootColumns } from "./_components/shoots-table-columns";
 import React from "react";
-import { ShootsTable } from "./_components/shoots-table";
+import { ShootTable } from "./_components/shoots-table";
 import { useShoots } from "@/hooks/use-shoots";
 
 export function Shoots() {
@@ -13,7 +13,7 @@ export function Shoots() {
 
 	return (
 		<div className="flex-1 min-w-0">
-			<ShootsTable data={data?.data || defaultData} columns={columns} />
+			<ShootTable data={data?.data || defaultData} columns={columns} />
 		</div>
 	);
 }
