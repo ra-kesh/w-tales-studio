@@ -32,16 +32,16 @@ export const useShootColumns = () => {
 			enableHiding: false,
 		},
 		{
-			accessorKey: "booking",
-			header: "Booking",
-			cell: ({ row }) => (
-				<div className="font-medium">{row.original.booking.name}</div>
-			),
-		},
-		{
 			accessorKey: "title",
-			header: "Title",
-			cell: ({ row }) => <div>{row.getValue("title")}</div>,
+			header: "Shoot",
+			cell: ({ row }) => (
+				<div className="flex flex-col space-y-1">
+					<div className="font-semibold">{row.getValue("title")}</div>
+					<div className="text-sm text-muted-foreground">
+						{row.original.booking.name}
+					</div>
+				</div>
+			),
 		},
 		{
 			accessorKey: "date",
