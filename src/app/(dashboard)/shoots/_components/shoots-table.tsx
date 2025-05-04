@@ -114,7 +114,7 @@ export function ShootTable({ columns, data }: ShootTableProps) {
 										<TableRow className="bg-muted/30">
 											<TableCell className="p-0" colSpan={6} />
 											<TableCell className="p-0" colSpan={2}>
-												<div className="p-4">
+												<div className="p-4 rounded-md bg-card border border-border/50 m-2 shadow-sm">
 													<div className="flex items-center justify-between mb-4">
 														<div className="flex items-center gap-2">
 															<span className="bg-primary/10 text-primary p-1.5 rounded-md">
