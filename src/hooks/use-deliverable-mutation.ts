@@ -22,7 +22,9 @@ export function useCreateDeliverableMutation() {
 			return response.json();
 		},
 		onSuccess: ({ data }) => {
-			queryClient.invalidateQueries({ queryKey: ["deliverables"] });
+			queryClient.invalidateQueries({
+				queryKey: ["bookings", "deliverable", "list"],
+			});
 			queryClient.invalidateQueries({ queryKey: ["bookings", "list"] });
 			toast.success("Deliverable created successfully");
 		},
@@ -58,11 +60,18 @@ export function useUpdateDeliverableMutation() {
 			return response.json();
 		},
 		onSuccess: ({ data }) => {
-			console.log(data);
-
-			queryClient.invalidateQueries({ queryKey: ["deliverables"] });
 			queryClient.invalidateQueries({
-				queryKey: ["deliverable", data.deliverableId.toString()],
+				queryKey: ["bookings", "deliverable", "list"],
+			});
+			queryClient.invalidateQueries({
+				queryKey: [
+					"bookings",
+					"deliverable",
+					"detail",
+					{
+						deliverableId: data.deliverableId.toString(),
+					},
+				],
 			});
 			queryClient.invalidateQueries({ queryKey: ["bookings", "list"] });
 			toast.success("Deliverable updated successfully");

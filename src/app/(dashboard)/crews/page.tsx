@@ -22,7 +22,7 @@ export default async function CrewsPage() {
 		<div className="h-full flex-1 flex flex-col p-8">
 			<div className="flex items-center justify-between mb-8">
 				<div>
-					<h2 className="text-2xl font-bold tracking-tight">Crew Members</h2>
+					<h2 className="text-2xl font-bold tracking-tight">Crews</h2>
 				</div>
 			</div>
 			<Suspense fallback={<div>Loading...</div>}>

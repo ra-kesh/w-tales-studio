@@ -38,6 +38,12 @@ export const sidebarData = {
 	],
 	navMain: [
 		{
+			title: "Dashboard",
+			url: "/dashboard",
+			icon: LayoutDashboardIcon,
+			isActive: true,
+		},
+		{
 			title: "Bookings",
 			url: "/bookings",
 			icon: CameraIcon,
@@ -65,12 +71,7 @@ export const sidebarData = {
 				},
 			],
 		},
-		{
-			title: "Dashboard",
-			url: "/dashboard",
-			icon: LayoutDashboardIcon,
-			isActive: true,
-		},
+
 		{
 			title: "Configurations",
 			url: "/configurations",
@@ -78,8 +79,8 @@ export const sidebarData = {
 			isActive: true,
 		},
 		{
-			title: "Teams",
-			url: "/teams",
+			title: "Crews",
+			url: "/crews",
 			icon: UsersIcon,
 			isActive: true,
 		},
