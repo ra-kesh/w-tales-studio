@@ -73,6 +73,16 @@ export function useUpdateShootMutation() {
 					},
 				],
 			});
+			// to make sure boooking detail always have fresh data
+			queryClient.refetchQueries({
+				queryKey: [
+					"bookings",
+					"detail",
+					{
+						bookingId: data.bookingId.toString(),
+					},
+				],
+			});
 			toast.success("Shoot updated successfully");
 		},
 		onError: (error) => {

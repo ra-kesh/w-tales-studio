@@ -10,6 +10,7 @@ import { getBookingDetail, getCrews } from "@/lib/db/queries";
 import { getServerSession } from "@/lib/dal";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 type Props = {
 	params: { id: string };
