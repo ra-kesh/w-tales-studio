@@ -105,7 +105,7 @@ export function transformBookingToFormData(
     clientName: booking.clients.name,
     brideName: booking.clients.brideName,
     groomName: booking.clients.groomName,
-    relation: booking.clients.relation, // assuming relation matches the schema
+    relation: booking.clients.relation,
     phone: booking.clients.phoneNumber,
     email: booking.clients.email as string,
     address: booking.clients.address,
@@ -116,6 +116,9 @@ export function transformBookingToFormData(
       date: shoot.date ?? "",
       time: shoot.time ?? "",
       location: (shoot.location as string) ?? "",
+      crews: shoot.shootsAssignments?.map((assignment) =>
+        assignment.crewId.toString()
+      ),
     })),
 
     deliverables: booking.deliverables.map((item) => ({
