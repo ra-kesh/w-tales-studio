@@ -8,9 +8,7 @@ export const RelationType = z.union([
 	z.literal(""),
 ]);
 
-// First, create a decimal validator
 export const DecimalString = z.string().transform((val, ctx) => {
-	// Remove any non-numeric characters except decimal point
 	const cleaned = val.replace(/[^\d.]/g, "");
 	const parsed = Number.parseFloat(cleaned);
 
