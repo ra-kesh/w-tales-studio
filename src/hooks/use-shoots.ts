@@ -17,7 +17,7 @@ export async function fetchShoots(): Promise<ShootsResponse> {
 
 export function useShoots() {
 	return useQuery({
-		queryKey: ["shoots"],
+		queryKey: ["bookings", "shoot", "list"],
 		queryFn: fetchShoots,
 		placeholderData: { data: [], total: 0 },
 	});
@@ -25,7 +25,7 @@ export function useShoots() {
 
 export function useShootDetail(shootId: string) {
 	return useQuery({
-		queryKey: ["shoot", { shootId }],
+		queryKey: ["bookings", "shoot", "detail", { shootId }],
 		queryFn: async () => {
 			const response = await fetch(`/api/shoots/${shootId}`);
 			if (!response.ok) {

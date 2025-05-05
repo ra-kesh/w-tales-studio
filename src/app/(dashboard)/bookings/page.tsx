@@ -14,7 +14,7 @@ export default async function BookingPage() {
 	const queryClient = new QueryClient();
 
 	await queryClient.prefetchQuery({
-		queryKey: ["bookings"],
+		queryKey: ["bookings", "list"],
 		queryFn: () => getBookings(session?.session.activeOrganizationId as string),
 	});
 	return (
