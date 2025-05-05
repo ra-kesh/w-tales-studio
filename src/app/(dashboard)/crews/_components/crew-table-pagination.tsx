@@ -17,13 +17,13 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 
-interface DataTablePaginationProps<TData> {
+interface CrewTablePaginationProps<TData> {
 	table: Table<TData>;
 }
 
-export function ShootsTablePagination<TData>({
+export function CrewTablePagination<TData>({
 	table,
-}: DataTablePaginationProps<TData>) {
+}: CrewTablePaginationProps<TData>) {
 	return (
 		<div className="flex items-center justify-between px-2">
 			<div className="flex-1 text-sm text-muted-foreground">

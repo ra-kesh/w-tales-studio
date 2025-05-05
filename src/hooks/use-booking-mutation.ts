@@ -46,7 +46,7 @@ export const useBookingMutation = () => {
       }
       toast.success("Booking added successfully");
       queryClient.invalidateQueries({
-        queryKey: ["bookings"],
+        queryKey: ["bookings", "list"],
       });
     },
   });
@@ -92,9 +92,18 @@ export const useUpdateBookingMutation = (id: string) => {
       if (context?.toastId) {
         toast.dismiss(context.toastId);
       }
+
+      queryClient.invalidateQueries({
+        queryKey: [
+          "bookings",
+          "detail",
+          {
+            bookingId: data.data.bookingId.toString(),
+          },
+        ],
+      });
+      queryClient.invalidateQueries({ queryKey: ["bookings", "list"] });
       toast.success("Booking updated successfully");
-      queryClient.invalidateQueries({ queryKey: ["booking", id] });
-      queryClient.invalidateQueries({ queryKey: ["bookings"] });
     },
   });
 };

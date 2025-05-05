@@ -22,7 +22,7 @@ export const useCreateExpenseMutation = () => {
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["expenses"] });
-			queryClient.invalidateQueries({ queryKey: ["bookings"] });
+			queryClient.invalidateQueries({ queryKey: ["bookings", "list"] });
 			toast.success("Expense created");
 		},
 		onError: (error) => {
@@ -55,7 +55,7 @@ export const useUpdateExpenseMutation = () => {
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["expenses"] });
-			queryClient.invalidateQueries({ queryKey: ["bookings"] });
+			queryClient.invalidateQueries({ queryKey: ["bookings", "list"] });
 			toast.success("Expense updated");
 		},
 		onError: (error) => {

@@ -13,6 +13,7 @@ import {
   type ConfigType,
   type BookingDetail,
   type Shoot,
+  crews,
 } from "./schema";
 import { alias } from "drizzle-orm/pg-core";
 
@@ -77,86 +78,100 @@ export async function getBookings(
 ) {
   const offset = (page - 1) * limit;
 
-  const bookingsData = await db
+  // Fetch booking and package configs
+  const bookingConfigData = await db
     .select({
-      id: bookings.id,
-      organizationId: bookings.organizationId,
-      name: bookings.name,
-      bookingType: sql<string>`booking_configs.value`,
-      packageType: sql<string>`package_configs.value`,
-      packageCost: bookings.packageCost,
-      clientId: bookings.clientId,
-      createdAt: bookings.createdAt,
-      updatedAt: bookings.updatedAt,
-      note: bookings.note,
-      clients: clients,
-      shoots: sql<Shoot[]>`
-        COALESCE(
-          json_agg(
-            json_build_object(
-              'id', ${shoots.id},
-              'bookingId', ${shoots.bookingId},
-			        'title', ${shoots.title},
-              'organizationId', ${shoots.organizationId},
-			        'time', ${shoots.time},
-              'date', ${shoots.date},
-              'location', ${shoots.location},
-              'createdAt', ${shoots.createdAt},
-              'updatedAt', ${shoots.updatedAt}
-            )
-          ) FILTER (WHERE ${shoots.id} IS NOT NULL),
-          '[]'
-        )
-      `.as("shoots"),
+      key: bookingConfigs.key,
+      value: bookingConfigs.value,
     })
-    .from(bookings)
-    .leftJoin(
-      packageConfigs,
+    .from(bookingConfigs)
+    .where(
       and(
-        eq(bookings.packageType, sql`package_configs.key`),
-        eq(sql`package_configs.type`, "package_type"),
-        eq(sql`package_configs.organization_id`, userOrganizationId)
+        eq(bookingConfigs.type, "booking_type"),
+        eq(bookingConfigs.organizationId, userOrganizationId)
       )
-    )
-    .leftJoin(
-      bookingConfigs,
+    );
+
+  const packageConfigData = await db
+    .select({
+      key: packageConfigs.key,
+      value: packageConfigs.value,
+    })
+    .from(packageConfigs)
+    .where(
       and(
-        eq(bookings.bookingType, sql`booking_configs.key`),
-        eq(sql`booking_configs.type`, "booking_type"),
-        eq(sql`booking_configs.organization_id`, userOrganizationId)
+        eq(packageConfigs.type, "package_type"),
+        eq(packageConfigs.organizationId, userOrganizationId)
       )
-    )
-    .leftJoin(clients, eq(bookings.clientId, clients.id))
-    .leftJoin(shoots, eq(shoots.bookingId, bookings.id))
-    .where(eq(bookings.organizationId, userOrganizationId))
-    .groupBy(
-      bookings.id,
-      bookings.organizationId,
-      bookings.name,
-      bookings.bookingType,
-      bookings.packageType,
-      bookings.packageCost,
-      bookings.clientId,
-      bookings.createdAt,
-      bookings.updatedAt,
-      bookings.note,
-      clients.id,
-      clients.organizationId,
-      clients.name,
-      clients.brideName,
-      clients.groomName,
-      clients.relation,
-      clients.phoneNumber,
-      clients.email,
-      clients.address,
-      clients.createdAt,
-      clients.updatedAt,
-      packageConfigs.value,
-      bookingConfigs.value
-    )
-    .orderBy(desc(bookings.updatedAt), desc(bookings.createdAt));
-  // .limit(limit)
-  // .offset(offset);
+    );
+
+  const bookingTypeMap = new Map(
+    bookingConfigData.map((config) => [config.key, config.value])
+  );
+  const packageTypeMap = new Map(
+    packageConfigData.map((config) => [config.key, config.value])
+  );
+
+  // Fetch bookings with related data
+  const bookingsData = await db.query.bookings.findMany({
+    where: eq(bookings.organizationId, userOrganizationId),
+    with: {
+      clients: true,
+      shoots: {
+        columns: {
+          id: true,
+          bookingId: true,
+          title: true,
+          organizationId: true,
+          time: true,
+          date: true,
+          location: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+        with: {
+          shootsAssignments: {
+            with: {
+              crew: {
+                columns: {
+                  id: true,
+                  name: true,
+                  role: true,
+                  specialization: true,
+                  status: true,
+                },
+                with: {
+                  member: {
+                    with: {
+                      user: {
+                        columns: {
+                          name: true,
+                          email: true,
+                          image: true,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    orderBy: (bookings, { desc }) => [
+      desc(bookings.updatedAt),
+      desc(bookings.createdAt),
+    ],
+    // limit,
+    // offset,
+  });
+
+  const formattedBookings = bookingsData.map((booking) => ({
+    ...booking,
+    bookingType: bookingTypeMap.get(booking.bookingType) ?? booking.bookingType,
+    packageType: packageTypeMap.get(booking.packageType) ?? booking.packageType,
+  }));
 
   const total = await db
     .select({ count: sql<number>`count(*)` })
@@ -165,10 +180,10 @@ export async function getBookings(
     .then((result) => result[0]?.count || 0);
 
   return {
-    data: bookingsData,
+    data: formattedBookings,
     total,
-    // page,
-    // limit,
+    page,
+    limit,
   };
 }
 export async function getMinimalBookings(
@@ -275,6 +290,7 @@ export async function getExpenses(
     // limit,
   };
 }
+
 export async function getShoots(
   userOrganizationId: string,
   page = 1,
@@ -288,6 +304,38 @@ export async function getShoots(
       booking: {
         columns: {
           name: true,
+        },
+      },
+      shootsAssignments: {
+        columns: {
+          id: true,
+          crewId: true,
+          isLead: true,
+          assignedAt: true,
+        },
+        with: {
+          crew: {
+            columns: {
+              id: true,
+              name: true,
+              role: true,
+              specialization: true,
+              status: true,
+            },
+            with: {
+              member: {
+                with: {
+                  user: {
+                    columns: {
+                      name: true,
+                      email: true,
+                      image: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
       },
     },
@@ -311,6 +359,7 @@ export async function getShoots(
     // limit,
   };
 }
+
 export async function getTasks(
   userOrganizationId: string,
   page = 1,
@@ -374,14 +423,76 @@ export async function getBookingDetail(
   userOrganizationId: string,
   bookingId: number
 ): Promise<BookingDetail | undefined> {
-  const response = await db.query.bookings.findFirst({
+  const bookingConfigData = await db
+    .select({
+      key: bookingConfigs.key,
+      value: bookingConfigs.value,
+    })
+    .from(bookingConfigs)
+    .where(
+      and(
+        eq(bookingConfigs.type, "booking_type"),
+        eq(bookingConfigs.organizationId, userOrganizationId)
+      )
+    );
+
+  const packageConfigData = await db
+    .select({
+      key: packageConfigs.key,
+      value: packageConfigs.value,
+    })
+    .from(packageConfigs)
+    .where(
+      and(
+        eq(packageConfigs.type, "package_type"),
+        eq(packageConfigs.organizationId, userOrganizationId)
+      )
+    );
+
+  const bookingTypeMap = new Map(
+    bookingConfigData.map((config) => [config.key, config.value])
+  );
+  const packageTypeMap = new Map(
+    packageConfigData.map((config) => [config.key, config.value])
+  );
+
+  const booking = await db.query.bookings.findFirst({
     where: and(
       eq(bookings.id, bookingId),
       eq(bookings.organizationId, userOrganizationId)
     ),
     with: {
       clients: true,
-      shoots: true,
+      shoots: {
+        with: {
+          shootsAssignments: {
+            with: {
+              crew: {
+                columns: {
+                  id: true,
+                  name: true,
+                  role: true,
+                  specialization: true,
+                  status: true,
+                },
+                with: {
+                  member: {
+                    with: {
+                      user: {
+                        columns: {
+                          name: true,
+                          email: true,
+                          image: true,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
       deliverables: true,
       receivedAmounts: true,
       paymentSchedules: true,
@@ -390,7 +501,18 @@ export async function getBookingDetail(
     },
   });
 
-  return response;
+  if (!booking) {
+    return undefined;
+  }
+
+  // Map bookingType and packageType to human-readable values
+  return {
+    ...booking,
+    bookingTypeValue:
+      bookingTypeMap.get(booking.bookingType) ?? booking.bookingType,
+    packageTypeValue:
+      packageTypeMap.get(booking.packageType) ?? booking.packageType,
+  };
 }
 
 export async function getClientDetail(
@@ -406,4 +528,28 @@ export async function getClientDetail(
   });
 
   return client;
+}
+
+export async function getCrews(organizationId: string) {
+  if (!organizationId) {
+    throw new Error("Organization ID is required");
+  }
+
+  return db.query.crews.findMany({
+    where: eq(crews.organizationId, organizationId),
+    with: {
+      member: {
+        with: {
+          user: {
+            columns: {
+              name: true,
+              email: true,
+              image: true,
+            },
+          },
+        },
+      },
+    },
+    orderBy: [desc(crews.updatedAt), desc(crews.createdAt)],
+  });
 }

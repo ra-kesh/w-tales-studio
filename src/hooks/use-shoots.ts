@@ -1,43 +1,38 @@
 import { useQuery } from "@tanstack/react-query";
-import type { Shoot } from "@/lib/db/schema";
-
-interface ShootsResponse {
-  data: Shoot[];
-  total: number;
-}
+import type { ShootsResponse } from "@/types/shoots";
 
 export async function fetchShoots(): Promise<ShootsResponse> {
-  const response = await fetch("/api/shoots", {
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
+	const response = await fetch("/api/shoots", {
+		headers: {
+			"Content-Type": "application/json",
+		},
+	});
 
-  if (!response.ok) {
-    throw new Error("Failed to fetch shoots");
-  }
+	if (!response.ok) {
+		throw new Error("Failed to fetch shoots");
+	}
 
-  return response.json();
+	return response.json();
 }
 
 export function useShoots() {
-  return useQuery({
-    queryKey: ["shoots"],
-    queryFn: fetchShoots,
-    placeholderData: { data: [], total: 0 },
-  });
+	return useQuery({
+		queryKey: ["bookings", "shoot", "list"],
+		queryFn: fetchShoots,
+		placeholderData: { data: [], total: 0 },
+	});
 }
 
 export function useShootDetail(shootId: string) {
-  return useQuery({
-    queryKey: ["shoot", { shootId }],
-    queryFn: async () => {
-      const response = await fetch(`/api/shoots/${shootId}`);
-      if (!response.ok) {
-        throw new Error("Failed to fetch shoot details");
-      }
-      return response.json();
-    },
-    enabled: !!shootId,
-  });
+	return useQuery({
+		queryKey: ["bookings", "shoot", "detail", { shootId }],
+		queryFn: async () => {
+			const response = await fetch(`/api/shoots/${shootId}`);
+			if (!response.ok) {
+				throw new Error("Failed to fetch shoot details");
+			}
+			return response.json();
+		},
+		enabled: !!shootId,
+	});
 }

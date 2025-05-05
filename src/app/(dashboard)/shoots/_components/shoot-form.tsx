@@ -1,5 +1,6 @@
 "use client";
 
+import * as React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -36,6 +37,8 @@ import {
 } from "@/components/ui/popover";
 import { useMinimalBookings } from "@/hooks/use-bookings";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useCrews } from "@/hooks/use-crews";
+import { MultiAsyncSelect } from "@/components/ui/multi-select";
 
 interface ShootFormProps {
 	defaultValues?: ShootFormValues;
@@ -48,10 +51,10 @@ export function ShootForm({
 	onSubmit,
 	mode = "create",
 }: ShootFormProps) {
-	// Clean up default values to only include fields we need
 	const cleanedDefaultValues = {
 		bookingId: defaultValues.bookingId?.toString() || "",
 		title: defaultValues.title || "",
+		crewMembers: defaultValues.crewMembers || [],
 		date: defaultValues.date || "",
 		time: defaultValues.time || "",
 		location: defaultValues.location || "",
@@ -66,6 +69,22 @@ export function ShootForm({
 
 	const { data: MinimalBookings } = useMinimalBookings();
 	const bookings = MinimalBookings?.data;
+
+	const { data: crewData, isLoading } = useCrews();
+	const crewOptions = React.useMemo(() => {
+		if (!crewData?.data) return [];
+		return crewData.data.map((crew) => {
+			const displayName = crew.member?.user?.name || crew.name;
+			const role = crew.role ? ` (${crew.role})` : "";
+			const statusBadge =
+				crew.status !== "available" ? ` [${crew.status}]` : "";
+
+			return {
+				label: `${displayName}${role}${statusBadge}`,
+				value: crew.id.toString(),
+			};
+		});
+	}, [crewData?.data]);
 
 	return (
 		<Form {...form}>
@@ -171,6 +190,26 @@ export function ShootForm({
 								</FormControl>
 								<FormMessage />
 							</FormItem>
+						)}
+					/>
+				</div>
+
+				<div className="col-span-2">
+					<FormField
+						control={form.control}
+						name="crewMembers"
+						render={({ field }) => (
+							<MultiAsyncSelect
+								options={crewOptions}
+								onValueChange={field.onChange}
+								defaultValue={field.value}
+								maxCount={5}
+								placeholder="Select crew"
+								searchPlaceholder="Search crew members..."
+								className="w-full"
+								loading={isLoading}
+								async={true}
+							/>
 						)}
 					/>
 				</div>

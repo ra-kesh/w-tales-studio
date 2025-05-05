@@ -359,29 +359,85 @@ export const crews = pgTable(
     ),
   ]
 );
-export const assignments = pgTable(
-  "assignments",
+
+export const shootsAssignments = pgTable(
+  "shoots_assignments",
   {
     id: serial("id").primaryKey(),
+    shootId: integer("shoot_id")
+      .notNull()
+      .references(() => shoots.id, { onDelete: "cascade" }),
     crewId: integer("crew_id")
       .notNull()
       .references(() => crews.id, { onDelete: "cascade" }),
-    entityType: text("entity_type").notNull(),
-    entityId: integer("entity_id").notNull(),
     isLead: boolean("is_lead").notNull().default(false),
-    assignedAt: timestamp("assigned_at").defaultNow(),
     organizationId: text("organization_id")
       .notNull()
       .references(() => organizations.id, { onDelete: "cascade" }),
+    assignedAt: timestamp("assigned_at").defaultNow(),
     createdAt: timestamp("created_at").defaultNow(),
     updatedAt: timestamp("updated_at").defaultNow(),
   },
   (t) => [
-    uniqueIndex("assignments_unique_idx").on(
+    uniqueIndex("shoots_assignments_unique_idx").on(
+      t.shootId,
       t.crewId,
-      t.entityType,
-      t.entityId,
-      t.organizationId // Include organizationId in unique constraint
+      t.organizationId
+    ),
+  ]
+);
+
+// Tasks Assignments Table
+export const tasksAssignments = pgTable(
+  "tasks_assignments",
+  {
+    id: serial("id").primaryKey(),
+    taskId: integer("task_id")
+      .notNull()
+      .references(() => tasks.id, { onDelete: "cascade" }),
+    crewId: integer("crew_id")
+      .notNull()
+      .references(() => crews.id, { onDelete: "cascade" }),
+    isLead: boolean("is_lead").notNull().default(false),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    assignedAt: timestamp("assigned_at").defaultNow(),
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("tasks_assignments_unique_idx").on(
+      t.taskId,
+      t.crewId,
+      t.organizationId
+    ),
+  ]
+);
+
+export const deliverablesAssignments = pgTable(
+  "deliverables_assignments",
+  {
+    id: serial("id").primaryKey(),
+    deliverableId: integer("deliverable_id")
+      .notNull()
+      .references(() => deliverables.id, { onDelete: "cascade" }),
+    crewId: integer("crew_id")
+      .notNull()
+      .references(() => crews.id, { onDelete: "cascade" }),
+    isLead: boolean("is_lead").notNull().default(false),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    assignedAt: timestamp("assigned_at").defaultNow(),
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("deliverables_assignments_unique_idx").on(
+      t.deliverableId,
+      t.crewId,
+      t.organizationId
     ),
   ]
 );
@@ -445,7 +501,25 @@ export const deliverablesRelations = relations(
       references: [organizations.id],
     }),
     tasks: many(tasks),
-    assignments: many(assignments),
+    deliverablesAssignments: many(deliverablesAssignments),
+  })
+);
+
+export const deliverablesAssignmentsRelations = relations(
+  deliverablesAssignments,
+  ({ one }) => ({
+    deliverable: one(deliverables, {
+      fields: [deliverablesAssignments.deliverableId],
+      references: [deliverables.id],
+    }),
+    crew: one(crews, {
+      fields: [deliverablesAssignments.crewId],
+      references: [crews.id],
+    }),
+    organization: one(organizations, {
+      fields: [deliverablesAssignments.organizationId],
+      references: [organizations.id],
+    }),
   })
 );
 
@@ -489,28 +563,16 @@ export const crewRelations = relations(crews, ({ one, many }) => ({
     fields: [crews.memberId],
     references: [members.id],
   }),
-  assignments: many(assignments),
   organization: one(organizations, {
     fields: [crews.organizationId],
     references: [organizations.id],
   }),
+  shootsAssignments: many(shootsAssignments),
+  tasksAssignments: many(tasksAssignments),
+  deliverablesAssignments: many(deliverablesAssignments),
 }));
 
-// Add new relations for assignments
-export const assignmentsRelations = relations(assignments, ({ one }) => ({
-  crew: one(crews, {
-    fields: [assignments.crewId],
-    references: [crews.id],
-  }),
-  organization: one(organizations, {
-    fields: [assignments.organizationId],
-    references: [organizations.id],
-  }), // Optional, for explicit relation
-}));
-
-// Example: Add relation from shoots to assignments
 export const shootsRelations = relations(shoots, ({ one, many }) => ({
-  // Added 'many'
   booking: one(bookings, {
     fields: [shoots.bookingId],
     references: [bookings.id],
@@ -519,12 +581,29 @@ export const shootsRelations = relations(shoots, ({ one, many }) => ({
     fields: [shoots.organizationId],
     references: [organizations.id],
   }),
-  assignments: many(assignments),
+  shootsAssignments: many(shootsAssignments),
 }));
+
+export const shootsAssignmentsRelations = relations(
+  shootsAssignments,
+  ({ one }) => ({
+    shoot: one(shoots, {
+      fields: [shootsAssignments.shootId],
+      references: [shoots.id],
+    }),
+    crew: one(crews, {
+      fields: [shootsAssignments.crewId],
+      references: [crews.id],
+    }),
+    organization: one(organizations, {
+      fields: [shootsAssignments.organizationId],
+      references: [organizations.id],
+    }),
+  })
+);
 
 // Example: Add relation from tasks to assignments
 export const tasksRelations = relations(tasks, ({ one, many }) => ({
-  // Added 'many'
   booking: one(bookings, {
     fields: [tasks.bookingId],
     references: [bookings.id],
@@ -541,8 +620,26 @@ export const tasksRelations = relations(tasks, ({ one, many }) => ({
     fields: [tasks.assignedTo],
     references: [users.id],
   }),
-  assignments: many(assignments),
+  tasksAssignments: many(tasksAssignments),
 }));
+
+export const tasksAssignmentsRelations = relations(
+  tasksAssignments,
+  ({ one }) => ({
+    task: one(tasks, {
+      fields: [tasksAssignments.taskId],
+      references: [tasks.id],
+    }),
+    crew: one(crews, {
+      fields: [tasksAssignments.crewId],
+      references: [crews.id],
+    }),
+    organization: one(organizations, {
+      fields: [tasksAssignments.organizationId],
+      references: [organizations.id],
+    }),
+  })
+);
 
 export const organizationRelations = relations(organizations, ({ many }) => ({
   members: many(members),
@@ -554,6 +651,9 @@ export const organizationRelations = relations(organizations, ({ many }) => ({
   expenses: many(expenses),
   shoots: many(shoots),
   tasks: many(tasks),
+  shootsAssignments: many(shootsAssignments),
+  tasksAssignments: many(tasksAssignments),
+  deliverablesAssignments: many(deliverablesAssignments),
 }));
 
 export const invitationsRelations = relations(invitations, ({ one }) => ({
@@ -637,6 +737,15 @@ export type NewTask = typeof tasks.$inferInsert;
 export type Configuration = typeof configurations.$inferSelect;
 export type NewConfiguration = typeof configurations.$inferInsert;
 
+export type ShootsAssignment = typeof shootsAssignments.$inferSelect;
+export type NewShootsAssignment = typeof shootsAssignments.$inferInsert;
+export type TasksAssignment = typeof tasksAssignments.$inferSelect;
+export type NewTasksAssignment = typeof tasksAssignments.$inferInsert;
+export type DeliverablesAssignment =
+  typeof deliverablesAssignments.$inferSelect;
+export type NewDeliverablesAssignment =
+  typeof deliverablesAssignments.$inferInsert;
+
 export enum ActivityType {
   SIGN_UP = "SIGN_UP",
   SIGN_IN = "SIGN_IN",
@@ -677,13 +786,18 @@ export enum ActivityType {
   DELETE_CREW = "DELETE_CREW",
 }
 
+export type ShootWithAssignments = Shoot & {
+  shootsAssignments: ShootsAssignment[];
+};
+
 export type BookingDetail = Booking & {
   clients: Client;
-  shoots: Shoot[];
+  shoots: ShootWithAssignments[];
   deliverables: Deliverable[];
   receivedAmounts: ReceivedAmount[];
   paymentSchedules: PaymentSchedule[];
   expenses: Expense[];
-  //   crews: Crew[];
   tasks: Task[];
+  bookingTypeValue: string;
+  packageTypeValue: string;
 };

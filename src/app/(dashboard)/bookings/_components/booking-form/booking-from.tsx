@@ -21,7 +21,7 @@ const BookingForm = ({
   defaultValues,
   onSubmit,
   isPending,
-  mode = "add", // Add mode prop with default value
+  mode = "add",
 }: {
   defaultValues: BookingFormValues;
   onSubmit: (data: BookingFormValues) => void;

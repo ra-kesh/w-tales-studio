@@ -10,15 +10,17 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal } from "lucide-react";
 import type { Row } from "@tanstack/react-table";
-import { useShootsParams } from "@/hooks/use-shoots-params";
-import type { ShootRowData } from "@/types/shoots";
+import { useCrewParams } from "@/hooks/use-crew-params";
+import type { Crew } from "@/lib/db/schema";
+import { useDeleteCrewMutation } from "@/hooks/use-crews";
 
-interface ShootTableRowActionsProps {
-	row: Row<ShootRowData>;
+interface CrewTableRowActionsProps {
+	row: Row<Crew & { memberName?: string | null; memberEmail?: string | null }>;
 }
 
-export function ShootTableRowActions({ row }: ShootTableRowActionsProps) {
-	const { setParams } = useShootsParams();
+export function CrewTableRowActions({ row }: CrewTableRowActionsProps) {
+	const { setParams } = useCrewParams();
+	const deleteCrewMutation = useDeleteCrewMutation();
 
 	return (
 		<DropdownMenu>
@@ -31,15 +33,18 @@ export function ShootTableRowActions({ row }: ShootTableRowActionsProps) {
 				<DropdownMenuItem
 					onClick={() =>
 						setParams({
-							shootId: row.original.id.toString(),
+							crewId: row.original.id.toString(),
 						})
 					}
 				>
-					Edit shoot
+					Edit crew member
 				</DropdownMenuItem>
 				<DropdownMenuSeparator />
-				<DropdownMenuItem className="text-destructive">
-					Delete shoot
+				<DropdownMenuItem
+					className="text-destructive"
+					onClick={() => deleteCrewMutation.mutate(row.original.id)}
+				>
+					Delete crew member
 				</DropdownMenuItem>
 			</DropdownMenuContent>
 		</DropdownMenu>

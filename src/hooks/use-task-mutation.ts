@@ -67,7 +67,7 @@ export function useUpdateTaskMutation() {
 					},
 				],
 			});
-			queryClient.invalidateQueries({ queryKey: ["bookings"] });
+			queryClient.invalidateQueries({ queryKey: ["bookings", "list"] });
 			toast.success("task updated successfully");
 		},
 		onError: (error) => {
