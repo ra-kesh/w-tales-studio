@@ -8,7 +8,8 @@ export const DeliverableSchema = z
 		dueDate: z.string().min(1, { message: "Due date is required" }),
 		isPackageIncluded: z.boolean(),
 		quantity: z.string().min(1, { message: "Quantity is required" }),
-		// Update cost validation to be conditional
+		status: z.string(),
+		crewMembers: z.array(z.string()).optional(),
 		cost: z.string().refine((val) => {
 			const num = Number.parseFloat(val);
 			return !Number.isNaN(num) && num >= 0;
@@ -34,6 +35,8 @@ export const defaultDeliverable: DeliverableFormValues = {
 	bookingId: "",
 	notes: "",
 	dueDate: "",
+	status: "pending",
+	crewMembers: [],
 	isPackageIncluded: true,
 	quantity: "1",
 	cost: "0",
