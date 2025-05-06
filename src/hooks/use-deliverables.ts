@@ -1,10 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
+import type { DeliverablesResponse } from "@/types/deliverables";
 import { deliverables, type Deliverable } from "@/lib/db/schema";
-
-interface DeliverablesResponse {
-	data: Deliverable[];
-	total: number;
-}
 
 export async function fetchDeliverables(): Promise<DeliverablesResponse> {
 	const response = await fetch("/api/deliverables", {

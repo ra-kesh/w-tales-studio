@@ -37,7 +37,26 @@ export async function GET(request: Request) {
 
 		const result = await getDeliverables(userOrganizationId, page, limit);
 
-		return NextResponse.json(result, { status: 200 });
+		const transformedData = result.data.map((deliverable) => ({
+			...deliverable,
+			deliverablesAssignments: deliverable.deliverablesAssignments?.map(
+				(assignment) => ({
+					...assignment,
+					crew: {
+						...assignment.crew,
+						name: assignment.crew.member?.user?.name || assignment.crew.name,
+					},
+				}),
+			),
+		}));
+
+		return NextResponse.json(
+			{
+				data: transformedData,
+				total: result.total,
+			},
+			{ status: 200 },
+		);
 	} catch (error: unknown) {
 		console.error("Error fetching deliverables:", error);
 		const errorMessage =

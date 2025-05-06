@@ -11,12 +11,10 @@ import {
 import { MoreHorizontal } from "lucide-react";
 import type { Row } from "@tanstack/react-table";
 import { useDeliverableParams } from "@/hooks/use-deliverable-params";
-import type { Deliverable } from "@/lib/db/schema";
-
-type Deliverablerow = Deliverable & { booking: { name: string } };
+import type { DeliverableRowData } from "@/types/deliverables";
 
 interface DeliverableTableRowActionsProps<TData> {
-	row: Row<Deliverablerow>;
+	row: Row<DeliverableRowData>;
 }
 
 export function DeliverableTableRowActions<TData>({
