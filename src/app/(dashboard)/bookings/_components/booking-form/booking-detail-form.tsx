@@ -130,8 +130,11 @@ export const BookingDetailForm = () => {
 											value={field.value}
 										>
 											<FormControl>
-												<SelectTrigger className="min-w-full">
-													<SelectValue placeholder="Select package type" />
+												<SelectTrigger className="min-w-full max-w-full">
+													<SelectValue
+														placeholder="Select package"
+														className="truncate"
+													/>
 												</SelectTrigger>
 											</FormControl>
 											<SelectContent>
