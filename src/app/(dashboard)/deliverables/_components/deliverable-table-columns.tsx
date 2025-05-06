@@ -7,7 +7,7 @@ import type { DeliverableRowData } from "@/types/deliverables";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ChevronRight, Users } from "lucide-react";
+import { Calendar, ChevronRight, Package2, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const useDeliverableColumns = () => {
@@ -32,47 +32,88 @@ export const useDeliverableColumns = () => {
 			enableHiding: false,
 		},
 		{
-			accessorKey: "booking",
-			header: "Booking",
-			cell: ({ row }) => (
-				<div className="font-medium">{row.original.booking.name}</div>
-			),
-		},
-		{
 			accessorKey: "title",
-			header: "Title",
-			cell: ({ row }) => <div>{row.getValue("title")}</div>,
-		},
-		{
-			accessorKey: "isPackageIncluded",
-			header: "With Package",
+			header: "Deliverable",
 			cell: ({ row }) => (
-				<Badge
-					variant={row.getValue("isPackageIncluded") ? "outline" : "default"}
-				>
-					{row.getValue("isPackageIncluded") ? "Included" : "Add-on"}
-				</Badge>
+				<div className="flex w-full">
+					<div className="flex flex-col space-y-1 w-full">
+						<div className="font-semibold">{row.getValue("title")}</div>
+						<div className="flex gap-3">
+							<div className="text-sm text-muted-foreground">
+								{row.original.booking.name}
+							</div>
+							<div className="flex items-center">
+								<Badge
+									variant={
+										row.original.isPackageIncluded ? "outline" : "default"
+									}
+								>
+									{row.original.isPackageIncluded ? "Included" : "Add-on"}
+								</Badge>
+							</div>
+						</div>
+					</div>
+				</div>
 			),
 		},
+
 		{
-			accessorKey: "cost",
-			header: "Cost",
+			accessorKey: "quantity",
+			header: "Quantity",
 			cell: ({ row }) => (
-				<div>
-					{row.getValue("cost")
-						? `$${Number(row.getValue("cost")).toFixed(2)}`
-						: "-"}
+				<div className="flex items-center gap-1.5">
+					<span className="tabular-nums font-medium">
+						{row.getValue("quantity")}
+					</span>
+					<span className="text-xs text-muted-foreground">units</span>
 				</div>
 			),
 		},
 		{
-			accessorKey: "quantity",
-			header: "Quantity",
-			cell: ({ row }) => <div>{row.getValue("quantity")}</div>,
+			id: "cost",
+			header: () => (
+				<div className="flex items-center gap-1">
+					<Package2 className="h-4 w-4" />
+					<span>Extra cost</span>
+				</div>
+			),
+			cell: ({ row }) => (
+				<div className="flex items-center gap-3">
+					{!row.original.isPackageIncluded && row.original.cost ? (
+						<span className="tabular-nums text-sm">
+							${Number(row.original.cost).toLocaleString()}
+						</span>
+					) : (
+						<span className=" text-sm">N/a</span>
+					)}
+				</div>
+			),
+		},
+		{
+			accessorKey: "status",
+			header: "Status",
+			cell: ({ row }) => {
+				const status = row.getValue("status") as string;
+				const variant =
+					status === "completed"
+						? "default"
+						: status === "in_progress"
+							? "secondary"
+							: status === "cancelled"
+								? "destructive"
+								: "outline";
+
+				return <Badge variant={variant}>{status?.replace("_", " ")}</Badge>;
+			},
 		},
 		{
 			accessorKey: "dueDate",
-			header: "Due Date",
+			header: () => (
+				<div className="flex items-center gap-1">
+					<Calendar className="h-4 w-4" />
+					<span>Due Date</span>
+				</div>
+			),
 			cell: ({ row }) => (
 				<div>{format(new Date(row.getValue("dueDate")), "MMM dd, yyyy")}</div>
 			),
