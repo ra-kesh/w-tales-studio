@@ -4,8 +4,12 @@ import {
 	deliverables,
 	bookings,
 	deliverablesAssignments,
+	crews,
+	Deliverable,
+	Booking,
+	DeliverablesAssignment,
 } from "@/lib/db/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, inArray } from "drizzle-orm";
 import { getServerSession } from "@/lib/dal";
 import { DeliverableSchema } from "@/app/(dashboard)/deliverables/deliverable-form-schema";
 
@@ -126,6 +130,52 @@ export async function PUT(
 				);
 			}
 
+			// Verify the new bookingId exists and belongs to the user's organization
+			const existingBooking = await tx.query.bookings.findFirst({
+				where: and(
+					eq(bookings.id, Number.parseInt(validatedData.bookingId)),
+					eq(bookings.organizationId, userOrganizationId),
+				),
+			});
+
+			if (!existingBooking) {
+				return NextResponse.json(
+					{ message: "Booking not found or access denied" },
+					{ status: 404 },
+				);
+			}
+
+			let crewAssignments: { crewId: number }[] = [];
+			if (validatedData.crewMembers && validatedData.crewMembers.length > 0) {
+				const crewIds = validatedData.crewMembers.map((id) =>
+					Number.parseInt(id, 10),
+				);
+				const existingCrews = await tx
+					.select({ id: crews.id })
+					.from(crews)
+					.where(
+						and(
+							inArray(crews.id, crewIds),
+							eq(crews.organizationId, userOrganizationId),
+						),
+					);
+
+				const foundCrewIds = new Set(existingCrews.map((crew) => crew.id));
+				const invalidCrewIds = crewIds.filter((id) => !foundCrewIds.has(id));
+
+				if (invalidCrewIds.length > 0) {
+					return NextResponse.json(
+						{
+							message: "Invalid crew members",
+							invalidCrewIds,
+						},
+						{ status: 400 },
+					);
+				}
+
+				crewAssignments = crewIds.map((crewId) => ({ crewId }));
+			}
+
 			const [updatedDeliverable] = await tx
 				.update(deliverables)
 				.set({
@@ -141,26 +191,78 @@ export async function PUT(
 				.where(eq(deliverables.id, deliverableId))
 				.returning();
 
+			// Optimize crew assignment updates: only delete removed assignments and add new ones
+			const existingAssignments = await tx
+				.select({ crewId: deliverablesAssignments.crewId })
+				.from(deliverablesAssignments)
+				.where(eq(deliverablesAssignments.deliverableId, deliverableId));
+
+			const existingCrewIds = new Set(existingAssignments.map((a) => a.crewId));
+			const newCrewIds = new Set(crewAssignments.map((a) => a.crewId));
+
+			let assignmentResults: { id: number; crewId: number }[] = [];
+
+			if (existingCrewIds.size > 0) {
+				// Delete assignments that are no longer needed
+				const crewIdsToDelete = [...existingCrewIds].filter(
+					(id) => !newCrewIds.has(id),
+				);
+				if (crewIdsToDelete.length > 0) {
+					await tx
+						.delete(deliverablesAssignments)
+						.where(
+							and(
+								eq(deliverablesAssignments.deliverableId, deliverableId),
+								inArray(deliverablesAssignments.crewId, crewIdsToDelete),
+							),
+						);
+				}
+			} // Add new assignments
+			const crewIdsToAdd = [...newCrewIds].filter(
+				(id) => !existingCrewIds.has(id),
+			);
+			if (crewIdsToAdd.length > 0) {
+				const assignmentValues = crewIdsToAdd.map((crewId) => ({
+					deliverableId: deliverableId,
+					crewId: crewId,
+					organizationId: userOrganizationId,
+					assignedAt: new Date(),
+				}));
+
+				assignmentResults = await tx
+					.insert(deliverablesAssignments)
+					.values(assignmentValues)
+					.returning({
+						id: deliverablesAssignments.id,
+						crewId: deliverablesAssignments.crewId,
+					});
+			}
+
 			const [updatedBooking] = await tx
 				.update(bookings)
 				.set({ updatedAt: new Date() })
 				.where(eq(bookings.id, updatedDeliverable.bookingId))
 				.returning();
 
-			return [updatedDeliverable, updatedBooking];
+			return [updatedDeliverable, updatedBooking, assignmentResults];
 		});
 
-		if (!Array.isArray(result)) {
-			throw new Error("Expected array result from transaction");
+		if (result instanceof NextResponse) {
+			return result;
 		}
 
-		const [updatedDeliverable, updatedBooking] = result;
+		const [updatedDeliverable, updatedBooking, assignmentResults] = result as [
+			{ id: number },
+			{ id: number },
+			{ id: number; crewId: number }[],
+		];
 
 		return NextResponse.json(
 			{
 				data: {
 					deliverableId: updatedDeliverable.id,
 					bookingId: updatedBooking.id,
+					assignments: assignmentResults,
 				},
 				message: "Deliverable updated successfully",
 			},

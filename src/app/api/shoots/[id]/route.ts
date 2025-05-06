@@ -131,9 +131,20 @@ export async function PUT(
 
 	const shootId = Number.parseInt(id, 10);
 
+	if (Number.isNaN(shootId)) {
+		return NextResponse.json({ message: "Invalid shoot ID" }, { status: 400 });
+	}
+
 	const body = await request.json();
 
-	const validatedData = ShootSchema.parse({ ...body, id: shootId });
+	const validation = ShootSchema.safeParse(body);
+	if (!validation.success) {
+		return NextResponse.json(
+			{ message: "Validation error", errors: validation.error.errors },
+			{ status: 400 },
+		);
+	}
+	const validatedData = validation.data;
 
 	try {
 		const result = await db.transaction(async (tx) => {
