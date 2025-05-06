@@ -462,6 +462,40 @@ export const deliverablesAssignments = pgTable(
 	],
 );
 
+export const deliverablesRelations = relations(
+	deliverables,
+	({ one, many }) => ({
+		booking: one(bookings, {
+			fields: [deliverables.bookingId],
+			references: [bookings.id],
+		}),
+		organization: one(organizations, {
+			fields: [deliverables.organizationId],
+			references: [organizations.id],
+		}),
+		tasks: many(tasks),
+		deliverablesAssignments: many(deliverablesAssignments),
+	}),
+);
+
+export const deliverablesAssignmentsRelations = relations(
+	deliverablesAssignments,
+	({ one }) => ({
+		deliverable: one(deliverables, {
+			fields: [deliverablesAssignments.deliverableId],
+			references: [deliverables.id],
+		}),
+		crew: one(crews, {
+			fields: [deliverablesAssignments.crewId],
+			references: [crews.id],
+		}),
+		organization: one(organizations, {
+			fields: [deliverablesAssignments.organizationId],
+			references: [organizations.id],
+		}),
+	}),
+);
+
 export const tasks = pgTable("tasks", {
 	id: serial("id").primaryKey(),
 	bookingId: integer("booking_id")
@@ -508,40 +542,6 @@ export const bookingsRelations = relations(bookings, ({ one, many }) => ({
 	expenses: many(expenses),
 	tasks: many(tasks),
 }));
-
-export const deliverablesRelations = relations(
-	deliverables,
-	({ one, many }) => ({
-		booking: one(bookings, {
-			fields: [deliverables.bookingId],
-			references: [bookings.id],
-		}),
-		organization: one(organizations, {
-			fields: [deliverables.organizationId],
-			references: [organizations.id],
-		}),
-		tasks: many(tasks),
-		deliverablesAssignments: many(deliverablesAssignments),
-	}),
-);
-
-export const deliverablesAssignmentsRelations = relations(
-	deliverablesAssignments,
-	({ one }) => ({
-		deliverable: one(deliverables, {
-			fields: [deliverablesAssignments.deliverableId],
-			references: [deliverables.id],
-		}),
-		crew: one(crews, {
-			fields: [deliverablesAssignments.crewId],
-			references: [crews.id],
-		}),
-		organization: one(organizations, {
-			fields: [deliverablesAssignments.organizationId],
-			references: [organizations.id],
-		}),
-	}),
-);
 
 export const receivedAmountsRelations = relations(
 	receivedAmounts,

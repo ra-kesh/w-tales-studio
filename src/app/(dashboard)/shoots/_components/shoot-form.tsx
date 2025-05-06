@@ -86,6 +86,11 @@ export function ShootForm({
 		});
 	}, [crewData?.data]);
 
+	React.useEffect(() => {
+		if (mode === "create") return;
+		form.trigger();
+	}, [mode]);
+
 	return (
 		<Form {...form}>
 			<form

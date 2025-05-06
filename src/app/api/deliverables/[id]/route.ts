@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db/drizzle";
-import { deliverables, bookings } from "@/lib/db/schema";
+import {
+	deliverables,
+	bookings,
+	deliverablesAssignments,
+} from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import { getServerSession } from "@/lib/dal";
 import { DeliverableSchema } from "@/app/(dashboard)/deliverables/deliverable-form-schema";
@@ -43,12 +47,30 @@ export async function GET(
 			return new NextResponse("Deliverable not found", { status: 404 });
 		}
 
-		// Verify the deliverable belongs to the user's organization
-		if (deliverable.organizationId !== session.session.activeOrganizationId) {
+		if (deliverable.organizationId !== userOrganizationId) {
 			return new NextResponse("Unauthorized", { status: 403 });
 		}
 
-		return NextResponse.json({ data: deliverable });
+		const assignments = await db
+			.select({ crewId: deliverablesAssignments.crewId })
+			.from(deliverablesAssignments)
+			.where(
+				and(
+					eq(deliverablesAssignments.deliverableId, deliverableId),
+					eq(deliverablesAssignments.organizationId, userOrganizationId),
+				),
+			);
+
+		const crewMembers = assignments.map((assignment) =>
+			assignment.crewId.toString(),
+		);
+
+		const responseData = {
+			...deliverable,
+			crewMembers,
+		};
+
+		return NextResponse.json({ data: responseData });
 	} catch (error) {
 		console.error("Error fetching deliverable:", error);
 		return new NextResponse("Internal Server Error", { status: 500 });
