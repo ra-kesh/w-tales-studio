@@ -162,6 +162,20 @@ export async function PUT(
 				);
 			}
 
+			const existingBooking = await tx.query.bookings.findFirst({
+				where: and(
+					eq(bookings.id, Number.parseInt(validatedData.bookingId)),
+					eq(bookings.organizationId, userOrganizationId),
+				),
+			});
+
+			if (!existingBooking) {
+				return NextResponse.json(
+					{ message: "Booking not found or access denied" },
+					{ status: 404 },
+				);
+			}
+
 			let crewAssignments: { crewId: number }[] = [];
 			if (validatedData.crewMembers && validatedData.crewMembers.length > 0) {
 				const crewIds = validatedData.crewMembers;
@@ -197,8 +211,7 @@ export async function PUT(
 			const [updatedShoot] = await tx
 				.update(shoots)
 				.set({
-					bookingId:
-						Number.parseInt(validatedData.bookingId) ?? existingShoot.bookingId,
+					bookingId: Number.parseInt(validatedData.bookingId),
 					title: validatedData.title ?? existingShoot.title,
 					date: validatedData.date ?? existingShoot.date,
 					time: validatedData.time ?? existingShoot.time,

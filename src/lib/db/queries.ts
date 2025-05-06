@@ -525,7 +525,36 @@ export async function getBookingDetail(
 					},
 				},
 			},
-			deliverables: true,
+			deliverables: {
+				with: {
+					deliverablesAssignments: {
+						with: {
+							crew: {
+								columns: {
+									id: true,
+									name: true,
+									role: true,
+									specialization: true,
+									status: true,
+								},
+								with: {
+									member: {
+										with: {
+											user: {
+												columns: {
+													name: true,
+													email: true,
+													image: true,
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
 			receivedAmounts: true,
 			paymentSchedules: true,
 			expenses: true,
