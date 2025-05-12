@@ -407,15 +407,50 @@ export async function getTasks(
 					name: true,
 				},
 			},
+			tasksAssignments: {
+				columns: {
+					id: true,
+					crewId: true,
+					assignedAt: true,
+				},
+				with: {
+					crew: {
+						columns: {
+							id: true,
+							name: true,
+							role: true,
+							specialization: true,
+							status: true,
+						},
+						with: {
+							member: {
+								with: {
+									user: {
+										columns: {
+											name: true,
+											email: true,
+											image: true,
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
 		},
 		orderBy: (tasks, { desc }) => [
 			desc(tasks.updatedAt),
 			desc(tasks.createdAt),
 		],
-
-		// limit,
-		// offset,
 	});
+
+	const transformedData = tasksData.map((task) => ({
+		...task,
+		crewMembers: task.tasksAssignments.map((assignment) =>
+			assignment.crewId.toString(),
+		),
+	}));
 
 	const total = await db.$count(
 		tasks,
@@ -423,10 +458,8 @@ export async function getTasks(
 	);
 
 	return {
-		data: tasksData,
+		data: transformedData,
 		total,
-		// page,
-		// limit,
 	};
 }
 

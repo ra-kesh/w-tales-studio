@@ -3,8 +3,8 @@ import { getTasks } from "@/lib/db/queries";
 import { getServerSession } from "@/lib/dal";
 import { TaskSchema } from "@/app/(dashboard)/tasks/task-form-schema";
 import { db } from "@/lib/db/drizzle";
-import { and, eq } from "drizzle-orm";
-import { bookings, tasks } from "@/lib/db/schema";
+import { and, eq, inArray } from "drizzle-orm";
+import { bookings, crews, tasks, tasksAssignments } from "@/lib/db/schema";
 
 export async function GET(request: Request) {
 	const { session } = await getServerSession();
@@ -75,10 +75,33 @@ export async function POST(request: Request) {
 			});
 
 			if (!existingBooking) {
-				return NextResponse.json(
-					{ message: "Booking not found or access denied" },
-					{ status: 404 },
+				throw new Error("Booking not found or access denied");
+			}
+
+			let crewAssignments: { crewId: number }[] = [];
+			if (validatedData.crewMembers && validatedData.crewMembers.length > 0) {
+				const crewIds = validatedData.crewMembers;
+
+				const existingCrews = await tx
+					.select({ id: crews.id })
+					.from(crews)
+					.where(
+						and(
+							inArray(crews.id, crewIds.map(Number)),
+							eq(crews.organizationId, userOrganizationId),
+						),
+					);
+
+				const foundCrewIds = new Set(existingCrews.map((crew) => crew.id));
+				const invalidCrewIds = crewIds.filter(
+					(id) => !foundCrewIds.has(Number(id)),
 				);
+
+				if (invalidCrewIds.length > 0) {
+					throw new Error(`Invalid crew members: ${invalidCrewIds.join(", ")}`);
+				}
+
+				crewAssignments = crewIds.map((crewId) => ({ crewId: Number(crewId) }));
 			}
 
 			const [newTask] = await tx
@@ -90,11 +113,32 @@ export async function POST(request: Request) {
 					priority: validatedData.priority,
 					dueDate: validatedData.dueDate,
 					status: validatedData.status,
-					assignedTo: validatedData.assignedTo || null,
 					createdAt: new Date(),
 					updatedAt: new Date(),
 				})
-				.returning({ id: tasks.id });
+				.returning();
+
+			const assignmentResults = [];
+			if (crewAssignments.length > 0) {
+				const assignmentValues = crewAssignments.map((assignment) => ({
+					taskId: newTask.id,
+					crewId: assignment.crewId,
+					organizationId: userOrganizationId,
+					assignedAt: new Date(),
+					createdAt: new Date(),
+					updatedAt: new Date(),
+				}));
+
+				const assignmentsInserted = await tx
+					.insert(tasksAssignments)
+					.values(assignmentValues)
+					.returning({
+						id: tasksAssignments.id,
+						crewId: tasksAssignments.crewId,
+					});
+
+				assignmentResults.push(...assignmentsInserted);
+			}
 
 			const [updatedBooking] = await tx
 				.update(bookings)
@@ -102,18 +146,20 @@ export async function POST(request: Request) {
 				.where(eq(bookings.id, Number.parseInt(validatedData.bookingId)))
 				.returning();
 
-			return [newTask, updatedBooking];
+			return {
+				task: newTask,
+				booking: updatedBooking,
+				assignments: assignmentResults,
+			};
 		});
-
-		if (!Array.isArray(result)) {
-			throw new Error("Expected array result from transaction");
-		}
-
-		const [newTask, updatedBooking] = result;
 
 		return NextResponse.json(
 			{
-				data: { taskId: newTask.id, bookingId: updatedBooking.id },
+				data: {
+					taskId: result.task.id,
+					bookingId: result.booking.id,
+					assignments: result.assignments,
+				},
 				message: "Task created successfully",
 			},
 			{ status: 201 },

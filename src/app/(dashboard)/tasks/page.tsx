@@ -4,9 +4,8 @@ import {
 	QueryClient,
 } from "@tanstack/react-query";
 import Tasks from "./tasks";
-
 import { getServerSession } from "@/lib/dal";
-import { getConfigs, getTasks } from "@/lib/db/queries";
+import { getTasks } from "@/lib/db/queries";
 import { Suspense } from "react";
 
 export default async function TaskPage() {
@@ -16,23 +15,6 @@ export default async function TaskPage() {
 	await queryClient.prefetchQuery({
 		queryKey: ["tasks"],
 		queryFn: () => getTasks(session?.session.activeOrganizationId as string),
-	});
-
-	await queryClient.prefetchQuery({
-		queryKey: ["configurations", "task_priority"],
-		queryFn: () =>
-			getConfigs(
-				session?.session.activeOrganizationId as string,
-				"task_priority",
-			),
-	});
-	await queryClient.prefetchQuery({
-		queryKey: ["configurations", "task_status"],
-		queryFn: () =>
-			getConfigs(
-				session?.session.activeOrganizationId as string,
-				"task_status",
-			),
 	});
 
 	return (

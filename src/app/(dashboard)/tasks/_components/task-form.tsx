@@ -56,7 +56,7 @@ export function TaskForm({
 		bookingId: defaultValues.bookingId?.toString() ?? "",
 		description: defaultValues.description ?? "",
 		priority: defaultValues.priority ?? "",
-		status: defaultValues.status ?? "Todo",
+		status: defaultValues.status ?? "todo",
 		dueDate: defaultValues.dueDate ?? "",
 		crewMembers: defaultValues.crewMembers ?? [],
 	};
@@ -258,10 +258,19 @@ export function TaskForm({
 																key={status.value}
 																value={status.value}
 																onSelect={() => {
-																	form.setValue("status", status.value, {
-																		shouldValidate: true,
-																		shouldDirty: true,
-																	});
+																	form.setValue(
+																		"status",
+																		status.value as
+																			| "todo"
+																			| "in_progress"
+																			| "in_review"
+																			| "in_revision"
+																			| "completed",
+																		{
+																			shouldValidate: true,
+																			shouldDirty: true,
+																		},
+																	);
 																}}
 															>
 																<Check
@@ -328,10 +337,18 @@ export function TaskForm({
 																key={priority.value}
 																value={priority.value}
 																onSelect={() => {
-																	form.setValue("priority", priority.value, {
-																		shouldValidate: true,
-																		shouldDirty: true,
-																	});
+																	form.setValue(
+																		"priority",
+																		priority.value as
+																			| "low"
+																			| "medium"
+																			| "high"
+																			| "critical",
+																		{
+																			shouldValidate: true,
+																			shouldDirty: true,
+																		},
+																	);
 																}}
 															>
 																<Check

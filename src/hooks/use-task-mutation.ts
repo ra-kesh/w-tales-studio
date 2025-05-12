@@ -16,17 +16,28 @@ export function useCreateTaskMutation() {
 			});
 
 			if (!response.ok) {
-				throw new Error("Failed to create task");
+				const errorData = await response.json();
+				throw new Error(errorData.message || "Failed to create task");
 			}
 
 			return response.json();
 		},
-		onSuccess: () => {
+		onSuccess: ({ data }) => {
 			queryClient.invalidateQueries({ queryKey: ["tasks"] });
+			queryClient.invalidateQueries({ queryKey: ["crews"] });
+			queryClient.invalidateQueries({
+				queryKey: [
+					"bookings",
+					"detail",
+					{
+						bookingId: data.bookingId.toString(),
+					},
+				],
+			});
 			toast.success("Task created successfully");
 		},
 		onError: (error) => {
-			toast.error(error.message || "Failed to create Task");
+			toast.error(error.message || "Failed to create task");
 		},
 	});
 }
@@ -51,14 +62,15 @@ export function useUpdateTaskMutation() {
 			});
 
 			if (!response.ok) {
-				throw new Error("Failed to update task");
+				const errorData = await response.json();
+				throw new Error(errorData.message || "Failed to update task");
 			}
 
 			return response.json();
 		},
-
 		onSuccess: ({ data }) => {
 			queryClient.invalidateQueries({ queryKey: ["tasks"] });
+			queryClient.invalidateQueries({ queryKey: ["crews"] });
 			queryClient.invalidateQueries({
 				queryKey: [
 					"task",
@@ -67,8 +79,16 @@ export function useUpdateTaskMutation() {
 					},
 				],
 			});
-			queryClient.invalidateQueries({ queryKey: ["bookings", "list"] });
-			toast.success("task updated successfully");
+			queryClient.invalidateQueries({
+				queryKey: [
+					"bookings",
+					"detail",
+					{
+						bookingId: data.bookingId.toString(),
+					},
+				],
+			});
+			toast.success("Task updated successfully");
 		},
 		onError: (error) => {
 			toast.error(error.message || "Failed to update task");
