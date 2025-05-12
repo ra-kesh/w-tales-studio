@@ -115,7 +115,7 @@ export async function PUT(
 		);
 	}
 
-	const { id } = params;
+	const { id } = await params;
 	const taskId = Number.parseInt(id, 10);
 	const body = await request.json();
 	const validatedData = TaskSchema.parse(body);

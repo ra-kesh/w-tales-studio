@@ -29,20 +29,26 @@ export function TaskTableToolbar<TData>({
 					onChange={(event) =>
 						table.getColumn("description")?.setFilterValue(event.target.value)
 					}
-					className="h-8 w-[150px] lg:w-[250px]"
+					className="h-8 w-[150px] lg:w-[300px]"
 				/>
-				{table.getColumn("status") && statuses.data && (
+				{statuses.data && (
 					<DataTableFacetedFilter
 						column={table.getColumn("status")}
 						title="Status"
-						options={statuses.data}
+						options={statuses.data.map((status) => ({
+							label: status.label,
+							value: status.value,
+						}))}
 					/>
 				)}
-				{table.getColumn("priority") && priorities.data && (
+				{priorities.data && (
 					<DataTableFacetedFilter
 						column={table.getColumn("priority")}
 						title="Priority"
-						options={priorities.data}
+						options={priorities.data.map((priority) => ({
+							label: priority.label,
+							value: priority.value,
+						}))}
 					/>
 				)}
 				{isFiltered && (

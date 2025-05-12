@@ -54,6 +54,26 @@ export function useTaskColumns() {
 			enableHiding: false,
 		},
 		{
+			accessorKey: "description",
+			header: ({ column }) => (
+				<DataTableColumnHeader column={column} title="Task" />
+			),
+			cell: ({ row }) => {
+				return (
+					<div className="flex w-full">
+						<div className="flex flex-col space-y-1 w-full">
+							<div className="font-semibold">{row.getValue("description")}</div>
+							<div className="flex gap-3">
+								<div className="text-sm text-muted-foreground">
+									{row.original.booking.name}
+								</div>
+							</div>
+						</div>
+					</div>
+				);
+			},
+		},
+		{
 			accessorKey: "priority",
 			header: ({ column }) => (
 				<DataTableColumnHeader column={column} title="Priority" />
@@ -76,21 +96,6 @@ export function useTaskColumns() {
 		},
 
 		{
-			accessorKey: "description",
-			header: ({ column }) => (
-				<DataTableColumnHeader column={column} title="Detail" />
-			),
-			cell: ({ row }) => {
-				return (
-					<div className="flex space-x-2">
-						<span className="max-w-[500px] truncate font-medium">
-							{row.getValue("description")}
-						</span>
-					</div>
-				);
-			},
-		},
-		{
 			accessorKey: "status",
 			header: ({ column }) => (
 				<DataTableColumnHeader column={column} title="Status" />
@@ -112,22 +117,22 @@ export function useTaskColumns() {
 			},
 		},
 
-		{
-			accessorKey: "booking",
-			header: ({ column }) => (
-				<DataTableColumnHeader column={column} title="Booking" />
-			),
-			cell: ({ row }) => {
-				return (
-					<div className="flex items-center">
-						<span>{row.original.booking.name}</span>
-					</div>
-				);
-			},
-			filterFn: (row, id, value) => {
-				return value.includes(row.getValue(id));
-			},
-		},
+		// {
+		// 	accessorKey: "booking",
+		// 	header: ({ column }) => (
+		// 		<DataTableColumnHeader column={column} title="Booking" />
+		// 	),
+		// 	cell: ({ row }) => {
+		// 		return (
+		// 			<div className="flex items-center">
+		// 				<span>{row.original.booking.name}</span>
+		// 			</div>
+		// 		);
+		// 	},
+		// 	filterFn: (row, id, value) => {
+		// 		return value.includes(row.getValue(id));
+		// 	},
+		// },
 		{
 			accessorKey: "tasksAssignments",
 			header: ({ column }) => (
@@ -179,22 +184,7 @@ export function useTaskColumns() {
 				);
 			},
 		},
-		{
-			accessorKey: "assignedTo",
-			header: ({ column }) => (
-				<DataTableColumnHeader column={column} title="Assigned" />
-			),
-			cell: ({ row }) => {
-				return (
-					<div className="flex items-center">
-						<span>{row.getValue("assignedTo") ?? "N/A"}</span>
-					</div>
-				);
-			},
-			filterFn: (row, id, value) => {
-				return value.includes(row.getValue(id));
-			},
-		},
+
 		{
 			accessorKey: "dueDate",
 			header: ({ column }) => (
