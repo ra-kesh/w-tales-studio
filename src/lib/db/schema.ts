@@ -407,34 +407,6 @@ export const shootsAssignments = pgTable(
 	],
 );
 
-// Tasks Assignments Table
-export const tasksAssignments = pgTable(
-	"tasks_assignments",
-	{
-		id: serial("id").primaryKey(),
-		taskId: integer("task_id")
-			.notNull()
-			.references(() => tasks.id, { onDelete: "cascade" }),
-		crewId: integer("crew_id")
-			.notNull()
-			.references(() => crews.id, { onDelete: "cascade" }),
-		isLead: boolean("is_lead").notNull().default(false),
-		organizationId: text("organization_id")
-			.notNull()
-			.references(() => organizations.id, { onDelete: "cascade" }),
-		assignedAt: timestamp("assigned_at").defaultNow(),
-		createdAt: timestamp("created_at").defaultNow(),
-		updatedAt: timestamp("updated_at").defaultNow(),
-	},
-	(t) => [
-		uniqueIndex("tasks_assignments_unique_idx").on(
-			t.taskId,
-			t.crewId,
-			t.organizationId,
-		),
-	],
-);
-
 export const deliverablesAssignments = pgTable(
 	"deliverables_assignments",
 	{
@@ -496,6 +468,20 @@ export const deliverablesAssignmentsRelations = relations(
 	}),
 );
 
+export const taskStatusEnum = pgEnum("task_status", [
+	"todo",
+	"in_progress",
+	"in_review",
+	"in_revision",
+	"completed",
+]);
+export const taskPriorityEnum = pgEnum("task_priority", [
+	"low",
+	"medium",
+	"high",
+	"critical",
+]);
+
 export const tasks = pgTable("tasks", {
 	id: serial("id").primaryKey(),
 	bookingId: integer("booking_id")
@@ -507,16 +493,72 @@ export const tasks = pgTable("tasks", {
 	deliverableId: integer("deliverable_id").references(() => deliverables.id, {
 		onDelete: "cascade",
 	}),
-	status: text("status").notNull().default("Todo"),
+	status: taskStatusEnum("status").notNull().default("todo"),
 	description: text("description").notNull(),
-	assignedTo: text("assigned_to").references(() => users.id, {
-		onDelete: "set null",
-	}),
-	priority: text("priority").notNull(),
+	priority: taskPriorityEnum("priority").notNull().default("medium"),
 	dueDate: date("due_date"),
-	createdAt: timestamp("created_at").defaultNow(),
-	updatedAt: timestamp("updated_at").defaultNow(),
+	createdAt: timestamp("created_at").defaultNow().notNull(),
+	updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
+
+export const tasksAssignments = pgTable(
+	"tasks_assignments",
+	{
+		id: serial("id").primaryKey(),
+		taskId: integer("task_id")
+			.notNull()
+			.references(() => tasks.id, { onDelete: "cascade" }),
+		crewId: integer("crew_id")
+			.notNull()
+			.references(() => crews.id, { onDelete: "cascade" }),
+		organizationId: text("organization_id")
+			.notNull()
+			.references(() => organizations.id, { onDelete: "cascade" }),
+		assignedAt: timestamp("assigned_at").defaultNow().notNull(),
+		createdAt: timestamp("created_at").defaultNow().notNull(),
+		updatedAt: timestamp("updated_at").defaultNow().notNull(),
+	},
+	(t) => [
+		uniqueIndex("tasks_assignments_unique_idx").on(
+			t.taskId,
+			t.crewId,
+			t.organizationId,
+		),
+	],
+);
+export const tasksRelations = relations(tasks, ({ one, many }) => ({
+	booking: one(bookings, {
+		fields: [tasks.bookingId],
+		references: [bookings.id],
+	}),
+	organization: one(organizations, {
+		fields: [tasks.organizationId],
+		references: [organizations.id],
+	}),
+	deliverable: one(deliverables, {
+		fields: [tasks.deliverableId],
+		references: [deliverables.id],
+	}),
+	tasksAssignments: many(tasksAssignments),
+}));
+
+export const tasksAssignmentsRelations = relations(
+	tasksAssignments,
+	({ one }) => ({
+		task: one(tasks, {
+			fields: [tasksAssignments.taskId],
+			references: [tasks.id],
+		}),
+		crew: one(crews, {
+			fields: [tasksAssignments.crewId],
+			references: [crews.id],
+		}),
+		organization: one(organizations, {
+			fields: [tasksAssignments.organizationId],
+			references: [organizations.id],
+		}),
+	}),
+);
 
 export const clientsRelations = relations(clients, ({ one, many }) => ({
 	organization: one(organizations, {
@@ -623,43 +665,6 @@ export const shootsAssignmentsRelations = relations(
 );
 
 // Example: Add relation from tasks to assignments
-export const tasksRelations = relations(tasks, ({ one, many }) => ({
-	booking: one(bookings, {
-		fields: [tasks.bookingId],
-		references: [bookings.id],
-	}),
-	organization: one(organizations, {
-		fields: [tasks.organizationId],
-		references: [organizations.id],
-	}),
-	deliverable: one(deliverables, {
-		fields: [tasks.deliverableId],
-		references: [deliverables.id],
-	}),
-	assignedToUser: one(users, {
-		fields: [tasks.assignedTo],
-		references: [users.id],
-	}),
-	tasksAssignments: many(tasksAssignments),
-}));
-
-export const tasksAssignmentsRelations = relations(
-	tasksAssignments,
-	({ one }) => ({
-		task: one(tasks, {
-			fields: [tasksAssignments.taskId],
-			references: [tasks.id],
-		}),
-		crew: one(crews, {
-			fields: [tasksAssignments.crewId],
-			references: [crews.id],
-		}),
-		organization: one(organizations, {
-			fields: [tasksAssignments.organizationId],
-			references: [organizations.id],
-		}),
-	}),
-);
 
 export const organizationRelations = relations(organizations, ({ many }) => ({
 	members: many(members),

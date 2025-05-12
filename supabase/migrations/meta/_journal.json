@@ -155,6 +155,13 @@
       "when": 1746525960660,
       "tag": "0021_outstanding_psynapse",
       "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1747056785435,
+      "tag": "0022_legal_slapstick",
+      "breakpoints": true
     }
   ]
 }
