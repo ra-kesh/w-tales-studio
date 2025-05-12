@@ -591,7 +591,36 @@ export async function getBookingDetail(
 			receivedAmounts: true,
 			paymentSchedules: true,
 			expenses: true,
-			tasks: true,
+			tasks: {
+				with: {
+					tasksAssignments: {
+						with: {
+							crew: {
+								columns: {
+									id: true,
+									name: true,
+									role: true,
+									specialization: true,
+									status: true,
+								},
+								with: {
+									member: {
+										with: {
+											user: {
+												columns: {
+													name: true,
+													email: true,
+													image: true,
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
 		},
 	});
 
