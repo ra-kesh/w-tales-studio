@@ -1,7 +1,8 @@
 import { getBookingDetail } from "@/lib/db/queries";
 import { getServerSession } from "@/lib/dal";
 import { BookingDetails } from "./_components/booking-details";
-import { notFound } from "next/navigation";
+import NotFound from "@/app/not-found";
+import BookingListWithDetail from "./_components/booking-list-with-detail";
 
 export default async function BookingDetailsPage({
 	params,
@@ -11,7 +12,7 @@ export default async function BookingDetailsPage({
 	const { session } = await getServerSession();
 
 	if (!session?.session.activeOrganizationId) {
-		return notFound();
+		return NotFound();
 	}
 
 	const { id } = await params;
@@ -22,12 +23,18 @@ export default async function BookingDetailsPage({
 	);
 
 	if (!booking) {
-		return notFound();
+		return NotFound();
 	}
 
 	return (
-		<>
-			<BookingDetails booking={booking} />
-		</>
+		//
+		<div className="hidden h-full flex-1 flex-col space-y-8 p-8 md:flex ">
+			<BookingListWithDetail />
+			{/* <Suspense>
+				<HydrationBoundary state={dehydrate(queryClient)}>
+					<Bookings />
+				</HydrationBoundary>
+			</Suspense> */}
+		</div>
 	);
 }
