@@ -3,6 +3,7 @@ import { getServerSession } from "@/lib/dal";
 import { BookingDetails } from "./_components/booking-details";
 import NotFound from "@/app/not-found";
 import BookingListWithDetail from "./_components/booking-list-with-detail";
+import { Suspense } from "react";
 
 export default async function BookingDetailsPage({
 	params,
@@ -29,12 +30,7 @@ export default async function BookingDetailsPage({
 	return (
 		//
 		<div className="hidden h-full flex-1 flex-col space-y-8 p-8 md:flex ">
-			<BookingListWithDetail />
-			{/* <Suspense>
-				<HydrationBoundary state={dehydrate(queryClient)}>
-					<Bookings />
-				</HydrationBoundary>
-			</Suspense> */}
+			<BookingListWithDetail booking={booking} />
 		</div>
 	);
 }
