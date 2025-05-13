@@ -1,20 +1,7 @@
 "use client";
 
 import * as React from "react";
-import {
-	useReactTable,
-	type ColumnDef,
-	type ColumnFiltersState,
-	type SortingState,
-	type VisibilityState,
-	flexRender,
-	getCoreRowModel,
-	getFacetedRowModel,
-	getFacetedUniqueValues,
-	getFilteredRowModel,
-	getPaginationRowModel,
-	getSortedRowModel,
-} from "@tanstack/react-table";
+import { flexRender } from "@tanstack/react-table";
 
 import {
 	Table,
@@ -27,44 +14,13 @@ import {
 
 import { useRouter } from "next/navigation";
 import type { Booking, Shoot } from "@/lib/db/schema";
-import { BookingTableToolbar } from "../../_components/booking-table/booking-table-toolbar";
+import { useBookingTable } from "@/hooks/use-booking-table";
+import { useBookingListColumns } from "./booking-list-columns";
 
-interface BookingTableProps {
-	columns: ColumnDef<Booking & { shoots: Shoot[] }>[];
-	data: (Booking & { shoots: Shoot[] })[];
-}
-
-export function BookingList({ columns, data }: BookingTableProps) {
+export function BookingList() {
+	const columns = useBookingListColumns();
+	const { table } = useBookingTable(columns);
 	const router = useRouter();
-	const [rowSelection, setRowSelection] = React.useState({});
-	const [columnVisibility, setColumnVisibility] =
-		React.useState<VisibilityState>({});
-	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-		[],
-	);
-	const [sorting, setSorting] = React.useState<SortingState>([]);
-
-	const table = useReactTable({
-		data,
-		columns,
-		state: {
-			sorting,
-			columnVisibility,
-			rowSelection,
-			columnFilters,
-		},
-		enableRowSelection: true,
-		onRowSelectionChange: setRowSelection,
-		onSortingChange: setSorting,
-		onColumnFiltersChange: setColumnFilters,
-		onColumnVisibilityChange: setColumnVisibility,
-		getCoreRowModel: getCoreRowModel(),
-		getFilteredRowModel: getFilteredRowModel(),
-		getPaginationRowModel: getPaginationRowModel(),
-		getSortedRowModel: getSortedRowModel(),
-		getFacetedRowModel: getFacetedRowModel(),
-		getFacetedUniqueValues: getFacetedUniqueValues(),
-	});
 
 	const handleRowClick = (id: number) => {
 		router.push(`/bookings/${id}`);

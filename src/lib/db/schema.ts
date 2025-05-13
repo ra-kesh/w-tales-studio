@@ -823,6 +823,7 @@ export type BookingDetail = Booking & {
 	paymentSchedules: PaymentSchedule[];
 	expenses: Expense[];
 	tasks: Task[];
+	crews: Crew[];
 	bookingTypeValue: string;
 	packageTypeValue: string;
 };

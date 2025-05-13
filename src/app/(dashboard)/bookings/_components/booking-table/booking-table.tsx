@@ -1,20 +1,7 @@
 "use client";
 
 import * as React from "react";
-import {
-	useReactTable,
-	type ColumnDef,
-	type ColumnFiltersState,
-	type SortingState,
-	type VisibilityState,
-	flexRender,
-	getCoreRowModel,
-	getFacetedRowModel,
-	getFacetedUniqueValues,
-	getFilteredRowModel,
-	getPaginationRowModel,
-	getSortedRowModel,
-} from "@tanstack/react-table";
+import { type ColumnDef, flexRender } from "@tanstack/react-table";
 
 import {
 	Table,
@@ -33,43 +20,13 @@ import { format } from "date-fns";
 import { Clock, MapPin } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Calendar } from "lucide-react";
+import { useBookingTable } from "@/hooks/use-booking-table";
+import { useBookingColumns } from "./booking-table-columns";
 
-interface BookingTableProps {
-	columns: ColumnDef<Booking & { shoots: Shoot[] }>[];
-	data: (Booking & { shoots: Shoot[] })[];
-}
-
-export function BookingTable({ columns, data }: BookingTableProps) {
+export function BookingTable() {
+	const columns = useBookingColumns();
+	const { table } = useBookingTable(columns as ColumnDef<Booking>[]);
 	const router = useRouter();
-	const [rowSelection, setRowSelection] = React.useState({});
-	const [columnVisibility, setColumnVisibility] =
-		React.useState<VisibilityState>({});
-	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-		[],
-	);
-	const [sorting, setSorting] = React.useState<SortingState>([]);
-
-	const table = useReactTable({
-		data,
-		columns,
-		state: {
-			sorting,
-			columnVisibility,
-			rowSelection,
-			columnFilters,
-		},
-		enableRowSelection: true,
-		onRowSelectionChange: setRowSelection,
-		onSortingChange: setSorting,
-		onColumnFiltersChange: setColumnFilters,
-		onColumnVisibilityChange: setColumnVisibility,
-		getCoreRowModel: getCoreRowModel(),
-		getFilteredRowModel: getFilteredRowModel(),
-		getPaginationRowModel: getPaginationRowModel(),
-		getSortedRowModel: getSortedRowModel(),
-		getFacetedRowModel: getFacetedRowModel(),
-		getFacetedUniqueValues: getFacetedUniqueValues(),
-	});
 
 	const handleRowClick = (id: number) => {
 		router.push(`/bookings/${id}`);
@@ -140,40 +97,42 @@ export function BookingTable({ columns, data }: BookingTableProps) {
 													</div>
 													<Table>
 														<TableBody>
-															{row.original.shoots.map((shoot, index) => (
-																<TableRow key={index}>
-																	<TableCell className="space-y-1">
-																		<div className="font-medium text-sm">
-																			{shoot.title || "Untitled Shoot"}
-																		</div>
-																		<div className="text-xs text-muted-foreground flex items-center">
-																			<MapPin className="h-3 w-3 mr-1 inline" />
-																			{(shoot.location as string) ||
-																				"No location specified"}
-																		</div>
-																	</TableCell>
-
-																	<TableCell className="space-y-1">
-																		<div className="font-medium text-sm flex items-center justify-end">
-																			<Clock className="h-3 w-3 mr-1 inline" />
-																			{shoot.time || "Time not specified"}
-																		</div>
-																		<div className="text-xs text-muted-foreground text-right">
-																			{shoot.date
-																				? format(
-																						new Date(shoot.date),
-																						"EEEE, MMM dd, yyyy",
-																					)
-																				: "Date not specified"}
-																		</div>
-																		{row.original.shoots.length === 0 && (
-																			<div className="text-center py-6 text-sm text-muted-foreground">
-																				No shoots scheduled for this booking
+															{row.original.shoots.map(
+																(shoot: Shoot, index: number) => (
+																	<TableRow key={index}>
+																		<TableCell className="space-y-1">
+																			<div className="font-medium text-sm">
+																				{shoot.title || "Untitled Shoot"}
 																			</div>
-																		)}
-																	</TableCell>
-																</TableRow>
-															))}
+																			<div className="text-xs text-muted-foreground flex items-center">
+																				<MapPin className="h-3 w-3 mr-1 inline" />
+																				{(shoot.location as string) ||
+																					"No location specified"}
+																			</div>
+																		</TableCell>
+
+																		<TableCell className="space-y-1">
+																			<div className="font-medium text-sm flex items-center justify-end">
+																				<Clock className="h-3 w-3 mr-1 inline" />
+																				{shoot.time || "Time not specified"}
+																			</div>
+																			<div className="text-xs text-muted-foreground text-right">
+																				{shoot.date
+																					? format(
+																							new Date(shoot.date),
+																							"EEEE, MMM dd, yyyy",
+																						)
+																					: "Date not specified"}
+																			</div>
+																			{row.original.shoots.length === 0 && (
+																				<div className="text-center py-6 text-sm text-muted-foreground">
+																					No shoots scheduled for this booking
+																				</div>
+																			)}
+																		</TableCell>
+																	</TableRow>
+																),
+															)}
 														</TableBody>
 													</Table>
 												</div>

@@ -26,7 +26,7 @@ import {
 } from "lucide-react";
 
 export const useBookingColumns = () => {
-	const columns: ColumnDef<Booking>[] = [
+	const columns: ColumnDef<Booking & { shoots: Shoot[] }>[] = [
 		{
 			id: "select",
 			header: ({ table }) => (
@@ -65,23 +65,7 @@ export const useBookingColumns = () => {
 				);
 			},
 		},
-		// {
-		//   accessorKey: "bookingType",
-		//   header: () => (
-		//     <div className="flex items-center gap-1">
-		//       <Tag className="h-4 w-4" />
-		//       <span>Type</span>
-		//     </div>
-		//   ),
-		//   cell: ({ row }) => {
-		//     const type = row.getValue("bookingType") as string;
-		//     return (
-		//       <Badge variant="outline" className="bg-primary/5 hover:bg-primary/10">
-		//         {type || "Not specified"}
-		//       </Badge>
-		//     );
-		//   },
-		// },
+
 		{
 			accessorKey: "packageType",
 			header: () => (
