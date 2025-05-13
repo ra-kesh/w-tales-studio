@@ -4,6 +4,7 @@ import { useBookings } from "@/hooks/use-bookings";
 import React from "react";
 import { useBookingColumns } from "./_components/booking-table/booking-table-columns";
 import { BookingTable } from "./_components/booking-table/booking-table";
+import { unstable_ViewTransition as ViewTransition } from "react";
 
 export default function Bookings() {
 	const { data } = useBookings();
@@ -12,7 +13,9 @@ export default function Bookings() {
 
 	return (
 		<div className="flex-1 min-w-0">
-			<BookingTable data={data?.data || defaultData} columns={columns} />
+			<ViewTransition name="experimental-label">
+				<BookingTable data={data?.data || defaultData} columns={columns} />
+			</ViewTransition>
 		</div>
 	);
 }
