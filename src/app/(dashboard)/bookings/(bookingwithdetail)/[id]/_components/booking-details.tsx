@@ -7,21 +7,11 @@ import { BookingDeliverables } from "./booking-deliverables";
 import { BookingFinancials } from "./booking-financials";
 import { BookingCrew } from "./booking-crew";
 import { BookingTasks } from "./booking-tasks";
-import type {
-	Booking,
-	BookingDetail,
-	Crew,
-	Deliverable,
-	Expense,
-	PaymentSchedule,
-	ReceivedAmount,
-	Shoot,
-	Task,
-} from "@/lib/db/schema";
+import type { BookingDetail } from "@/lib/db/schema";
 
 export function BookingDetails({ booking }: { booking: BookingDetail }) {
 	return (
-		<div className="h-full flex-1 flex flex-col space-y-8 p-8">
+		<div className="h-full flex-1 flex flex-col space-y-8 p-8 border-r ">
 			<div className="flex items-center justify-between">
 				<div>
 					<h2 className="text-2xl font-bold tracking-tight">{booking.name}</h2>

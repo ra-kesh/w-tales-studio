@@ -11,11 +11,11 @@ interface DataTableToolbarProps<TData> {
 	table: Table<TData>;
 }
 
-export function BookingTableToolbar<TData>({
+export function BookingListToolbar<TData>({
 	table,
 }: DataTableToolbarProps<TData>) {
 	return (
-		<div className="flex items-center justify-between py-4">
+		<div className="flex items-center justify-between py-4 px-2">
 			<div className="flex flex-1 items-center space-x-2">
 				<Input
 					placeholder="Filter bookings..."
@@ -23,7 +23,7 @@ export function BookingTableToolbar<TData>({
 					onChange={(event) =>
 						table.getColumn("name")?.setFilterValue(event.target.value)
 					}
-					className="h-8 w-[150px] lg:w-[250px]"
+					className="h-8 w-[150px] lg:w-[200px]"
 				/>
 				{table.getState().columnFilters.length > 0 && (
 					<Button
@@ -43,7 +43,7 @@ export function BookingTableToolbar<TData>({
 				}}
 				prefetch={true}
 			>
-				<Button>Add Booking</Button>
+				<Button>Add</Button>
 			</Link>
 		</div>
 	);

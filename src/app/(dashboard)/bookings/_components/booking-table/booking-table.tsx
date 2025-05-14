@@ -20,12 +20,8 @@ import { format } from "date-fns";
 import { Clock, MapPin } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Calendar } from "lucide-react";
-import { useBookingTable } from "@/hooks/use-booking-table";
-import { useBookingColumns } from "./booking-table-columns";
 
-export function BookingTable() {
-	const columns = useBookingColumns();
-	const { table } = useBookingTable(columns as ColumnDef<Booking>[]);
+export function BookingTable({ table, columns }) {
 	const router = useRouter();
 
 	const handleRowClick = async (id: number) => {

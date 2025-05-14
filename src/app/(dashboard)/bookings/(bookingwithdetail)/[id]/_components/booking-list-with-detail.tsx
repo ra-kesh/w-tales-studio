@@ -21,25 +21,18 @@ import type {
 	Task,
 } from "@/lib/db/schema";
 import { BookingDetails } from "./booking-details";
-import { Divide } from "lucide-react";
-import { ScrollArea } from "@/components/ui/scroll-area";
-
-// export type BookingDetail = Booking & {
-// 	shoots: Shoot[];
-// 	deliverables: Deliverable[];
-// 	receivedAmounts: ReceivedAmount[];
-// 	paymentSchedules: PaymentSchedule[];
-// 	expenses: Expense[];
-// 	crews: Crew[];
-// 	tasks: Task[];
-// };
+import { useBookingListColumns } from "./booking-list-columns";
+import { useBookingTable } from "@/hooks/use-booking-table";
+import { BookingListToolbar } from "./booking-list-toolbar";
 
 const BookingListWithDetail = ({
 	defaultLayout = [32, 68],
 	booking,
 }: { defaultLayout?: number[]; booking: BookingDetail }) => {
+	const columns = useBookingListColumns();
+	const { table } = useBookingTable(columns);
 	return (
-		<div className="flex-1 min-w-0 rounded-md border ">
+		<div className="flex-1 min-w-0  border-y">
 			<TooltipProvider delayDuration={0}>
 				<ResizablePanelGroup
 					direction="horizontal"
@@ -51,7 +44,8 @@ const BookingListWithDetail = ({
 					className="h-full max-h-[800px] items-stretch"
 				>
 					<ResizablePanel defaultSize={defaultLayout[0]} minSize={30}>
-						<BookingList />
+						<BookingListToolbar table={table} />
+						<BookingList table={table} columns={columns} />
 					</ResizablePanel>
 					<ResizableHandle withHandle />
 					<ResizablePanel defaultSize={defaultLayout[1]} minSize={30}>
