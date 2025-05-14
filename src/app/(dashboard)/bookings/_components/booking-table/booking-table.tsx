@@ -1,10 +1,10 @@
 "use client";
 
 import * as React from "react";
-import { type ColumnDef, flexRender } from "@tanstack/react-table";
+import { type ColumnDef, flexRender, type Table } from "@tanstack/react-table";
 
 import {
-	Table,
+	Table as UITable,
 	TableBody,
 	TableCell,
 	TableHead,
@@ -21,7 +21,12 @@ import { Clock, MapPin } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Calendar } from "lucide-react";
 
-export function BookingTable({ table, columns }) {
+interface BookingTableProps {
+	table: Table<Booking & { shoots: Shoot[] }>;
+	columns: ColumnDef<Booking & { shoots: Shoot[] }>[];
+}
+
+export function BookingTable({ table, columns }: BookingTableProps) {
 	const router = useRouter();
 
 	const handleRowClick = async (id: number) => {
@@ -32,7 +37,7 @@ export function BookingTable({ table, columns }) {
 	return (
 		<div className="space-y-4">
 			<div className="rounded-md border">
-				<Table>
+				<UITable>
 					<TableHeader>
 						{table.getHeaderGroups().map((headerGroup) => (
 							<TableRow key={headerGroup.id}>
@@ -91,7 +96,7 @@ export function BookingTable({ table, columns }) {
 																: "shoots"}
 														</Badge>
 													</div>
-													<Table>
+													<UITable>
 														<TableBody>
 															{row.original.shoots.map(
 																(shoot: Shoot, index: number) => (
@@ -130,7 +135,7 @@ export function BookingTable({ table, columns }) {
 																),
 															)}
 														</TableBody>
-													</Table>
+													</UITable>
 												</div>
 											</TableCell>
 											<TableCell className="p-0" colSpan={1} />
@@ -150,7 +155,7 @@ export function BookingTable({ table, columns }) {
 							</TableRow>
 						)}
 					</TableBody>
-				</Table>
+				</UITable>
 			</div>
 			<BookingTablePagination table={table} />
 		</div>

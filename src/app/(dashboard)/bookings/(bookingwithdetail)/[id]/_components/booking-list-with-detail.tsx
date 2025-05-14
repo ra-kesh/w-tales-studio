@@ -9,28 +9,22 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import React, { Suspense } from "react";
 import { BookingList } from "./booking-list";
 
-import type {
-	Booking,
-	BookingDetail,
-	Crew,
-	Deliverable,
-	Expense,
-	PaymentSchedule,
-	ReceivedAmount,
-	Shoot,
-	Task,
-} from "@/lib/db/schema";
+import type { Booking, BookingDetail } from "@/lib/db/schema";
 import { BookingDetails } from "./booking-details";
 import { useBookingListColumns } from "./booking-list-columns";
 import { useBookingTable } from "@/hooks/use-booking-table";
 import { BookingListToolbar } from "./booking-list-toolbar";
+import type { ColumnDef } from "@tanstack/react-table";
 
 const BookingListWithDetail = ({
 	defaultLayout = [32, 68],
 	booking,
-}: { defaultLayout?: number[]; booking: BookingDetail }) => {
+}: {
+	defaultLayout?: number[];
+	booking: BookingDetail;
+}) => {
 	const columns = useBookingListColumns();
-	const { table } = useBookingTable(columns);
+	const { table } = useBookingTable(columns as ColumnDef<Booking>[]);
 	return (
 		<div className="flex-1 min-w-0  border-y">
 			<TooltipProvider delayDuration={0}>

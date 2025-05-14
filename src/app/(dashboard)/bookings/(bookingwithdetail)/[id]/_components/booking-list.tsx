@@ -1,10 +1,10 @@
 "use client";
 
 import * as React from "react";
-import { flexRender } from "@tanstack/react-table";
+import { flexRender, type Table, type ColumnDef } from "@tanstack/react-table";
 
 import {
-	Table,
+	Table as UITable,
 	TableBody,
 	TableCell,
 	TableHead,
@@ -13,11 +13,18 @@ import {
 } from "@/components/ui/table";
 
 import { useRouter } from "next/navigation";
-import type { Booking, Shoot } from "@/lib/db/schema";
-import { useBookingTable } from "@/hooks/use-booking-table";
-import { useBookingListColumns } from "./booking-list-columns";
+import type { Booking as BaseBooking, Shoot } from "@/lib/db/schema";
 
-export function BookingList({ table, columns }) {
+interface Booking extends BaseBooking {
+	shoots: Shoot[];
+}
+
+interface BookingListProps {
+	table: Table<Booking>;
+	columns: ColumnDef<Pick<Booking, "name" | "bookingType">>[];
+}
+
+export function BookingList({ table, columns }: BookingListProps) {
 	const router = useRouter();
 
 	const handleRowClick = (id: number) => {
@@ -26,7 +33,7 @@ export function BookingList({ table, columns }) {
 
 	return (
 		<div className="border-y border-l rounded-tl-md rounded-bl-md  space-y-4">
-			<Table>
+			<UITable>
 				<TableHeader>
 					{table.getHeaderGroups().map((headerGroup) => (
 						<TableRow key={headerGroup.id}>
@@ -73,7 +80,7 @@ export function BookingList({ table, columns }) {
 						</TableRow>
 					)}
 				</TableBody>
-			</Table>
+			</UITable>
 		</div>
 	);
 }

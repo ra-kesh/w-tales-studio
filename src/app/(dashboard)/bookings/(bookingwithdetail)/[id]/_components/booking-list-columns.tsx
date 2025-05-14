@@ -6,7 +6,7 @@ import type { Booking } from "@/lib/db/schema";
 import { Badge } from "@/components/ui/badge";
 
 export const useBookingListColumns = () => {
-	const columns: ColumnDef<Booking>[] = [
+	const columns: ColumnDef<Pick<Booking, "name" | "bookingType">>[] = [
 		{
 			id: "select",
 			header: ({ table }) => (
