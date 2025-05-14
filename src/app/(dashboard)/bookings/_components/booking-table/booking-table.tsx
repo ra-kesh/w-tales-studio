@@ -28,13 +28,13 @@ export function BookingTable() {
 	const { table } = useBookingTable(columns as ColumnDef<Booking>[]);
 	const router = useRouter();
 
-	const handleRowClick = (id: number) => {
+	const handleRowClick = async (id: number) => {
+		await router.prefetch(`/bookings/${id}`);
 		router.push(`/bookings/${id}`);
 	};
 
 	return (
 		<div className="space-y-4">
-			<BookingTableToolbar table={table} />
 			<div className="rounded-md border">
 				<Table>
 					<TableHeader>

@@ -18,12 +18,10 @@ export default async function BookingPage() {
 		queryFn: () => getBookings(session?.session.activeOrganizationId as string),
 	});
 	return (
-		<div className="hidden h-full flex-1 flex-col space-y-8 p-8 md:flex ">
-			<Suspense>
-				<HydrationBoundary state={dehydrate(queryClient)}>
-					<Bookings />
-				</HydrationBoundary>
-			</Suspense>
-		</div>
+		<Suspense fallback={<div>Loading...</div>}>
+			<HydrationBoundary state={dehydrate(queryClient)}>
+				<Bookings />
+			</HydrationBoundary>
+		</Suspense>
 	);
 }

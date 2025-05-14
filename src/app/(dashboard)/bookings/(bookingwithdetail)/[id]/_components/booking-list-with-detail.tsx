@@ -6,7 +6,7 @@ import {
 	ResizablePanelGroup,
 } from "@/components/ui/resizable";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import React from "react";
+import React, { Suspense } from "react";
 import { BookingList } from "./booking-list";
 
 import type {
@@ -21,6 +21,8 @@ import type {
 	Task,
 } from "@/lib/db/schema";
 import { BookingDetails } from "./booking-details";
+import { Divide } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 // export type BookingDetail = Booking & {
 // 	shoots: Shoot[];
@@ -37,7 +39,7 @@ const BookingListWithDetail = ({
 	booking,
 }: { defaultLayout?: number[]; booking: BookingDetail }) => {
 	return (
-		<div className="flex-1 min-w-0 rounded-md border">
+		<div className="flex-1 min-w-0 rounded-md border ">
 			<TooltipProvider delayDuration={0}>
 				<ResizablePanelGroup
 					direction="horizontal"
@@ -53,7 +55,9 @@ const BookingListWithDetail = ({
 					</ResizablePanel>
 					<ResizableHandle withHandle />
 					<ResizablePanel defaultSize={defaultLayout[1]} minSize={30}>
-						<BookingDetails booking={booking} />
+						<Suspense fallback={<div>Loading...</div>}>
+							<BookingDetails booking={booking} />
+						</Suspense>
 					</ResizablePanel>
 				</ResizablePanelGroup>
 			</TooltipProvider>
