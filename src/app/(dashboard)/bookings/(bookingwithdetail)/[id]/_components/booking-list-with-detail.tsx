@@ -15,6 +15,7 @@ import { useBookingListColumns } from "./booking-list-columns";
 import { useBookingTable } from "@/hooks/use-booking-table";
 import { BookingListToolbar } from "./booking-list-toolbar";
 import type { ColumnDef } from "@tanstack/react-table";
+import { BookingListPagination } from "./booking-list-pagination";
 
 const BookingListWithDetail = ({
 	defaultLayout = [32, 68],
@@ -40,6 +41,7 @@ const BookingListWithDetail = ({
 					<ResizablePanel defaultSize={defaultLayout[0]} minSize={30}>
 						<BookingListToolbar table={table} />
 						<BookingList table={table} columns={columns} />
+						<BookingListPagination table={table} />
 					</ResizablePanel>
 					<ResizableHandle withHandle />
 					<ResizablePanel defaultSize={defaultLayout[1]} minSize={30}>
