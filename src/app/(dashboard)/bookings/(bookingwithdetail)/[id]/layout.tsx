@@ -8,8 +8,6 @@ import {
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useBookingTable } from "@/hooks/use-booking-table";
 import { useBookingListColumns } from "./_components/booking-list-columns";
-import type { ColumnDef } from "@tanstack/react-table";
-import type { Booking } from "@/lib/db/schema";
 import { BookingListToolbar } from "./_components/booking-list-toolbar";
 import { BookingList } from "./_components/booking-list";
 import { BookingListPagination } from "./_components/booking-list-pagination";
@@ -17,7 +15,7 @@ import { Suspense, unstable_ViewTransition as ViewTransition } from "react";
 
 const BookingDetailLayout = ({ children }: { children: React.ReactNode }) => {
 	const columns = useBookingListColumns();
-	const { table } = useBookingTable(columns as ColumnDef<Booking>[]);
+	const { table } = useBookingTable(columns);
 	return (
 		<ViewTransition name="experimental-label">
 			<div className="flex-1 min-w-0  border-y">
