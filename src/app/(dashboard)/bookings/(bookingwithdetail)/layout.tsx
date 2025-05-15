@@ -20,7 +20,7 @@ const BookingLayout = async ({ children }: { children: React.ReactNode }) => {
 
 	return (
 		<div className="hidden h-full flex-1 flex-col space-y-4 p-8 md:flex">
-			{/* <BookingStats stats={stats} /> */}
+			<BookingStats />
 			<Suspense fallback={<div>Loading...</div>}>
 				<HydrationBoundary state={dehydrate(queryClient)}>
 					<div>{children}</div>

@@ -5,46 +5,34 @@ import { Calendar, DollarSign, Wallet, BookOpen } from "lucide-react";
 import CountUp from "react-countup";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { useBookings } from "@/hooks/use-bookings";
 
-interface BookingStatsProps {
-	stats: {
-		totalBookings: string;
-		activeBookings: string;
-		totalExpenses: string;
-		totalRevenue: string;
-	};
-}
+export function BookingStats() {
+	const { data } = useBookings();
+	const stats = data?.stats;
 
-export function BookingStats({ stats }: BookingStatsProps) {
 	const metrics = [
 		{
-			title: "Total Products",
-			value: 248,
-			change: "+12 this week",
-			trend: "up",
+			title: "Total Bookings",
+			value: stats?.totalBookings || 0,
 			icon: BookOpen,
 		},
 		{
-			title: "Active Listings",
-			value: 186,
-			change: "+2% of total",
-			trend: "up",
+			title: "Active Bookings",
+			value: stats?.activeBookings || 0,
 			icon: Calendar,
 		},
 		{
-			title: "Total Sales",
-			value: 8944,
-			change: "+2.1% this week",
-			trend: "up",
+			title: "Total Expenses",
+			value: stats?.totalExpenses || 0,
 			icon: Wallet,
+			prefix: "₹",
 		},
 		{
 			title: "Total Revenue",
-			value: 8944,
-			change: "-0.5% vs last week",
-			trend: "down",
+			value: stats?.totalRevenue || 0,
 			icon: DollarSign,
-			prefix: "$",
+			prefix: "₹",
 		},
 	];
 
@@ -60,16 +48,6 @@ export function BookingStats({ stats }: BookingStatsProps) {
 					<CardContent
 						className={cn(index < metrics.length - 1 ? "border-r" : "")}
 					>
-						{/* <div className="flex items-center justify-between">
-								<metric.icon className="h-5 w-5 text-muted-foreground" />
-								<span
-									className={`text-sm font-medium ${
-										metric.trend === "up" ? "text-emerald-500" : "text-rose-500"
-									}`}
-								>
-									{metric.change}
-								</span>
-							</div> */}
 						<div className="mt-4">
 							<h3 className="text-sm font-medium text-muted-foreground">
 								{metric.title}
@@ -81,7 +59,7 @@ export function BookingStats({ stats }: BookingStatsProps) {
 										end={metric.value}
 										separator=","
 										duration={2}
-										decimals={metric.title === "Total Revenue" ? 2 : 0}
+										decimals={metric.prefix ? 2 : 0}
 									/>
 								</span>
 							</div>
