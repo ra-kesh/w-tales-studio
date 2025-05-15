@@ -1,0 +1,2 @@
+CREATE TYPE "public"."booking_phase" AS ENUM('new', 'preparation', 'shooting', 'delivery', 'completed', 'canceled');--> statement-breakpoint
+ALTER TABLE "bookings" ADD COLUMN "status" "booking_phase" DEFAULT 'new' NOT NULL;

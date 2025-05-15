@@ -162,6 +162,13 @@
       "when": 1747056785435,
       "tag": "0022_legal_slapstick",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1747287272034,
+      "tag": "0023_overjoyed_dreadnoughts",
+      "breakpoints": true
     }
   ]
 }

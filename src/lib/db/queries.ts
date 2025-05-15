@@ -629,6 +629,7 @@ export async function getBookingDetail(
 	}
 
 	// Map bookingType and packageType to human-readable values
+	// remove crews from booking details types since crews are not directly assigned to booking
 	return {
 		...booking,
 		bookingTypeValue:
@@ -675,4 +676,55 @@ export async function getCrews(organizationId: string) {
 		},
 		orderBy: [desc(crews.updatedAt), desc(crews.createdAt)],
 	});
+}
+
+export type BookingStats = {
+	totalBookings?: number; // Only for bookings page
+	activeBookings?: number; // Only for bookings page
+	totalExpenses: number;
+	totalRevenue: number;
+};
+
+export async function getBookingsStats(
+	userOrganizationId: string,
+): Promise<BookingStats> {
+	// 1. Total Bookings and Active Bookings
+	const bookingsStats = await db
+		.select({
+			total: sql<number>`COUNT(*)`,
+			active: sql<number>`SUM(CASE WHEN ${bookings.status} NOT IN ('completed', 'canceled') THEN 1 ELSE 0 END)`,
+		})
+		.from(bookings)
+		.where(eq(bookings.organizationId, userOrganizationId));
+
+	const totalBookings = bookingsStats[0]?.total || 0;
+	const activeBookings = bookingsStats[0]?.active || 0;
+
+	// 2. Total Expenses (across all bookings)
+	const expensesStats = await db
+		.select({
+			totalExpenses: sql<number>`SUM(${expenses.amount})`,
+		})
+		.from(expenses)
+		.innerJoin(bookings, eq(expenses.bookingId, bookings.id))
+		.where(eq(bookings.organizationId, userOrganizationId));
+
+	const totalExpenses = expensesStats[0]?.totalExpenses || 0;
+
+	// 3. Total Revenue (across all bookings)
+	const revenueStats = await db
+		.select({
+			totalRevenue: sql<number>`SUM(${bookings.packageCost})`,
+		})
+		.from(bookings)
+		.where(eq(bookings.organizationId, userOrganizationId));
+
+	const totalRevenue = revenueStats[0]?.totalRevenue || 0;
+
+	return {
+		totalBookings,
+		activeBookings,
+		totalExpenses,
+		totalRevenue,
+	};
 }

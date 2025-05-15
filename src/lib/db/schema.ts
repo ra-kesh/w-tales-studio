@@ -224,6 +224,15 @@ export const clients = pgTable("clients", {
 	updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+export const bookingPhaseEnum = pgEnum("booking_phase", [
+	"new",
+	"preparation",
+	"shooting",
+	"delivery",
+	"completed",
+	"canceled",
+]);
+
 export const bookings = pgTable("bookings", {
 	id: serial("id").primaryKey(),
 	organizationId: text("organization_id")
@@ -240,6 +249,7 @@ export const bookings = pgTable("bookings", {
 	clientId: integer("client_id")
 		.notNull()
 		.references(() => clients.id, { onDelete: "set null" }),
+	status: bookingPhaseEnum("status").notNull().default("new"),
 	createdAt: timestamp("created_at").defaultNow(),
 	updatedAt: timestamp("updated_at")
 		.defaultNow()
@@ -823,6 +833,7 @@ export type BookingDetail = Booking & {
 	paymentSchedules: PaymentSchedule[];
 	expenses: Expense[];
 	tasks: Task[];
+	// remove crews types
 	crews: Crew[];
 	bookingTypeValue: string;
 	packageTypeValue: string;
