@@ -1,27 +1,24 @@
-import {
-	dehydrate,
-	HydrationBoundary,
-	QueryClient,
-} from "@tanstack/react-query";
-import Bookings from "./bookings";
-import { getBookings } from "@/lib/db/queries";
-import { getServerSession } from "@/lib/dal";
-import { Suspense } from "react";
+"use client";
 
-export default async function BookingPage() {
-	const { session } = await getServerSession();
+import React from "react";
+import { BookingTable } from "../_components/booking-table/booking-table";
+import { unstable_ViewTransition as ViewTransition } from "react";
+import { useBookingColumns } from "../_components/booking-table/booking-table-columns";
+import { useBookingTable } from "@/hooks/use-booking-table";
+import type { ColumnDef } from "@tanstack/react-table";
+import type { Booking } from "@/lib/db/schema";
+import { BookingTableToolbar } from "../_components/booking-table/booking-table-toolbar";
 
-	const queryClient = new QueryClient();
+export default function Bookings() {
+	const columns = useBookingColumns();
+	const { table } = useBookingTable(columns as ColumnDef<Booking>[]);
 
-	await queryClient.prefetchQuery({
-		queryKey: ["bookings", "list"],
-		queryFn: () => getBookings(session?.session.activeOrganizationId as string),
-	});
 	return (
-		<Suspense fallback={<div>Loading...</div>}>
-			<HydrationBoundary state={dehydrate(queryClient)}>
-				<Bookings />
-			</HydrationBoundary>
-		</Suspense>
+		<div className="flex-1 min-w-0 border-t">
+			<BookingTableToolbar table={table} />
+			<ViewTransition name="experimental-label">
+				<BookingTable table={table} columns={columns} />
+			</ViewTransition>
+		</div>
 	);
 }

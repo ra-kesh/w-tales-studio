@@ -28,9 +28,7 @@ export default async function BookingDetailsPage({
 
 	return (
 		<ViewTransition name="experimental-label">
-			<Suspense fallback={<div>Loading...</div>}>
-				<BookingListWithDetail booking={booking} />
-			</Suspense>
+			<BookingListWithDetail booking={booking} />
 		</ViewTransition>
 	);
 }
