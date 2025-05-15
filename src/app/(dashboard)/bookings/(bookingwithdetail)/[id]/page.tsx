@@ -1,8 +1,7 @@
 import { getBookingDetail } from "@/lib/db/queries";
 import { getServerSession } from "@/lib/dal";
 import NotFound from "@/app/not-found";
-import BookingListWithDetail from "./_components/booking-list-with-detail";
-import { Suspense, unstable_ViewTransition as ViewTransition } from "react";
+import { BookingDetails } from "./_components/booking-details";
 
 export default async function BookingDetailsPage({
 	params,
@@ -26,9 +25,5 @@ export default async function BookingDetailsPage({
 		return NotFound();
 	}
 
-	return (
-		<ViewTransition name="experimental-label">
-			<BookingListWithDetail booking={booking} />
-		</ViewTransition>
-	);
+	return <BookingDetails booking={booking} />;
 }
