@@ -12,8 +12,9 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import type { Booking as BaseBooking, Shoot } from "@/lib/db/schema";
+import { cn } from "@/lib/utils";
 
 interface Booking extends BaseBooking {
 	shoots: Shoot[];
@@ -26,6 +27,9 @@ interface BookingListProps {
 
 export function BookingList({ table, columns }: BookingListProps) {
 	const router = useRouter();
+	const params = useParams();
+
+	const currentBookingId = params?.id;
 
 	const handleRowClick = (id: number) => {
 		router.push(`/bookings/${id}`);
@@ -59,7 +63,11 @@ export function BookingList({ table, columns }: BookingListProps) {
 								<TableRow
 									data-state={row.getIsSelected() && "selected"}
 									onClick={() => handleRowClick((row.original as Booking).id)}
-									className="cursor-pointer hover:bg-muted/50"
+									className={cn(
+										"cursor-pointer hover:bg-muted/50",
+										currentBookingId ===
+											(row.original as Booking).id.toString() && "bg-muted",
+									)}
 								>
 									{row.getVisibleCells().map((cell) => (
 										<TableCell key={cell.id}>
