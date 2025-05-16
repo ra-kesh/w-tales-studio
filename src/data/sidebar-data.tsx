@@ -30,11 +30,11 @@ export const sidebarData = {
 			logo: GalleryVerticalEnd,
 			plan: "Studio",
 		},
-		{
-			name: "Maxxer Media",
-			logo: AudioWaveform,
-			plan: "Startup",
-		},
+		// {
+		// 	name: "Maxxer Media",
+		// 	logo: AudioWaveform,
+		// 	plan: "Startup",
+		// },
 	],
 	navMain: [
 		{
