@@ -1,74 +1,149 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PaperclipIcon } from "lucide-react";
 import { format } from "date-fns";
-import { MapPin, Calendar, Users, Package } from "lucide-react";
-import type { Booking } from "@/lib/db/schema";
 
-export function BookingOverview({ booking }: { booking: Booking }) {
-  return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Client Details</CardTitle>
-          <Users className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">
-            {booking.clients.brideName} & {booking.clients.groomName}
-          </div>
-          <p className="text-xs text-muted-foreground mt-1">
-            {booking.clients.email}
-            <br />
-            {booking.clients.phoneNumber}
-          </p>
-        </CardContent>
-      </Card>
+import { Separator } from "@/components/ui/separator";
+import type { BookingDetail } from "@/lib/db/schema";
 
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Package Details</CardTitle>
-          <Package className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">
-            ${Number(booking.packageCost).toLocaleString()}
-          </div>
-          <p className="text-xs text-muted-foreground mt-1">
-            {booking.packageType}
-          </p>
-        </CardContent>
-      </Card>
+interface BookingOverviewProps {
+	booking: BookingDetail;
+}
 
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Event Date</CardTitle>
-          <Calendar className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">
-            {format(new Date(booking.shoots[0]?.date || booking.createdAt), "MMM dd, yyyy")}
-          </div>
-          <p className="text-xs text-muted-foreground mt-1">
-            {booking.shoots[0]?.time || "Time TBD"}
-          </p>
-        </CardContent>
-      </Card>
+export function BookingOverview({ booking }: BookingOverviewProps) {
+	// Calculate financial summary
+	// const totalReceived = booking.receivedAmounts.reduce(
+	// 	(sum, payment) => sum + Number(payment.amount),
+	// 	0,
+	// );
 
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Location</CardTitle>
-          <MapPin className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">
-            {booking.shoots[0]?.city || "TBD"}
-          </div>
-          <p className="text-xs text-muted-foreground mt-1">
-            {booking.shoots[0]?.venue || "Venue TBD"}
-          </p>
-        </CardContent>
-      </Card>
-    </div>
-  );
+	// const totalExpenses = booking.expenses.reduce(
+	// 	(sum, expense) => sum + Number(expense.amount),
+	// 	0,
+	// );
+
+	const packageCost = Number(booking.packageCost);
+	// const pendingAmount = packageCost - totalReceived;
+	// const profit = packageCost - totalExpenses;
+
+	// // Format dates
+	// const createdAt = booking.createdAt ? new Date(booking.createdAt) : null;
+	// const updatedAt = booking.updatedAt ? new Date(booking.updatedAt) : null;
+
+	return (
+		<div>
+			<dl className="grid grid-cols-1 sm:grid-cols-2">
+				<div className=" border-gray-100 px-4 pb-6 sm:col-span-1 sm:px-0">
+					<dt className="text-sm font-medium leading-6 text-gray-900">
+						Bride Name
+					</dt>
+					<dd className="mt-1 text-sm leading-6 text-gray-700 sm:mt-2">
+						{booking.clients.brideName || "Not specified"}
+					</dd>
+				</div>
+				<div className=" border-gray-100 px-4 pb-6 sm:col-span-1 sm:px-0">
+					<dt className="text-sm font-medium leading-6 text-gray-900">
+						Groom Name
+					</dt>
+					<dd className="mt-1 text-sm leading-6 text-gray-700 sm:mt-2">
+						{booking.clients.groomName || "Not specified"}
+					</dd>
+				</div>
+				<div className="border-t border-gray-100 px-4 py-6 sm:col-span-1 sm:px-0">
+					<dt className="text-sm font-medium leading-6 text-gray-900">
+						Email address
+					</dt>
+					<dd className="mt-1 text-sm leading-6 text-gray-700 sm:mt-2">
+						{booking.clients.email || "Not provided"}
+					</dd>
+				</div>
+				<div className="border-t border-gray-100 px-4 py-6 sm:col-span-1 sm:px-0">
+					<dt className="text-sm font-medium leading-6 text-gray-900">
+						Phone number
+					</dt>
+					<dd className="mt-1 text-sm leading-6 text-gray-700 sm:mt-2">
+						{booking.clients.phoneNumber || "Not provided"}
+					</dd>
+				</div>
+				<div className="border-t border-gray-100 px-4 py-6 sm:col-span-1 sm:px-0">
+					<dt className="text-sm font-medium leading-6 text-gray-900">
+						Package Type
+					</dt>
+					<dd className="mt-1 text-sm leading-6 text-gray-700 sm:mt-2">
+						{booking.packageTypeValue}
+					</dd>
+				</div>
+				<div className="border-t border-gray-100 px-4 py-6 sm:col-span-1 sm:px-0">
+					<dt className="text-sm font-medium leading-6 text-gray-900">
+						Package Cost
+					</dt>
+					<dd className="mt-1 text-sm leading-6 text-gray-700 sm:mt-2">
+						₹{packageCost.toLocaleString()}
+					</dd>
+				</div>
+
+				<div className="border-t border-gray-100 px-4 py-6 sm:col-span-2 sm:px-0">
+					<dt className="text-sm font-medium leading-6 text-gray-900">
+						Special Instructions
+					</dt>
+					<dd className="mt-1 text-sm leading-6 text-gray-700 sm:mt-2">
+						{booking.note || "Not provided"}
+					</dd>
+				</div>
+				<div className="border-t border-gray-100 px-4 py-6 sm:col-span-2 sm:px-0">
+					<dt className="text-sm font-medium leading-6 text-gray-900">
+						Attachments
+					</dt>
+					<dd className="mt-2 text-sm text-gray-900">
+						<ul className="divide-y divide-gray-100 rounded-md border border-gray-200">
+							<li className="flex items-center justify-between py-4 pl-4 pr-5 text-sm leading-6">
+								<div className="flex w-0 flex-1 items-center">
+									<PaperclipIcon
+										aria-hidden="true"
+										className="h-4 w-4 flex-shrink-0 text-gray-400"
+									/>
+									<div className="ml-4 flex min-w-0 flex-1 gap-2">
+										<span className="truncate font-medium">
+											weddingtales_client_proposal.pdf
+										</span>
+										<span className="flex-shrink-0 text-gray-400">2.4mb</span>
+									</div>
+								</div>
+								<div className="ml-4 flex-shrink-0">
+									<a
+										href="#"
+										className="font-medium text-indigo-600 hover:text-indigo-500"
+									>
+										Download
+									</a>
+								</div>
+							</li>
+							<li className="flex items-center justify-between py-4 pl-4 pr-5 text-sm leading-6">
+								<div className="flex w-0 flex-1 items-center">
+									<PaperclipIcon
+										aria-hidden="true"
+										className="h-4 w-4 flex-shrink-0 text-gray-400"
+									/>
+									<div className="ml-4 flex min-w-0 flex-1 gap-2">
+										<span className="truncate font-medium">
+											weddingtales_client_agreement.pdf
+										</span>
+										<span className="flex-shrink-0 text-gray-400">4.5mb</span>
+									</div>
+								</div>
+								<div className="ml-4 flex-shrink-0">
+									<a
+										href="#"
+										className="font-medium text-indigo-600 hover:text-indigo-500"
+									>
+										Download
+									</a>
+								</div>
+							</li>
+						</ul>
+					</dd>
+				</div>
+			</dl>
+		</div>
+	);
 }

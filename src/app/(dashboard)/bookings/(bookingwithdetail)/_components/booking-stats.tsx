@@ -48,7 +48,7 @@ export function BookingStats() {
 					<CardContent
 						className={cn(index < metrics.length - 1 ? "border-r" : "")}
 					>
-						<div className="mt-4">
+						<div className="">
 							<h3 className="text-sm font-medium text-muted-foreground">
 								{metric.title}
 							</h3>
