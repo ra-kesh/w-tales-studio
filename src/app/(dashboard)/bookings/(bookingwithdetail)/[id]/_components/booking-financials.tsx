@@ -1,169 +1,157 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { format } from "date-fns";
-import { DollarSign, Receipt, CreditCard, Calculator } from "lucide-react";
-import type { Expense, PaymentSchedule, ReceivedAmount } from "@/lib/db/schema";
+import { useState } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { DollarSign, Calendar, TrendingDown } from "lucide-react";
+import type { ReceivedAmount, PaymentSchedule, Expense } from "@/lib/db/schema";
+import { UpcomingPayments } from "./booking-financials/upcoming-payments";
+import { ReceivedPayments } from "./booking-financials/received-payments";
+import { Expenses } from "./booking-financials/expenses";
 
 interface BookingFinancialsProps {
-	packageCost: string;
-	receivedAmounts: ReceivedAmount[];
-	paymentSchedules: PaymentSchedule[];
-	expenses: Expense[];
+  packageCost: string | number;
+  receivedAmounts: ReceivedAmount[];
+  paymentSchedules: PaymentSchedule[];
+  expenses: Expense[];
 }
 
 export function BookingFinancials({
-	packageCost,
-	receivedAmounts,
-	paymentSchedules,
-	expenses,
+  packageCost,
+  receivedAmounts,
+  paymentSchedules,
+  expenses,
 }: BookingFinancialsProps) {
-	const totalReceived = receivedAmounts.reduce(
-		(sum, payment) => sum + Number(payment.amount),
-		0,
-	);
-	const totalPending = paymentSchedules.reduce(
-		(sum, schedule) => sum + Number(schedule.amount),
-		0,
-	);
-	const totalExpenses = expenses.reduce(
-		(sum, expense) => sum + Number(expense.amount),
-		0,
-	);
+  const [activeTab, setActiveTab] = useState("received");
 
-	return (
-		<div className="space-y-6">
-			<div className="grid gap-4 md:grid-cols-4">
-				<Card>
-					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">Package Value</CardTitle>
-						<DollarSign className="h-4 w-4 text-muted-foreground" />
-					</CardHeader>
-					<CardContent>
-						<div className="text-2xl font-bold">
-							${Number(packageCost).toLocaleString()}
-						</div>
-					</CardContent>
-				</Card>
-				<Card>
-					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">Received</CardTitle>
-						<Receipt className="h-4 w-4 text-muted-foreground" />
-					</CardHeader>
-					<CardContent>
-						<div className="text-2xl font-bold">
-							${totalReceived.toLocaleString()}
-						</div>
-					</CardContent>
-				</Card>
-				<Card>
-					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">Pending</CardTitle>
-						<CreditCard className="h-4 w-4 text-muted-foreground" />
-					</CardHeader>
-					<CardContent>
-						<div className="text-2xl font-bold">
-							${totalPending.toLocaleString()}
-						</div>
-					</CardContent>
-				</Card>
-				<Card>
-					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">Expenses</CardTitle>
-						<Calculator className="h-4 w-4 text-muted-foreground" />
-					</CardHeader>
-					<CardContent>
-						<div className="text-2xl font-bold">
-							${totalExpenses.toLocaleString()}
-						</div>
-					</CardContent>
-				</Card>
-			</div>
+  // Calculate financial summary
+  const totalReceived = receivedAmounts.reduce(
+    (sum, payment) => sum + Number(payment.amount),
+    0
+  );
 
-			<div className="grid gap-4 md:grid-cols-2">
-				<Card>
-					<CardHeader>
-						<CardTitle>Payment History</CardTitle>
-					</CardHeader>
-					<CardContent className="space-y-4">
-						{receivedAmounts.map((payment) => (
-							<div
-								key={payment.id}
-								className="flex items-center justify-between border-b pb-2 last:border-0"
-							>
-								<div>
-									<div className="font-medium">
-										${Number(payment.amount).toLocaleString()}
-									</div>
-									<div className="text-sm text-muted-foreground">
-										{payment.description}
-									</div>
-								</div>
-								<div className="text-sm text-muted-foreground">
-									{format(new Date(payment.paidOn), "MMM dd, yyyy")}
-								</div>
-							</div>
-						))}
-					</CardContent>
-				</Card>
+  const totalExpenses = expenses.reduce(
+    (sum, expense) => sum + Number(expense.amount),
+    0
+  );
 
-				<Card>
-					<CardHeader>
-						<CardTitle>Upcoming Payments</CardTitle>
-					</CardHeader>
-					<CardContent className="space-y-4">
-						{paymentSchedules.map((schedule) => (
-							<div
-								key={schedule.id}
-								className="flex items-center justify-between border-b pb-2 last:border-0"
-							>
-								<div>
-									<div className="font-medium">
-										${Number(schedule.amount).toLocaleString()}
-									</div>
-									<div className="text-sm text-muted-foreground">
-										{schedule.description}
-									</div>
-								</div>
-								<div className="text-sm text-muted-foreground">
-									Due: {format(new Date(schedule.dueDate), "MMM dd, yyyy")}
-								</div>
-							</div>
-						))}
-					</CardContent>
-				</Card>
-			</div>
+  const totalScheduled = paymentSchedules.reduce(
+    (sum, schedule) => sum + Number(schedule.amount),
+    0
+  );
 
-			<Card>
-				<CardHeader>
-					<CardTitle>Expenses</CardTitle>
-				</CardHeader>
-				<CardContent>
-					<div className="space-y-4">
-						{expenses.map((expense) => (
-							<div
-								key={expense.id}
-								className="flex items-center justify-between border-b pb-2 last:border-0"
-							>
-								<div>
-									<div className="font-medium">
-										${Number(expense.amount).toLocaleString()}
-									</div>
-									<div className="text-sm text-muted-foreground">
-										{expense.description}
-									</div>
-									<div className="text-xs text-muted-foreground">
-										{expense.category} • Bill to: {expense.billTo}
-									</div>
-								</div>
-								<div className="text-sm text-muted-foreground">
-									{format(new Date(expense.date), "MMM dd, yyyy")}
-								</div>
-							</div>
-						))}
-					</div>
-				</CardContent>
-			</Card>
-		</div>
-	);
+  const packageAmount = Number(packageCost);
+  const pendingAmount = packageAmount - totalReceived;
+  const profit = packageAmount - totalExpenses;
+
+  return (
+    <div className="space-y-6">
+      {/* Financial Summary */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardDescription>Received</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div className="text-2xl font-bold text-green-600">₹{totalReceived.toLocaleString()}</div>
+              <DollarSign className="h-5 w-5 text-green-600" />
+            </div>
+            <div className="text-xs text-muted-foreground mt-1">
+              {((totalReceived / packageAmount) * 100).toFixed(0)}% of package cost
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="pb-2">
+            <CardDescription>Upcoming</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div className="text-2xl font-bold text-amber-600">₹{totalScheduled.toLocaleString()}</div>
+              <Calendar className="h-5 w-5 text-amber-600" />
+            </div>
+            <div className="text-xs text-muted-foreground mt-1">
+              {paymentSchedules.length} scheduled payment{paymentSchedules.length !== 1 ? 's' : ''}
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="pb-2">
+            <CardDescription>Expenses</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div className="text-2xl font-bold text-red-600">₹{totalExpenses.toLocaleString()}</div>
+              <TrendingDown className="h-5 w-5 text-red-600" />
+            </div>
+            <div className="text-xs text-muted-foreground mt-1">
+              {((totalExpenses / packageAmount) * 100).toFixed(0)}% of package cost
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Profit Summary */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Financial Summary</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <div className="text-sm font-medium text-muted-foreground">Package Cost</div>
+              <div className="text-2xl font-bold">₹{packageAmount.toLocaleString()}</div>
+            </div>
+            <div>
+              <div className="text-sm font-medium text-muted-foreground">Pending Amount</div>
+              <div className="text-2xl font-bold text-amber-600">₹{pendingAmount.toLocaleString()}</div>
+            </div>
+            <div className="col-span-2">
+              <div className="text-sm font-medium text-muted-foreground">Estimated Profit</div>
+              <div className={`text-2xl font-bold ${profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                ₹{profit.toLocaleString()}
+              </div>
+              <div className="mt-2 w-full bg-gray-200 rounded-full h-2.5">
+                <div 
+                  className={`h-2.5 rounded-full ${profit >= 0 ? 'bg-green-600' : 'bg-red-600'}`} 
+                  style={{ width: `${Math.min(Math.max((profit / packageAmount) * 100, 0), 100)}%` }}
+                ></div>
+              </div>
+              <div className="mt-1 text-xs text-muted-foreground">
+                {((profit / packageAmount) * 100).toFixed(0)}% profit margin
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Transaction Tabs */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Transaction History</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Tabs defaultValue="received" className="w-full">
+            <TabsList className="grid w-full grid-cols-3 mb-4">
+              <TabsTrigger value="received">Received Payments</TabsTrigger>
+              <TabsTrigger value="upcoming">Upcoming Payments</TabsTrigger>
+              <TabsTrigger value="expenses">Expenses</TabsTrigger>
+            </TabsList>
+            <TabsContent value="received" className="mt-0">
+              <ReceivedPayments receivedAmounts={receivedAmounts} />
+            </TabsContent>
+            <TabsContent value="upcoming" className="mt-0">
+              <UpcomingPayments paymentSchedules={paymentSchedules} />
+            </TabsContent>
+            <TabsContent value="expenses" className="mt-0">
+              <Expenses expenses={expenses} />
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
+    </div>
+  );
 }

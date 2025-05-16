@@ -147,6 +147,9 @@ export function BookingDetails({ booking }: { booking: BookingDetail }) {
 					{activeTab === "deliverables" && (
 						<BookingDeliverables deliverables={booking.deliverables} />
 					)}
+
+					{activeTab === "tasks" && <BookingTasks tasks={booking.tasks} />}
+
 					{activeTab === "financials" && (
 						<BookingFinancials
 							packageCost={booking.packageCost}
@@ -155,7 +158,6 @@ export function BookingDetails({ booking }: { booking: BookingDetail }) {
 							expenses={booking.expenses}
 						/>
 					)}
-					{activeTab === "tasks" && <BookingTasks tasks={booking.tasks} />}
 				</div>
 			</ScrollArea>
 		</div>

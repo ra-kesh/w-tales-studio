@@ -1,34 +1,38 @@
 "use client";
 
 import { PaperclipIcon } from "lucide-react";
-import { format } from "date-fns";
-
-import { Separator } from "@/components/ui/separator";
 import type { BookingDetail } from "@/lib/db/schema";
+
+import { ReceivedPayments } from "./booking-financials/received-payments";
+import { UpcomingPayments } from "./booking-financials/upcoming-payments";
+import { Expenses } from "./booking-financials/expenses";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface BookingOverviewProps {
 	booking: BookingDetail;
 }
 
 export function BookingOverview({ booking }: BookingOverviewProps) {
-	// Calculate financial summary
-	// const totalReceived = booking.receivedAmounts.reduce(
-	// 	(sum, payment) => sum + Number(payment.amount),
-	// 	0,
-	// );
-
-	// const totalExpenses = booking.expenses.reduce(
-	// 	(sum, expense) => sum + Number(expense.amount),
-	// 	0,
-	// );
-
 	const packageCost = Number(booking.packageCost);
-	// const pendingAmount = packageCost - totalReceived;
-	// const profit = packageCost - totalExpenses;
 
-	// // Format dates
-	// const createdAt = booking.createdAt ? new Date(booking.createdAt) : null;
-	// const updatedAt = booking.updatedAt ? new Date(booking.updatedAt) : null;
+	const totalReceived = booking.receivedAmounts.reduce(
+		(sum, payment) => sum + Number(payment.amount),
+		0,
+	);
+
+	const totalExpenses = booking.expenses.reduce(
+		(sum, expense) => sum + Number(expense.amount),
+		0,
+	);
+
+	const totalScheduled = booking.paymentSchedules.reduce(
+		(sum, schedule) => sum + Number(schedule.amount),
+		0,
+	);
+
+	const packageAmount = Number(packageCost);
+	const pendingAmount = packageAmount - totalReceived;
+	const profit = packageAmount - totalExpenses;
 
 	return (
 		<div>
@@ -90,7 +94,36 @@ export function BookingOverview({ booking }: BookingOverviewProps) {
 						{booking.note || "Not provided"}
 					</dd>
 				</div>
+
 				<div className="border-t border-gray-100 px-4 py-6 sm:col-span-2 sm:px-0">
+					<dt className="text-sm font-medium leading-6 text-gray-900 mb-4">
+						Payment Activities
+					</dt>
+					<dd>
+						<div className="rounded-md border border-gray-200 py-4 pl-4 pr-5">
+							<Tabs defaultValue="received" className="w-full">
+								<TabsList className="grid w-full grid-cols-3 mb-4">
+									<TabsTrigger value="received">Received Payments</TabsTrigger>
+									<TabsTrigger value="upcoming">Upcoming Payments</TabsTrigger>
+									<TabsTrigger value="expenses">Expenses</TabsTrigger>
+								</TabsList>
+								<TabsContent value="received" className="mt-0">
+									<ReceivedPayments receivedAmounts={booking.receivedAmounts} />
+								</TabsContent>
+								<TabsContent value="upcoming" className="mt-0">
+									<UpcomingPayments
+										paymentSchedules={booking.paymentSchedules}
+									/>
+								</TabsContent>
+								<TabsContent value="expenses" className="mt-0">
+									<Expenses expenses={booking.expenses} />
+								</TabsContent>
+							</Tabs>
+						</div>
+					</dd>
+				</div>
+
+				<div className=" px-4  sm:col-span-2 sm:px-0">
 					<dt className="text-sm font-medium leading-6 text-gray-900">
 						Attachments
 					</dt>
