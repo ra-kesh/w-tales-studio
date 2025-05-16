@@ -53,15 +53,16 @@ export function BookingDetails({ booking }: { booking: BookingDetail }) {
 			label: "Deliverables",
 			icon: <Image className="h-4 w-4 mr-2" />,
 		},
-		{
-			id: "financials",
-			label: "Financials",
-			icon: <DollarSign className="h-4 w-4 mr-2" />,
-		},
+
 		{
 			id: "tasks",
 			label: "Tasks",
 			icon: <CheckSquare className="h-4 w-4 mr-2" />,
+		},
+		{
+			id: "financials",
+			label: "Financials",
+			icon: <DollarSign className="h-4 w-4 mr-2" />,
 		},
 	];
 
