@@ -1,7 +1,11 @@
 import { getBookingDetail } from "@/lib/db/queries";
 import { getServerSession } from "@/lib/dal";
-import NotFound from "@/app/not-found";
 import { BookingDetails } from "./_components/booking-details";
+import {
+	dehydrate,
+	HydrationBoundary,
+	QueryClient,
+} from "@tanstack/react-query";
 
 export default async function BookingDetailsPage({
 	params,
@@ -10,20 +14,28 @@ export default async function BookingDetailsPage({
 }) {
 	const { session } = await getServerSession();
 
-	if (!session?.session.activeOrganizationId) {
-		return NotFound();
-	}
+	const queryClient = new QueryClient();
 
 	const { id } = await params;
 
-	const booking = await getBookingDetail(
-		session.session.activeOrganizationId,
-		Number.parseInt(id),
+	await queryClient.prefetchQuery({
+		queryKey: [
+			"bookings",
+			"detail",
+			{
+				bookingId: id,
+			},
+		],
+		queryFn: () =>
+			getBookingDetail(
+				session?.session.activeOrganizationId as string,
+				Number.parseInt(id),
+			),
+	});
+
+	return (
+		<HydrationBoundary state={dehydrate(queryClient)}>
+			<BookingDetails id={id} />
+		</HydrationBoundary>
 	);
-
-	if (!booking) {
-		return NotFound();
-	}
-
-	return <BookingDetails booking={booking} />;
 }

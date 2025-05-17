@@ -2,9 +2,6 @@
 
 import { useState, useRef, useEffect } from "react";
 import {
-	Calendar,
-	DollarSign,
-	Package,
 	CheckSquare,
 	Camera,
 	Image,
@@ -24,12 +21,15 @@ import { BookingTasks } from "./booking-tasks";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useBookingDetail } from "@/hooks/use-bookings";
 
-export function BookingDetails({ booking }: { booking: BookingDetail }) {
+export function BookingDetails({ id }: { id: string }) {
 	const [activeTab, setActiveTab] = useState("overview");
 	const headerRef = useRef<HTMLDivElement>(null);
 	const [headerHeight, setHeaderHeight] = useState(0);
 	const router = useRouter();
+
+	const { data: booking } = useBookingDetail(id);
 
 	useEffect(() => {
 		if (headerRef.current) {
@@ -59,11 +59,11 @@ export function BookingDetails({ booking }: { booking: BookingDetail }) {
 			label: "Tasks",
 			icon: <CheckSquare className="h-4 w-4 mr-2" />,
 		},
-		{
-			id: "financials",
-			label: "Financials",
-			icon: <DollarSign className="h-4 w-4 mr-2" />,
-		},
+		// {
+		// 	id: "financials",
+		// 	label: "Financials",
+		// 	icon: <DollarSign className="h-4 w-4 mr-2" />,
+		// },
 	];
 
 	const handleClose = () => {
@@ -71,15 +71,13 @@ export function BookingDetails({ booking }: { booking: BookingDetail }) {
 	};
 
 	const handleEdit = () => {
-		router.push(`/bookings/edit/${booking.id}`);
+		router.push(`/bookings/edit/${id}`);
 	};
 
 	return (
 		<div className="h-full flex-1 flex flex-col border-r">
-			{/* Fixed Header */}
 			<div ref={headerRef} className="border-b bg-white z-10">
 				<div className="p-6 pb-4">
-					{/* Action buttons and status */}
 					<div className="flex items-center justify-between mb-4">
 						<Button
 							variant="ghost"
@@ -98,23 +96,18 @@ export function BookingDetails({ booking }: { booking: BookingDetail }) {
 						</div>
 					</div>
 
-					{/* Booking Title and Details */}
 					<div className="flex items-start justify-between">
 						<div className="flex gap-4">
 							<h2 className="text-2xl font-bold tracking-tight">
-								{booking.name}
+								{booking?.name}
 							</h2>
 							<div>
-								<Badge variant={"secondary"}>{booking.status}</Badge>
+								<Badge variant={"secondary"}>{booking?.status}</Badge>
 							</div>
 						</div>
-						{/* <div className="text-sm text-muted-foreground">
-							ID: {booking.id}
-						</div> */}
 					</div>
 				</div>
 
-				{/* Custom Tab Navigation */}
 				<div className="flex  px-6">
 					{tabs.map((tab) => (
 						<button
@@ -137,28 +130,27 @@ export function BookingDetails({ booking }: { booking: BookingDetail }) {
 				</div>
 			</div>
 
-			{/* Scrollable Tab Content */}
 			<ScrollArea
 				className="flex-1"
 				style={{ height: `calc(100% - ${headerHeight}px)` }}
 			>
 				<div className="p-6">
 					{activeTab === "overview" && <BookingOverview booking={booking} />}
-					{activeTab === "shoots" && <BookingShoots shoots={booking.shoots} />}
+					{activeTab === "shoots" && <BookingShoots shoots={booking?.shoots} />}
 					{activeTab === "deliverables" && (
-						<BookingDeliverables deliverables={booking.deliverables} />
+						<BookingDeliverables deliverables={booking?.deliverables} />
 					)}
 
-					{activeTab === "tasks" && <BookingTasks tasks={booking.tasks} />}
+					{activeTab === "tasks" && <BookingTasks tasks={booking?.tasks} />}
 
-					{activeTab === "financials" && (
+					{/* {activeTab === "financials" && (
 						<BookingFinancials
 							packageCost={booking.packageCost}
 							receivedAmounts={booking.receivedAmounts}
 							paymentSchedules={booking.paymentSchedules}
 							expenses={booking.expenses}
 						/>
-					)}
+					)} */}
 				</div>
 			</ScrollArea>
 		</div>
