@@ -12,11 +12,7 @@ export function Deliverables() {
 
 	return (
 		<div className="flex-1 min-w-0">
-			<DeliverableTable
-				data={data?.data || defaultData}
-				// biome-ignore lint/suspicious/noExplicitAny: <explanation>
-				columns={columns as any}
-			/>
+			<DeliverableTable data={data?.data || defaultData} columns={columns} />
 		</div>
 	);
 }

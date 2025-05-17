@@ -37,7 +37,16 @@ import {
 import { useMinimalBookings } from "@/hooks/use-bookings";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
+import { MultiAsyncSelect } from "@/components/ui/multi-select";
+import { useCrews } from "@/hooks/use-crews";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 
 interface DeliverableFormProps {
 	defaultValues?: DeliverableFormValues;
@@ -59,6 +68,8 @@ export function DeliverableForm({
 		quantity: defaultValues.quantity.toString() ?? "",
 		cost: defaultValues.cost.toString() ?? "0",
 		notes: defaultValues.notes ?? "",
+		crewMembers: defaultValues.crewMembers ?? [],
+		status: defaultValues.status ?? "pending",
 	};
 
 	const form = useForm<DeliverableFormValues>({
@@ -74,13 +85,29 @@ export function DeliverableForm({
 	const { data: MinimalBookings } = useMinimalBookings();
 	const bookings = MinimalBookings?.data;
 
+	const { data: crewData, isLoading: isLoadingCrew } = useCrews();
+	const crewOptions = useMemo(() => {
+		if (!crewData?.data) return [];
+		return crewData.data.map((crew) => {
+			const displayName = crew.member?.user?.name || crew.name;
+			const role = crew.role ? ` (${crew.role})` : "";
+			const statusBadge =
+				crew.status !== "available" ? ` [${crew.status}]` : "";
+
+			return {
+				label: `${displayName}${role}${statusBadge}`,
+				value: crew.id.toString(),
+			};
+		});
+	}, [crewData?.data]);
+
 	return (
 		<Form {...form}>
 			<form
 				onSubmit={form.handleSubmit(onSubmit)}
-				className="grid grid-cols-2 gap-6 px-4"
+				className="grid grid-cols-6 gap-6 px-4"
 			>
-				<div className="col-span-2">
+				<div className="col-span-6">
 					<FormField
 						control={form.control}
 						name="bookingId"
@@ -167,7 +194,33 @@ export function DeliverableForm({
 					/>
 				</div>
 
-				<div className="col-span-2">
+				<div className="col-span-6">
+					<FormField
+						control={form.control}
+						name="isPackageIncluded"
+						render={({ field }) => (
+							<FormItem className="flex flex-row items-start space-x-3 space-y-0 ">
+								<FormControl>
+									<Checkbox
+										checked={field.value}
+										onCheckedChange={(checked) => {
+											field.onChange(checked);
+											if (checked) {
+												form.setValue("cost", "0", { shouldValidate: true });
+											}
+										}}
+									/>
+								</FormControl>
+								<div className="space-y-1 leading-none">
+									<FormLabel>Package Included</FormLabel>
+								</div>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
+				</div>
+
+				<div className="col-span-4">
 					<FormField
 						control={form.control}
 						name="title"
@@ -184,49 +237,6 @@ export function DeliverableForm({
 				</div>
 
 				<div className="col-span-2">
-					<FormField
-						control={form.control}
-						name="isPackageIncluded"
-						render={({ field }) => (
-							<FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-								<FormControl>
-									<Checkbox
-										checked={field.value}
-										onCheckedChange={field.onChange}
-									/>
-								</FormControl>
-								<div className="space-y-1 leading-none">
-									<FormLabel>Package Included</FormLabel>
-								</div>
-								<FormMessage />
-							</FormItem>
-						)}
-					/>
-				</div>
-
-				<div className="col-span-1">
-					<FormField
-						control={form.control}
-						name="cost"
-						render={({ field }) => (
-							<FormItem>
-								<FormLabel>Cost</FormLabel>
-								<FormControl>
-									<Input
-										type="number"
-										step="0.01"
-										placeholder="0.00"
-										disabled={form.watch("isPackageIncluded")}
-										{...field}
-									/>
-								</FormControl>
-								<FormMessage />
-							</FormItem>
-						)}
-					/>
-				</div>
-
-				<div className="col-span-1">
 					<FormField
 						control={form.control}
 						name="quantity"
@@ -261,6 +271,84 @@ export function DeliverableForm({
 				<div className="col-span-2">
 					<FormField
 						control={form.control}
+						name="status"
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel>Status</FormLabel>
+								<Select
+									onValueChange={field.onChange}
+									defaultValue={field.value}
+								>
+									<FormControl>
+										<SelectTrigger className="min-w-full max-w-full">
+											<SelectValue placeholder="Select status" />
+										</SelectTrigger>
+									</FormControl>
+									<SelectContent>
+										<SelectItem value="pending">Pending</SelectItem>
+										<SelectItem value="in_progress">In Progress</SelectItem>
+										<SelectItem value="in_revision">In Revision</SelectItem>
+										<SelectItem value="completed">Completed</SelectItem>
+										<SelectItem value="delivered">Delivered</SelectItem>
+										<SelectItem value="cancelled">Cancelled</SelectItem>
+									</SelectContent>
+								</Select>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
+				</div>
+				<div className="col-span-2">
+					<FormField
+						control={form.control}
+						name="cost"
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel>Extra Cost</FormLabel>
+								<FormControl>
+									<Input
+										type="number"
+										step="0.01"
+										placeholder="0.00"
+										disabled={form.watch("isPackageIncluded")}
+										{...field}
+									/>
+								</FormControl>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
+				</div>
+
+				<div className="col-span-6">
+					<FormField
+						control={form.control}
+						name="crewMembers"
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel>Assigned Crew</FormLabel>
+								<FormControl>
+									<MultiAsyncSelect
+										options={crewOptions}
+										onValueChange={field.onChange}
+										defaultValue={field.value}
+										maxCount={5}
+										placeholder="Select crew members"
+										searchPlaceholder="Search crew..."
+										className="w-full"
+										loading={isLoadingCrew}
+										async={true}
+									/>
+								</FormControl>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
+				</div>
+
+				<div className="col-span-6">
+					<FormField
+						control={form.control}
 						name="notes"
 						render={({ field }) => (
 							<FormItem>
@@ -278,7 +366,7 @@ export function DeliverableForm({
 					/>
 				</div>
 
-				<div className="col-span-2 mt-6">
+				<div className="col-span-6 mt-6">
 					<Button
 						type="submit"
 						className="min-w-full"

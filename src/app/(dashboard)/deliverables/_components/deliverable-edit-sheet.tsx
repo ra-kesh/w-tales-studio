@@ -13,8 +13,8 @@ import { useDeliverableParams } from "@/hooks/use-deliverable-params";
 import { DeliverableForm } from "./deliverable-form";
 import { useUpdateDeliverableMutation } from "@/hooks/use-deliverable-mutation";
 import type { DeliverableFormValues } from "../deliverable-form-schema";
-import { useDeliverable } from "@/hooks/use-deliverable";
 import { toast } from "sonner";
+import { useDeliverable } from "@/hooks/use-deliverables";
 
 export function DeliverableEditSheet() {
 	const { setParams, deliverableId } = useDeliverableParams();

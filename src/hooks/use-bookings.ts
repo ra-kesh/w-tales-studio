@@ -1,10 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
-import type { Booking, BookingDetail } from "@/lib/db/schema";
+import type { Booking, BookingDetail, Shoot } from "@/lib/db/schema";
 import type { BookingFormValues } from "@/app/(dashboard)/bookings/_components/booking-form/booking-form-schema";
+import type { BookingStats } from "@/lib/db/queries";
 
 interface BookingResponse {
-	data: Booking[];
+	data: (Booking & { shoots: Shoot[] })[];
 	total: number;
+	stats: BookingStats;
 }
 interface MinimalBookingResponse {
 	data: Pick<Booking, "id" | "name">[];
@@ -43,10 +45,9 @@ export async function fetchMinimalBookings(): Promise<MinimalBookingResponse> {
 }
 
 export function useBookings(page?: number, limit?: number) {
-	return useQuery({
+	return useQuery<BookingResponse, Error>({
 		queryKey: ["bookings", "list"],
 		queryFn: () => fetchBookings(page, limit),
-		placeholderData: { data: [], total: 0 },
 	});
 }
 

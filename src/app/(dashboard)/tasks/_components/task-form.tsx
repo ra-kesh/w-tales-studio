@@ -37,6 +37,9 @@ import {
 import { useMinimalBookings } from "@/hooks/use-bookings";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useTaskConfigs } from "@/hooks/use-configs";
+import { MultiAsyncSelect } from "@/components/ui/multi-select";
+import { useCrews } from "@/hooks/use-crews";
+import { useMemo } from "react";
 
 interface TaskFormProps {
 	defaultValues?: TaskFormValues;
@@ -52,10 +55,10 @@ export function TaskForm({
 	const cleanedDefaultValues = {
 		bookingId: defaultValues.bookingId?.toString() ?? "",
 		description: defaultValues.description ?? "",
-		assignedTo: defaultValues.assignedTo ?? "",
 		priority: defaultValues.priority ?? "",
-		status: defaultValues.status ?? "Todo",
+		status: defaultValues.status ?? "todo",
 		dueDate: defaultValues.dueDate ?? "",
+		crewMembers: defaultValues.crewMembers ?? [],
 	};
 
 	const form = useForm<TaskFormValues>({
@@ -67,14 +70,30 @@ export function TaskForm({
 	const { data: MinimalBookings } = useMinimalBookings();
 	const bookings = MinimalBookings?.data;
 	const { statuses, priorities } = useTaskConfigs();
+	const { data: crewData, isLoading: isLoadingCrew } = useCrews();
+
+	const crewOptions = useMemo(() => {
+		if (!crewData?.data) return [];
+		return crewData.data.map((crew) => {
+			const displayName = crew.member?.user?.name || crew.name;
+			const role = crew.role ? ` (${crew.role})` : "";
+			const statusBadge =
+				crew.status !== "available" ? ` [${crew.status}]` : "";
+
+			return {
+				label: `${displayName}${role}${statusBadge}`,
+				value: crew.id.toString(),
+			};
+		});
+	}, [crewData?.data]);
 
 	return (
 		<Form {...form}>
 			<form
 				onSubmit={form.handleSubmit(onSubmit)}
-				className="grid grid-cols-2 gap-6 px-4"
+				className="grid grid-cols-3 gap-6 px-4"
 			>
-				<div className="col-span-2">
+				<div className="col-span-3">
 					<FormField
 						control={form.control}
 						name="bookingId"
@@ -162,7 +181,7 @@ export function TaskForm({
 					/>
 				</div>
 
-				<div className="col-span-2">
+				<div className="col-span-3">
 					<FormField
 						control={form.control}
 						name="description"
@@ -175,6 +194,22 @@ export function TaskForm({
 										className="resize-none"
 										{...field}
 									/>
+								</FormControl>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
+				</div>
+
+				<div className="col-span-1">
+					<FormField
+						control={form.control}
+						name="dueDate"
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel>Due Date</FormLabel>
+								<FormControl>
+									<Input type="date" {...field} />
 								</FormControl>
 								<FormMessage />
 							</FormItem>
@@ -223,10 +258,19 @@ export function TaskForm({
 																key={status.value}
 																value={status.value}
 																onSelect={() => {
-																	form.setValue("status", status.value, {
-																		shouldValidate: true,
-																		shouldDirty: true,
-																	});
+																	form.setValue(
+																		"status",
+																		status.value as
+																			| "todo"
+																			| "in_progress"
+																			| "in_review"
+																			| "in_revision"
+																			| "completed",
+																		{
+																			shouldValidate: true,
+																			shouldDirty: true,
+																		},
+																	);
 																}}
 															>
 																<Check
@@ -293,10 +337,18 @@ export function TaskForm({
 																key={priority.value}
 																value={priority.value}
 																onSelect={() => {
-																	form.setValue("priority", priority.value, {
-																		shouldValidate: true,
-																		shouldDirty: true,
-																	});
+																	form.setValue(
+																		"priority",
+																		priority.value as
+																			| "low"
+																			| "medium"
+																			| "high"
+																			| "critical",
+																		{
+																			shouldValidate: true,
+																			shouldDirty: true,
+																		},
+																	);
 																}}
 															>
 																<Check
@@ -322,15 +374,25 @@ export function TaskForm({
 					/>
 				</div>
 
-				<div className="col-span-1">
+				<div className="col-span-3">
 					<FormField
 						control={form.control}
-						name="assignedTo"
+						name="crewMembers"
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>Assigned To</FormLabel>
+								<FormLabel>Assigned Crew</FormLabel>
 								<FormControl>
-									<Input placeholder="Enter assignee" {...field} />
+									<MultiAsyncSelect
+										options={crewOptions}
+										onValueChange={field.onChange}
+										defaultValue={field.value}
+										maxCount={5}
+										placeholder="Select crew members"
+										searchPlaceholder="Search crew..."
+										className="w-full"
+										loading={isLoadingCrew}
+										async={true}
+									/>
 								</FormControl>
 								<FormMessage />
 							</FormItem>
@@ -338,23 +400,7 @@ export function TaskForm({
 					/>
 				</div>
 
-				<div className="col-span-1">
-					<FormField
-						control={form.control}
-						name="dueDate"
-						render={({ field }) => (
-							<FormItem>
-								<FormLabel>Due Date</FormLabel>
-								<FormControl>
-									<Input type="date" {...field} />
-								</FormControl>
-								<FormMessage />
-							</FormItem>
-						)}
-					/>
-				</div>
-
-				<div className="col-span-2 mt-6">
+				<div className="col-span-3 mt-6">
 					<Button
 						type="submit"
 						className="min-w-full"

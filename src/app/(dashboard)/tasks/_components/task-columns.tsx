@@ -4,14 +4,31 @@ import { Checkbox } from "@/components/ui/checkbox";
 import type { ColumnDef } from "@tanstack/react-table";
 import { DataTableColumnHeader } from "./task-table-column-header";
 import { Badge } from "@/components/ui/badge";
-import type { Task } from "@/lib/db/schema";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import type { Task, TasksAssignment, Crew } from "@/lib/db/schema";
 import { useTaskConfigs } from "@/hooks/use-configs";
 import { TaskTableRowActions } from "./task-table-row-actions";
+import { format } from "date-fns";
+
+type TaskWithRelations = Task & {
+	booking: { name: string };
+	tasksAssignments: Array<
+		TasksAssignment & {
+			crew: Crew & {
+				member?: {
+					user?: {
+						name?: string | null;
+					} | null;
+				} | null;
+			};
+		}
+	>;
+};
 
 export function useTaskColumns() {
 	const { statuses, priorities } = useTaskConfigs();
 
-	const taskColumns: ColumnDef<Task & { booking: { name: string } }>[] = [
+	const taskColumns: ColumnDef<TaskWithRelations>[] = [
 		{
 			id: "select",
 			header: ({ table }) => (
@@ -37,6 +54,26 @@ export function useTaskColumns() {
 			enableHiding: false,
 		},
 		{
+			accessorKey: "description",
+			header: ({ column }) => (
+				<DataTableColumnHeader column={column} title="Task" />
+			),
+			cell: ({ row }) => {
+				return (
+					<div className="flex w-full">
+						<div className="flex flex-col space-y-1 w-full">
+							<div className="font-semibold">{row.getValue("description")}</div>
+							<div className="flex gap-3">
+								<div className="text-sm text-muted-foreground">
+									{row.original.booking.name}
+								</div>
+							</div>
+						</div>
+					</div>
+				);
+			},
+		},
+		{
 			accessorKey: "priority",
 			header: ({ column }) => (
 				<DataTableColumnHeader column={column} title="Priority" />
@@ -59,21 +96,6 @@ export function useTaskColumns() {
 		},
 
 		{
-			accessorKey: "description",
-			header: ({ column }) => (
-				<DataTableColumnHeader column={column} title="Detail" />
-			),
-			cell: ({ row }) => {
-				return (
-					<div className="flex space-x-2">
-						<span className="max-w-[500px] truncate font-medium">
-							{row.getValue("description")}
-						</span>
-					</div>
-				);
-			},
-		},
-		{
 			accessorKey: "status",
 			header: ({ column }) => (
 				<DataTableColumnHeader column={column} title="Status" />
@@ -95,47 +117,85 @@ export function useTaskColumns() {
 			},
 		},
 
+		// {
+		// 	accessorKey: "booking",
+		// 	header: ({ column }) => (
+		// 		<DataTableColumnHeader column={column} title="Booking" />
+		// 	),
+		// 	cell: ({ row }) => {
+		// 		return (
+		// 			<div className="flex items-center">
+		// 				<span>{row.original.booking.name}</span>
+		// 			</div>
+		// 		);
+		// 	},
+		// 	filterFn: (row, id, value) => {
+		// 		return value.includes(row.getValue(id));
+		// 	},
+		// },
 		{
-			accessorKey: "booking",
+			accessorKey: "tasksAssignments",
 			header: ({ column }) => (
-				<DataTableColumnHeader column={column} title="Booking" />
+				<DataTableColumnHeader column={column} title="Crew" />
 			),
 			cell: ({ row }) => {
+				const assignments = row.original.tasksAssignments;
+				const count = assignments?.length || 0;
+				const hasAssignments = count > 0;
+
 				return (
-					<div className="flex items-center">
-						<span>{row.original.booking.name}</span>
+					<div className="flex items-center gap-2">
+						{hasAssignments ? (
+							<>
+								<div className="flex -space-x-2">
+									{assignments.slice(0, 3).map((assignment) => {
+										const name =
+											assignment.crew.member?.user?.name ||
+											assignment.crew.name;
+										const initials = name
+											?.split(" ")
+											.map((n: string) => n[0])
+											.join("");
+
+										return (
+											<Avatar
+												key={assignment.id}
+												className="h-8 w-8 border-2 border-background"
+											>
+												<AvatarFallback className="bg-primary/10 text-primary text-xs">
+													{initials}
+												</AvatarFallback>
+											</Avatar>
+										);
+									})}
+								</div>
+								{count > 3 && (
+									<Badge variant="secondary" className="rounded-full">
+										+{count - 3}
+									</Badge>
+								)}
+							</>
+						) : (
+							<span className="text-sm text-muted-foreground">
+								No crew assigned
+							</span>
+						)}
 					</div>
 				);
 			},
-			filterFn: (row, id, value) => {
-				return value.includes(row.getValue(id));
-			},
 		},
-		{
-			accessorKey: "assignedTo",
-			header: ({ column }) => (
-				<DataTableColumnHeader column={column} title="Assigned" />
-			),
-			cell: ({ row }) => {
-				return (
-					<div className="flex items-center">
-						<span>{row.getValue("assignedTo") ?? "N/A"}</span>
-					</div>
-				);
-			},
-			filterFn: (row, id, value) => {
-				return value.includes(row.getValue(id));
-			},
-		},
+
 		{
 			accessorKey: "dueDate",
 			header: ({ column }) => (
 				<DataTableColumnHeader column={column} title="Due" />
 			),
 			cell: ({ row }) => {
+				const dueDate = row.getValue("dueDate");
+				if (!dueDate) return null;
 				return (
 					<div className="flex items-center">
-						<span>{row.getValue("dueDate")}</span>
+						<span>{format(new Date(dueDate as string), "MMM dd, yyyy")}</span>
 					</div>
 				);
 			},

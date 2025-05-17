@@ -30,13 +30,19 @@ export const sidebarData = {
 			logo: GalleryVerticalEnd,
 			plan: "Studio",
 		},
-		{
-			name: "Maxxer Media",
-			logo: AudioWaveform,
-			plan: "Startup",
-		},
+		// {
+		// 	name: "Maxxer Media",
+		// 	logo: AudioWaveform,
+		// 	plan: "Startup",
+		// },
 	],
 	navMain: [
+		{
+			title: "Dashboard",
+			url: "/dashboard",
+			icon: LayoutDashboardIcon,
+			isActive: true,
+		},
 		{
 			title: "Bookings",
 			url: "/bookings",
@@ -65,12 +71,7 @@ export const sidebarData = {
 				},
 			],
 		},
-		{
-			title: "Dashboard",
-			url: "/dashboard",
-			icon: LayoutDashboardIcon,
-			isActive: true,
-		},
+
 		{
 			title: "Configurations",
 			url: "/configurations",
@@ -78,8 +79,8 @@ export const sidebarData = {
 			isActive: true,
 		},
 		{
-			title: "Teams",
-			url: "/teams",
+			title: "Crews",
+			url: "/crews",
 			icon: UsersIcon,
 			isActive: true,
 		},

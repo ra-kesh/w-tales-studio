@@ -1,7 +1,8 @@
+"use client";
+
 import type * as React from "react";
 import type { Column } from "@tanstack/react-table";
 import { Check, PlusCircle } from "lucide-react";
-
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -36,14 +37,13 @@ export function DataTableFacetedFilter<TData, TValue>({
 	title,
 	options,
 }: DataTableFacetedFilterProps<TData, TValue>) {
-	const facets = column?.getFacetedUniqueValues();
 	const selectedValues = new Set(column?.getFilterValue() as string[]);
 
 	return (
 		<Popover>
 			<PopoverTrigger asChild>
 				<Button variant="outline" size="sm" className="h-8 border-dashed">
-					<PlusCircle />
+					<PlusCircle className="mr-2 h-4 w-4" />
 					{title}
 					{selectedValues?.size > 0 && (
 						<>
@@ -64,7 +64,7 @@ export function DataTableFacetedFilter<TData, TValue>({
 									</Badge>
 								) : (
 									options
-										.filter((option) => selectedValues.has(option.label))
+										.filter((option) => selectedValues.has(option.value))
 										.map((option) => (
 											<Badge
 												variant="secondary"
@@ -87,15 +87,15 @@ export function DataTableFacetedFilter<TData, TValue>({
 						<CommandEmpty>No results found.</CommandEmpty>
 						<CommandGroup>
 							{options.map((option) => {
-								const isSelected = selectedValues.has(option.label);
+								const isSelected = selectedValues.has(option.value);
 								return (
 									<CommandItem
-										key={option.label}
+										key={option.value}
 										onSelect={() => {
 											if (isSelected) {
-												selectedValues.delete(option.label);
+												selectedValues.delete(option.value);
 											} else {
-												selectedValues.add(option.label);
+												selectedValues.add(option.value);
 											}
 											const filterValues = Array.from(selectedValues);
 											column?.setFilterValue(
@@ -111,17 +111,12 @@ export function DataTableFacetedFilter<TData, TValue>({
 													: "opacity-50 [&_svg]:invisible",
 											)}
 										>
-											<Check />
+											<Check className="h-4 w-4" />
 										</div>
 										{option.icon && (
 											<option.icon className="mr-2 h-4 w-4 text-muted-foreground" />
 										)}
 										<span>{option.label}</span>
-										{facets?.get(option.value) && (
-											<span className="ml-auto flex h-4 w-4 items-center justify-center font-mono text-xs">
-												{facets.get(option.value)}
-											</span>
-										)}
 									</CommandItem>
 								);
 							})}

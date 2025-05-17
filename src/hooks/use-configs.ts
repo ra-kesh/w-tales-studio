@@ -10,30 +10,37 @@ export async function fetchConfigs(type: string): Promise<Configuration[]> {
 	return response.json();
 }
 
+// Remove API call and use static values for task statuses
 export function useTaskStatuses() {
-	return useQuery({
-		queryKey: ["configurations", "task_status"],
-		queryFn: () => fetchConfigs("task_status"),
-		staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
-		select: (data) =>
-			data.map((config) => ({
-				value: config.key,
-				label: config.value,
-			})),
-	});
+	const statuses = [
+		{ value: "todo", label: "To Do" },
+		{ value: "in_progress", label: "In Progress" },
+		{ value: "in_review", label: "In Review" },
+		{ value: "in_revision", label: "In Revision" },
+		{ value: "completed", label: "Completed" },
+	];
+
+	return {
+		data: statuses,
+		isLoading: false,
+		isError: false,
+	};
 }
 
+// Remove API call and use static values for task priorities
 export function useTaskPriorities() {
-	return useQuery({
-		queryKey: ["configurations", "task_priority"],
-		queryFn: () => fetchConfigs("task_priority"),
-		staleTime: 5 * 60 * 1000,
-		select: (data) =>
-			data.map((config) => ({
-				value: config.key,
-				label: config.value,
-			})),
-	});
+	const priorities = [
+		{ value: "low", label: "Low" },
+		{ value: "medium", label: "Medium" },
+		{ value: "high", label: "High" },
+		{ value: "critical", label: "Critical" },
+	];
+
+	return {
+		data: priorities,
+		isLoading: false,
+		isError: false,
+	};
 }
 
 // Helper hook to get both statuses and priorities
@@ -44,8 +51,8 @@ export function useTaskConfigs() {
 	return {
 		statuses,
 		priorities,
-		isLoading: statuses.isLoading || priorities.isLoading,
-		isError: statuses.isError || priorities.isError,
+		isLoading: false,
+		isError: false,
 	};
 }
 

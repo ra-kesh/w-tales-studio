@@ -131,9 +131,20 @@ export async function PUT(
 
 	const shootId = Number.parseInt(id, 10);
 
+	if (Number.isNaN(shootId)) {
+		return NextResponse.json({ message: "Invalid shoot ID" }, { status: 400 });
+	}
+
 	const body = await request.json();
 
-	const validatedData = ShootSchema.parse({ ...body, id: shootId });
+	const validation = ShootSchema.safeParse(body);
+	if (!validation.success) {
+		return NextResponse.json(
+			{ message: "Validation error", errors: validation.error.errors },
+			{ status: 400 },
+		);
+	}
+	const validatedData = validation.data;
 
 	try {
 		const result = await db.transaction(async (tx) => {
@@ -147,6 +158,20 @@ export async function PUT(
 			if (!existingShoot) {
 				return NextResponse.json(
 					{ message: "Shoot not found or access denied" },
+					{ status: 404 },
+				);
+			}
+
+			const existingBooking = await tx.query.bookings.findFirst({
+				where: and(
+					eq(bookings.id, Number.parseInt(validatedData.bookingId)),
+					eq(bookings.organizationId, userOrganizationId),
+				),
+			});
+
+			if (!existingBooking) {
+				return NextResponse.json(
+					{ message: "Booking not found or access denied" },
 					{ status: 404 },
 				);
 			}
@@ -186,8 +211,7 @@ export async function PUT(
 			const [updatedShoot] = await tx
 				.update(shoots)
 				.set({
-					bookingId:
-						Number.parseInt(validatedData.bookingId) ?? existingShoot.bookingId,
+					bookingId: Number.parseInt(validatedData.bookingId),
 					title: validatedData.title ?? existingShoot.title,
 					date: validatedData.date ?? existingShoot.date,
 					time: validatedData.time ?? existingShoot.time,

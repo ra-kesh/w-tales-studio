@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getBookings } from "@/lib/db/queries";
+import { getBookings, getBookingsStats } from "@/lib/db/queries";
 import { getServerSession } from "@/lib/dal";
 import { db } from "@/lib/db/drizzle";
 import {
@@ -261,7 +261,15 @@ export async function GET(request: Request) {
 
 		const result = await getBookings(userOrganizationId, page, limit, fields);
 
-		return NextResponse.json(result, { status: 200 });
+		const stats = await getBookingsStats(userOrganizationId);
+
+		return NextResponse.json(
+			{
+				...result,
+				stats,
+			},
+			{ status: 200 },
+		);
 	} catch (error: unknown) {
 		console.error("Error fetching bookings:", error);
 		const errorMessage =

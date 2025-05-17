@@ -148,6 +148,27 @@
       "when": 1746351032835,
       "tag": "0020_open_polaris",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1746525960660,
+      "tag": "0021_outstanding_psynapse",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1747056785435,
+      "tag": "0022_legal_slapstick",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1747287272034,
+      "tag": "0023_overjoyed_dreadnoughts",
+      "breakpoints": true
     }
   ]
 }
