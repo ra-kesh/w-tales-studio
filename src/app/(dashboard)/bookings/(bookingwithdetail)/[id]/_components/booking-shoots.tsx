@@ -12,6 +12,7 @@ import {
 	ChevronUp,
 	MapPin,
 	Users,
+	Edit,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -20,18 +21,24 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { OpenShootsSheet } from "@/app/(dashboard)/shoots/_components/open-shoots-sheet";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { useShootsParams } from "@/hooks/use-shoots-params";
 
 interface BookingShootsProps {
 	shoots: Shoot[];
+	bookingId?: string | number;
 }
 
 // Reusable component for displaying shoots
 function ShootsList({
 	shoots,
 	isFinished = false,
+	bookingId,
 }: {
 	shoots: Shoot[];
 	isFinished?: boolean;
+	bookingId?: string | number;
 }) {
 	const [expandedShoots, setExpandedShoots] = useState<Record<string, boolean>>(
 		{},
@@ -74,6 +81,8 @@ function ShootsList({
 			: a.dateTime.localeCompare(b.dateTime),
 	);
 
+	const { setParams } = useShootsParams();
+
 	if (shoots.length === 0) {
 		return (
 			<div className="text-center py-8 text-muted-foreground">
@@ -114,15 +123,36 @@ function ShootsList({
 										<td className="relative py-5 px-4 w-full">
 											<div className="flex flex-col gap-2">
 												<div className="flex justify-between">
-													<div className="flex items-center gap-2">
-														<div className="text-sm font-medium leading-6 text-gray-900">
-															{shoot.title || "Untitled Shoot"}
-														</div>
-														{isFinished && (
-															<div className="rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-																Completed
+													<div className="flex flex-col items-start">
+														<div className="flex items-center gap-2">
+															<div className="text-sm font-medium leading-6 text-gray-900">
+																{shoot.title || "Untitled Shoot"}
 															</div>
-														)}
+															{isFinished && (
+																<div className="rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
+																	Completed
+																</div>
+															)}
+
+															<Button
+																variant="ghost"
+																size="icon"
+																className="h-6 w-6 rounded-full hover:bg-gray-100 ml-2"
+																onClick={() =>
+																	setParams({
+																		shootId: shoot.id.toString(),
+																	})
+																}
+															>
+																<Edit className="h-3.5 w-3.5 text-gray-500" />
+																<span className="sr-only">Edit shoot</span>
+															</Button>
+														</div>
+														{shoot.notes ? (
+															<div className="text-xs leading-6 text-gray-600">
+																{shoot.notes}
+															</div>
+														) : null}
 													</div>
 													<div className="flex flex-col">
 														<div className="flex items-center text-sm text-gray-500">
@@ -243,7 +273,7 @@ function ShootsList({
 	);
 }
 
-export function BookingShoots({ shoots }: BookingShootsProps) {
+export function BookingShoots({ shoots, bookingId }: BookingShootsProps) {
 	// Separate shoots into upcoming and finished based on date
 	const upcomingShoots = shoots.filter(
 		(shoot) => !isPast(new Date(shoot.date as string)),
@@ -264,7 +294,7 @@ export function BookingShoots({ shoots }: BookingShootsProps) {
 			<CardHeader className="flex flex-row items-center justify-between pb-2">
 				<CardTitle className="text-xl font-bold">Shoots</CardTitle>
 
-				<OpenShootsSheet />
+				<OpenShootsSheet bookingId={bookingId} />
 			</CardHeader>
 
 			<CardContent>
@@ -279,11 +309,19 @@ export function BookingShoots({ shoots }: BookingShootsProps) {
 					</TabsList>
 
 					<TabsContent value="upcoming">
-						<ShootsList shoots={upcomingShoots} isFinished={false} />
+						<ShootsList
+							shoots={upcomingShoots}
+							isFinished={false}
+							bookingId={bookingId}
+						/>
 					</TabsContent>
 
 					<TabsContent value="finished">
-						<ShootsList shoots={finishedShoots} isFinished={true} />
+						<ShootsList
+							shoots={finishedShoots}
+							isFinished={true}
+							bookingId={bookingId}
+						/>
 					</TabsContent>
 				</Tabs>
 				<div className="flex w-full items-center gap-2 py-4">
