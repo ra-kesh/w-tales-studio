@@ -3,6 +3,7 @@
 import * as React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useParams } from "next/navigation";
 import {
 	Form,
 	FormControl,
@@ -51,8 +52,11 @@ export function ShootForm({
 	onSubmit,
 	mode = "create",
 }: ShootFormProps) {
+	const params = useParams();
+	const bookingIdFromParams = params.id ? params.id.toString() : "";
+
 	const cleanedDefaultValues = {
-		bookingId: defaultValues.bookingId?.toString() || "",
+		bookingId: defaultValues.bookingId?.toString() || bookingIdFromParams || "",
 		title: defaultValues.title || "",
 		crewMembers: defaultValues.crewMembers || [],
 		date: defaultValues.date || "",
@@ -70,7 +74,7 @@ export function ShootForm({
 	const { data: MinimalBookings } = useMinimalBookings();
 	const bookings = MinimalBookings?.data;
 
-	const { data: crewData, isLoading } = useCrews();
+	const { data: crewData, isLoading: isLoadingCrew } = useCrews();
 	const crewOptions = React.useMemo(() => {
 		if (!crewData?.data) return [];
 		return crewData.data.map((crew) => {
@@ -109,13 +113,12 @@ export function ShootForm({
 										<FormControl>
 											<Button
 												variant="outline"
-												// biome-ignore lint/a11y/useSemanticElements: <explanation>
 												role="combobox"
 												className={cn(
 													"w-full justify-between",
 													!field.value && "text-muted-foreground",
 												)}
-												disabled={mode === "edit"}
+												disabled={mode === "edit" || !!bookingIdFromParams}
 											>
 												{field.value
 													? bookings?.find(
@@ -204,17 +207,23 @@ export function ShootForm({
 						control={form.control}
 						name="crewMembers"
 						render={({ field }) => (
-							<MultiAsyncSelect
-								options={crewOptions}
-								onValueChange={field.onChange}
-								defaultValue={field.value}
-								maxCount={5}
-								placeholder="Select crew"
-								searchPlaceholder="Search crew members..."
-								className="w-full"
-								loading={isLoading}
-								async={true}
-							/>
+							<FormItem>
+								<FormLabel>Assigned Crew</FormLabel>
+								<FormControl>
+									<MultiAsyncSelect
+										options={crewOptions}
+										onValueChange={field.onChange}
+										defaultValue={field.value}
+										maxCount={5}
+										placeholder="Select crew members"
+										searchPlaceholder="Search crew..."
+										className="w-full"
+										loading={isLoadingCrew}
+										async={true}
+									/>
+								</FormControl>
+								<FormMessage />
+							</FormItem>
 						)}
 					/>
 				</div>

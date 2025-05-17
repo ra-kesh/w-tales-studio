@@ -21,11 +21,30 @@ export function useCreateShootMutation() {
 
 			return response.json();
 		},
-		onSuccess: (data) => {
+		onSuccess: ({ data }) => {
 			queryClient.invalidateQueries({
 				queryKey: ["bookings", "shoot", "list"],
 			});
 			queryClient.invalidateQueries({ queryKey: ["bookings", "list"] });
+			queryClient.invalidateQueries({
+				queryKey: [
+					"bookings",
+					"shoot",
+					"detail",
+					{
+						shootId: data.shootId.toString(),
+					},
+				],
+			});
+			queryClient.refetchQueries({
+				queryKey: [
+					"bookings",
+					"detail",
+					{
+						bookingId: data.bookingId.toString(),
+					},
+				],
+			});
 			toast.success("Shoot created successfully");
 		},
 		onError: (error) => {
