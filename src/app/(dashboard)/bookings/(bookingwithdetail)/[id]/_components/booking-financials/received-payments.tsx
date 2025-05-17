@@ -64,11 +64,11 @@ export function ReceivedPayments({ receivedAmounts }: ReceivedPaymentsProps) {
 				<tbody>
 					{sortedDates.map((day) => (
 						<Fragment key={day.dateTime}>
-							<tr className="text-sm leading-6 text-gray-900">
+							<tr className="text-sm leading-6 text-gray-900 ">
 								<th
 									scope="colgroup"
 									colSpan={3}
-									className="relative isolate py-2 font-semibold"
+									className="relative isolate py-2 font-semibold px-4"
 								>
 									<time dateTime={day.dateTime}>{day.date}</time>
 									<div className="absolute inset-y-0 right-full -z-10 w-screen border-b border-gray-200 bg-gray-50" />
@@ -77,7 +77,7 @@ export function ReceivedPayments({ receivedAmounts }: ReceivedPaymentsProps) {
 							</tr>
 							{day.payments.map((payment) => (
 								<tr key={payment.id}>
-									<td className="relative py-5 pr-6">
+									<td className="relative py-5 px-4">
 										<div className="flex gap-x-6">
 											<div className="flex-auto">
 												<div className="flex items-start gap-x-3">
@@ -93,12 +93,30 @@ export function ReceivedPayments({ receivedAmounts }: ReceivedPaymentsProps) {
 										<div className="absolute bottom-0 right-full h-px w-screen bg-gray-100" />
 										<div className="absolute bottom-0 left-0 h-px w-screen bg-gray-100" />
 									</td>
-									<td className="hidden py-5 pr-6 sm:table-cell">
+									<td className="hidden py-5 px-4 sm:table-cell">
 										<div className="text-sm leading-6 text-gray-900">
 											{(payment.description as string) || "Payment"}
 										</div>
 									</td>
-									<td className="py-5 text-right">
+									<td className="py-5 px-4 text-right">
+										<div className="flex justify-end">
+											<a
+												href="#"
+												className="text-sm font-medium leading-6 text-indigo-600 hover:text-indigo-500"
+											>
+												View
+												<span className="hidden sm:inline"> transaction</span>
+												{/* <span className="sr-only">
+													, invoice #1120,{" "}
+													{transaction.client}
+												</span> */}
+											</a>
+										</div>
+										{/* <div className="mt-1 text-xs leading-5 text-gray-500">
+											Invoice <span className="text-gray-900">#{109932}</span>
+										</div> */}
+									</td>
+									{/* <td className="py-5 text-right">
 										<div className="flex justify-end items-center">
 											<CheckCircle className="h-4 w-4 mr-2 text-green-500" />
 											<span className="text-sm text-gray-500">
@@ -110,7 +128,7 @@ export function ReceivedPayments({ receivedAmounts }: ReceivedPaymentsProps) {
 													: "No date"}
 											</span>
 										</div>
-									</td>
+									</td> */}
 								</tr>
 							))}
 						</Fragment>

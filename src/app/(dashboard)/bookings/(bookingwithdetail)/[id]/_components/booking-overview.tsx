@@ -41,7 +41,7 @@ export function BookingOverview({ booking }: BookingOverviewProps) {
 					<dt className="text-sm font-medium leading-6 text-gray-900">
 						Bride Name
 					</dt>
-					<dd className="mt-1 text-sm leading-6 text-gray-700 sm:mt-2">
+					<dd className="mt-1 text-sm  leading-6 text-gray-700 sm:mt-2">
 						{booking.clients.brideName || "Not specified"}
 					</dd>
 				</div>
@@ -102,7 +102,7 @@ export function BookingOverview({ booking }: BookingOverviewProps) {
 					<dd>
 						<div className="rounded-md border border-gray-200 py-4 pl-4 pr-5">
 							<Tabs defaultValue="received" className="w-full">
-								<TabsList className="grid w-full grid-cols-3 mb-4">
+								<TabsList className="grid w-full grid-cols-3 mb-4 ">
 									<TabsTrigger value="received">Received Payments</TabsTrigger>
 									<TabsTrigger value="upcoming">Upcoming Payments</TabsTrigger>
 									<TabsTrigger value="expenses">Expenses</TabsTrigger>
