@@ -3,11 +3,26 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { format, isToday, isTomorrow, isThisWeek, isAfter, isPast } from "date-fns";
-import { 
-  CheckCircle2, Clock, AlertCircle, Plus, 
-  Calendar, Tag, ArrowUp, ArrowDown, 
-  Edit, Users, MoreHorizontal 
+import {
+  format,
+  isToday,
+  isTomorrow,
+  isThisWeek,
+  isAfter,
+  isPast,
+} from "date-fns";
+import {
+  CheckCircle2,
+  Clock,
+  AlertCircle,
+  Plus,
+  Calendar,
+  Tag,
+  ArrowUp,
+  ArrowDown,
+  Edit,
+  Users,
+  MoreHorizontal,
 } from "lucide-react";
 import type { Task } from "@/lib/db/schema";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -25,53 +40,53 @@ import {
 export function BookingTasks({ tasks }: { tasks: Task[] }) {
   const { setParams } = useTaskParams();
   const [activeTab, setActiveTab] = useState("all");
-  
+
   // Helper function to get status groups
   const getStatusGroups = () => {
     const groups: Record<string, Task[]> = {};
-    tasks?.forEach(task => {
+    tasks?.forEach((task) => {
       const status = task.status || "todo";
       if (!groups[status]) groups[status] = [];
       groups[status].push(task);
     });
     return groups;
   };
-  
+
   // Helper function to get priority groups
   const getPriorityGroups = () => {
     const groups: Record<string, Task[]> = {};
-    tasks?.forEach(task => {
+    tasks?.forEach((task) => {
       const priority = task.priority || "medium";
       if (!groups[priority]) groups[priority] = [];
       groups[priority].push(task);
     });
     return groups;
   };
-  
+
   // Helper function to get due date groups - improved logic
   const getDueDateGroups = () => {
     const groups: Record<string, Task[]> = {
-      "Today": [],
-      "Tomorrow": [],
+      Today: [],
+      Tomorrow: [],
       "This Week": [],
-      "Upcoming": [],
-      "Overdue": [],
+      Upcoming: [],
+      Overdue: [],
       "No Due Date": [],
-      "Completed": []
+      Completed: [],
     };
-    
-    tasks?.forEach(task => {
+
+    tasks?.forEach((task) => {
       // First check if task is completed, regardless of due date
       if (task.status === "completed") {
         groups["Completed"].push(task);
         return;
       }
-      
+
       if (!task.dueDate) {
         groups["No Due Date"].push(task);
         return;
       }
-      
+
       const dueDate = new Date(task.dueDate);
       if (isToday(dueDate)) groups["Today"].push(task);
       else if (isTomorrow(dueDate)) groups["Tomorrow"].push(task);
@@ -79,13 +94,13 @@ export function BookingTasks({ tasks }: { tasks: Task[] }) {
       else if (isAfter(dueDate, new Date())) groups["Upcoming"].push(task);
       else groups["Overdue"].push(task);
     });
-    
+
     // Remove empty groups
     return Object.fromEntries(
       Object.entries(groups).filter(([_, tasks]) => tasks.length > 0)
     );
   };
-  
+
   const handleAddTask = () => {
     setParams({ bookingId: tasks?.[0]?.bookingId?.toString() });
   };
@@ -96,13 +111,34 @@ export function BookingTasks({ tasks }: { tasks: Task[] }) {
 
   // Get priority badge color
   const getPriorityBadge = (priority: string) => {
-    switch(priority?.toLowerCase()) {
-      case 'high':
-        return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">High</Badge>;
-      case 'medium':
-        return <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">Medium</Badge>;
-      case 'low':
-        return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Low</Badge>;
+    switch (priority?.toLowerCase()) {
+      case "high":
+        return (
+          <Badge
+            variant="outline"
+            className="bg-red-50 text-red-700 border-red-200"
+          >
+            High
+          </Badge>
+        );
+      case "medium":
+        return (
+          <Badge
+            variant="outline"
+            className="bg-amber-50 text-amber-700 border-amber-200"
+          >
+            Medium
+          </Badge>
+        );
+      case "low":
+        return (
+          <Badge
+            variant="outline"
+            className="bg-green-50 text-green-700 border-green-200"
+          >
+            Low
+          </Badge>
+        );
       default:
         return <Badge variant="outline">Medium</Badge>;
     }
@@ -110,14 +146,22 @@ export function BookingTasks({ tasks }: { tasks: Task[] }) {
 
   // Get status badge
   const getStatusBadge = (status: string) => {
-    switch(status?.toLowerCase()) {
-      case 'completed':
-        return <Badge className="bg-green-100 text-green-800 hover:bg-green-200">Completed</Badge>;
-      case 'in_progress':
-        return <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-200">In Progress</Badge>;
-      case 'todo':
+    switch (status?.toLowerCase()) {
+      case "completed":
+        return (
+          <Badge className="bg-green-100 text-green-800 hover:bg-green-200">
+            Completed
+          </Badge>
+        );
+      case "in_progress":
+        return (
+          <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-200">
+            In Progress
+          </Badge>
+        );
+      case "todo":
         return <Badge variant="outline">Todo</Badge>;
-      case 'cancelled':
+      case "cancelled":
         return <Badge variant="destructive">Cancelled</Badge>;
       default:
         return <Badge variant="outline">Todo</Badge>;
@@ -126,10 +170,10 @@ export function BookingTasks({ tasks }: { tasks: Task[] }) {
 
   // Get priority icon
   const getPriorityIcon = (priority: string) => {
-    switch(priority?.toLowerCase()) {
-      case 'high':
+    switch (priority?.toLowerCase()) {
+      case "high":
         return <ArrowUp className="h-4 w-4 text-red-500" />;
-      case 'low':
+      case "low":
         return <ArrowDown className="h-4 w-4 text-green-500" />;
       default:
         return <ArrowUp className="h-4 w-4 text-amber-500 rotate-90" />;
@@ -139,13 +183,16 @@ export function BookingTasks({ tasks }: { tasks: Task[] }) {
   // Render task card
   const renderTaskCard = (task: Task) => {
     return (
-      <div key={task.id} className="border rounded-md p-4 mb-3 hover:bg-muted/30 transition-colors">
+      <div
+        key={task.id}
+        className="border rounded-md p-4 mb-3 hover:bg-muted/30 transition-colors"
+      >
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <div className="font-medium">{task.description}</div>
             <div className="flex flex-wrap gap-2 mt-2">
-              {getPriorityBadge(task.priority || 'medium')}
-              {getStatusBadge(task.status || 'todo')}
+              {getPriorityBadge(task.priority || "medium")}
+              {getStatusBadge(task.status || "todo")}
               {task.dueDate && (
                 <div className="flex items-center text-xs text-muted-foreground">
                   <Calendar className="h-3 w-3 mr-1" />
@@ -153,20 +200,28 @@ export function BookingTasks({ tasks }: { tasks: Task[] }) {
                 </div>
               )}
             </div>
-            
+
             {task.tasksAssignments?.length > 0 && (
               <div className="mt-3">
-                <div className="text-xs text-muted-foreground mb-1">Assigned to:</div>
+                <div className="text-xs text-muted-foreground mb-1">
+                  Assigned to:
+                </div>
                 <div className="space-y-2">
                   {task.tasksAssignments.map((assignment) => {
-                    const name = assignment.crew?.member?.user?.name || assignment.crew?.name || "Unnamed";
+                    const name =
+                      assignment.crew?.member?.user?.name ||
+                      assignment.crew?.name ||
+                      "Unnamed";
                     const initials = name
                       .split(" ")
                       .map((n: string) => n[0])
                       .join("");
-                    
+
                     return (
-                      <div key={assignment.id} className="flex items-center gap-2">
+                      <div
+                        key={assignment.id}
+                        className="flex items-center gap-2"
+                      >
                         <Avatar className="h-6 w-6">
                           <AvatarFallback className="bg-primary/10 text-primary text-xs">
                             {initials}
@@ -174,7 +229,10 @@ export function BookingTasks({ tasks }: { tasks: Task[] }) {
                         </Avatar>
                         <span className="text-sm">{name}</span>
                         {assignment.isLead && (
-                          <Badge variant="outline" className="text-xs h-5 bg-blue-50 text-blue-700 border-blue-200">
+                          <Badge
+                            variant="outline"
+                            className="text-xs h-5 bg-blue-50 text-blue-700 border-blue-200"
+                          >
                             Lead
                           </Badge>
                         )}
@@ -185,7 +243,7 @@ export function BookingTasks({ tasks }: { tasks: Task[] }) {
               </div>
             )}
           </div>
-          
+
           <Button
             variant="ghost"
             size="sm"
@@ -209,7 +267,7 @@ export function BookingTasks({ tasks }: { tasks: Task[] }) {
           Add Task
         </Button>
       </div>
-      
+
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid grid-cols-4 mb-4">
           <TabsTrigger value="all">All Tasks</TabsTrigger>
@@ -217,11 +275,23 @@ export function BookingTasks({ tasks }: { tasks: Task[] }) {
           <TabsTrigger value="priority">By Priority</TabsTrigger>
           <TabsTrigger value="dueDate">By Due Date</TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="all" className="mt-0">
           {tasks?.length > 0 ? (
-            <div className="space-y-1">
-              {tasks.map(task => renderTaskCard(task))}
+            <div className="border rounded-md overflow-hidden">
+              <div className="flex items-center gap-2 p-3 bg-muted/50">
+                <Tag className="h-4 w-4 text-gray-500" />
+                <h3 className="font-medium text-sm">All Tasks</h3>
+                <Badge
+                  variant="outline"
+                  className="ml-2 bg-blue-50 text-blue-700 border-blue-200"
+                >
+                  {tasks.length}
+                </Badge>
+              </div>
+              <div className="p-3">
+                {tasks.map((task) => renderTaskCard(task))}
+              </div>
             </div>
           ) : (
             <div className="text-center p-12 border rounded-md">
@@ -233,63 +303,81 @@ export function BookingTasks({ tasks }: { tasks: Task[] }) {
             </div>
           )}
         </TabsContent>
-        
+
         <TabsContent value="status" className="mt-0 space-y-6">
           {Object.entries(getStatusGroups()).map(([status, statusTasks]) => (
-            <Card key={status}>
-              <CardHeader className="py-3">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-base font-medium flex items-center gap-2">
-                    {status === 'completed' && <CheckCircle2 className="h-4 w-4 text-green-500" />}
-                    {status === 'in_progress' && <Clock className="h-4 w-4 text-blue-500" />}
-                    {status === 'cancelled' && <AlertCircle className="h-4 w-4 text-red-500" />}
-                    {status.charAt(0).toUpperCase() + status.slice(1).replace('_', ' ')}
-                  </CardTitle>
-                  <Badge variant="outline">{statusTasks.length}</Badge>
-                </div>
-              </CardHeader>
-              <CardContent className="pt-0">
-                {statusTasks.map(task => renderTaskCard(task))}
-              </CardContent>
-            </Card>
+            <div key={status} className="border rounded-md overflow-hidden">
+              <div className="flex items-center gap-2 p-3 bg-muted/50">
+                {status === "completed" && (
+                  <CheckCircle2 className="h-4 w-4 text-green-500" />
+                )}
+                {status === "in_progress" && (
+                  <Clock className="h-4 w-4 text-blue-500" />
+                )}
+                {status === "cancelled" && (
+                  <AlertCircle className="h-4 w-4 text-red-500" />
+                )}
+                {status === "todo" && <Tag className="h-4 w-4 text-gray-500" />}
+                <h3 className="font-medium text-sm">
+                  {status.charAt(0).toUpperCase() +
+                    status.slice(1).replace("_", " ")}
+                </h3>
+                <Badge
+                  variant="outline"
+                  className="ml-2 bg-blue-50 text-blue-700 border-blue-200"
+                >
+                  {statusTasks.length}
+                </Badge>
+              </div>
+              <div className="p-3">
+                {statusTasks.map((task) => renderTaskCard(task))}
+              </div>
+            </div>
           ))}
         </TabsContent>
-        
+
         <TabsContent value="priority" className="mt-0 space-y-6">
-          {Object.entries(getPriorityGroups()).map(([priority, priorityTasks]) => (
-            <Card key={priority}>
-              <CardHeader className="py-3">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-base font-medium flex items-center gap-2">
-                    {getPriorityIcon(priority)}
-                    {priority.charAt(0).toUpperCase() + priority.slice(1)} Priority
-                  </CardTitle>
-                  <Badge variant="outline">{priorityTasks.length}</Badge>
+          {Object.entries(getPriorityGroups()).map(
+            ([priority, priorityTasks]) => (
+              <div key={priority} className="border rounded-md overflow-hidden">
+                <div className="flex items-center gap-2 p-3 bg-muted/50">
+                  {getPriorityIcon(priority)}
+                  <h3 className="font-medium text-sm">
+                    {priority.charAt(0).toUpperCase() + priority.slice(1)}{" "}
+                    Priority
+                  </h3>
+                  <Badge
+                    variant="outline"
+                    className="ml-2 bg-blue-50 text-blue-700 border-blue-200"
+                  >
+                    {priorityTasks.length}
+                  </Badge>
                 </div>
-              </CardHeader>
-              <CardContent className="pt-0">
-                {priorityTasks.map(task => renderTaskCard(task))}
-              </CardContent>
-            </Card>
-          ))}
+                <div className="p-3">
+                  {priorityTasks.map((task) => renderTaskCard(task))}
+                </div>
+              </div>
+            )
+          )}
         </TabsContent>
-        
+
         <TabsContent value="dueDate" className="mt-0 space-y-6">
           {Object.entries(getDueDateGroups()).map(([dateGroup, dateTasks]) => (
-            <Card key={dateGroup}>
-              <CardHeader className="py-3">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-base font-medium flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-gray-500" />
-                    {dateGroup}
-                  </CardTitle>
-                  <Badge variant="outline">{dateTasks.length}</Badge>
-                </div>
-              </CardHeader>
-              <CardContent className="pt-0">
-                {dateTasks.map(task => renderTaskCard(task))}
-              </CardContent>
-            </Card>
+            <div key={dateGroup} className="border rounded-md overflow-hidden">
+              <div className="flex items-center gap-2 p-3 bg-muted/50">
+                <Calendar className="h-4 w-4 text-gray-500" />
+                <h3 className="font-medium text-sm">{dateGroup}</h3>
+                <Badge
+                  variant="outline"
+                  className="ml-2 bg-blue-50 text-blue-700 border-blue-200"
+                >
+                  {dateTasks.length}
+                </Badge>
+              </div>
+              <div className="p-3">
+                {dateTasks.map((task) => renderTaskCard(task))}
+              </div>
+            </div>
           ))}
         </TabsContent>
       </Tabs>
