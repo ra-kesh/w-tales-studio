@@ -40,6 +40,7 @@ import { useTaskConfigs } from "@/hooks/use-configs";
 import { MultiAsyncSelect } from "@/components/ui/multi-select";
 import { useCrews } from "@/hooks/use-crews";
 import { useMemo } from "react";
+import { useParams } from "next/navigation";
 
 interface TaskFormProps {
 	defaultValues?: TaskFormValues;
@@ -52,8 +53,11 @@ export function TaskForm({
 	onSubmit,
 	mode = "create",
 }: TaskFormProps) {
+	const params = useParams();
+	const bookingIdFromParams = params.id ? params.id.toString() : "";
+
 	const cleanedDefaultValues = {
-		bookingId: defaultValues.bookingId?.toString() ?? "",
+		bookingId: defaultValues.bookingId?.toString() || bookingIdFromParams || "",
 		description: defaultValues.description ?? "",
 		priority: defaultValues.priority ?? "",
 		status: defaultValues.status ?? "todo",
@@ -109,7 +113,7 @@ export function TaskForm({
 													"w-full justify-between",
 													!field.value && "text-muted-foreground",
 												)}
-												disabled={mode === "edit"}
+												disabled={mode === "edit" || !!bookingIdFromParams}
 												type="button"
 												aria-expanded={true}
 												aria-haspopup="listbox"

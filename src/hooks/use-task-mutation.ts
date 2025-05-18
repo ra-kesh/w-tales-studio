@@ -23,9 +23,18 @@ export function useCreateTaskMutation() {
 			return response.json();
 		},
 		onSuccess: ({ data }) => {
-			queryClient.invalidateQueries({ queryKey: ["tasks"] });
-			queryClient.invalidateQueries({ queryKey: ["crews"] });
+			queryClient.invalidateQueries({ queryKey: ["bookings", "task", "list"] });
+			// queryClient.invalidateQueries({ queryKey: ["crews"] });
 			queryClient.invalidateQueries({
+				queryKey: [
+					"bookings",
+					"detail",
+					{
+						bookingId: data.bookingId.toString(),
+					},
+				],
+			});
+			queryClient.refetchQueries({
 				queryKey: [
 					"bookings",
 					"detail",
@@ -69,17 +78,28 @@ export function useUpdateTaskMutation() {
 			return response.json();
 		},
 		onSuccess: ({ data }) => {
-			queryClient.invalidateQueries({ queryKey: ["tasks"] });
-			queryClient.invalidateQueries({ queryKey: ["crews"] });
+			queryClient.invalidateQueries({ queryKey: ["bookings", "task", "list"] });
+			// queryClient.invalidateQueries({ queryKey: ["crews"] });
 			queryClient.invalidateQueries({
 				queryKey: [
+					"bookings",
 					"task",
+					"detail",
 					{
 						taskId: data.taskId.toString(),
 					},
 				],
 			});
 			queryClient.invalidateQueries({
+				queryKey: [
+					"bookings",
+					"detail",
+					{
+						bookingId: data.bookingId.toString(),
+					},
+				],
+			});
+			queryClient.refetchQueries({
 				queryKey: [
 					"bookings",
 					"detail",
