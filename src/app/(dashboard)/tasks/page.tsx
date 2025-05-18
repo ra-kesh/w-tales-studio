@@ -13,7 +13,7 @@ export default async function TaskPage() {
 
 	const queryClient = new QueryClient();
 	await queryClient.prefetchQuery({
-		queryKey: ["tasks"],
+		queryKey: ["bookings", "task", "list"],
 		queryFn: () => getTasks(session?.session.activeOrganizationId as string),
 	});
 
