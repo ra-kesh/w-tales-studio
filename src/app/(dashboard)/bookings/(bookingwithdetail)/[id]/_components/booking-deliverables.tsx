@@ -14,13 +14,16 @@ import {
 	Plus,
 	DollarSign,
 	Users,
+	Tag,
+	Calendar,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useDeliverableParams } from "@/hooks/use-deliverable-params";
+import { cn } from "@/lib/utils";
 
 interface BookingDeliverablesProps {
 	deliverables: Deliverable[];
@@ -30,11 +33,11 @@ interface BookingDeliverablesProps {
 // Reusable component for displaying deliverables
 function DeliverablesList({
 	deliverables,
-	isCompleted = false,
+	isDelivered = false,
 	bookingId,
 }: {
 	deliverables: Deliverable[];
-	isCompleted?: boolean;
+	isDelivered?: boolean;
 	bookingId?: string | number;
 }) {
 	const [expandedDeliverables, setExpandedDeliverables] = useState<
@@ -57,253 +60,297 @@ function DeliverablesList({
 	if (deliverables.length === 0) {
 		return (
 			<div className="text-center py-8 text-muted-foreground">
-				{isCompleted
-					? "No completed deliverables yet"
+				{isDelivered
+					? "No delivered deliverables yet"
 					: "No pending deliverables scheduled"}
 			</div>
 		);
 	}
 
-	return (
-		<div className="overflow-hidden">
-			<table className="w-full text-left">
-				<thead className="sr-only">
-					<tr>
-						<th>Title</th>
-						<th>Details</th>
-					</tr>
-				</thead>
-				<tbody>
-					{deliverables.map((deliverable) => (
-						<React.Fragment key={deliverable.id}>
-							<tr>
-								<td className="relative py-5 px-4 w-full">
-									<div className="flex flex-col gap-2">
-										<div className="flex justify-between">
-											<div className="flex flex-col items-start">
-												<div className="flex items-center gap-2">
-													<div className="text-sm font-medium leading-6 text-gray-900">
-														{deliverable.title || "Untitled Deliverable"}
-													</div>
-													{isCompleted && (
-														<div className="rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-															Completed
-														</div>
-													)}
-													{deliverable.dueDate && (
-														<div className="text-xs text-gray-500">
-															Due:{" "}
-															{format(
-																new Date(deliverable.dueDate as string),
-																"MMM d, yyyy",
-															)}
-														</div>
-													)}
+	// Group deliverables by status
+	const groupedDeliverables = deliverables.reduce(
+		(acc, deliverable) => {
+			const status = deliverable.status || "draft";
+			if (!acc[status]) {
+				acc[status] = [];
+			}
+			acc[status].push(deliverable);
+			return acc;
+		},
+		{} as Record<string, Deliverable[]>,
+	);
 
-													<Button
-														variant="ghost"
-														size="icon"
-														className="h-6 w-6 rounded-full hover:bg-gray-100 ml-2"
-														onClick={() =>
-															setParams({
-																deliverableId: deliverable.id.toString(),
-															})
-														}
-													>
-														<Edit className="h-3.5 w-3.5 text-gray-500" />
-														<span className="sr-only">Edit deliverable</span>
-													</Button>
+	// Define status display names and order
+	const statusOrder = isDelivered
+		? ["delivered"]
+		: ["in_progress", "review", "pending", "draft"];
+
+	const statusDisplayNames: Record<string, string> = {
+		in_progress: "In Progress",
+		pending: "Pending",
+		review: "In Review",
+		draft: "Draft",
+		delivered: "Delivered",
+		completed: "Completed",
+	};
+
+	// Status badge colors
+	const statusColors: Record<string, string> = {
+		in_progress: "bg-blue-50 text-blue-700 border-blue-200",
+		pending: "bg-yellow-50 text-yellow-700 border-yellow-200",
+		review: "bg-amber-50 text-amber-700 border-amber-200",
+		draft: "bg-gray-50 text-gray-700 border-gray-200",
+		delivered: "bg-green-50 text-green-700 border-green-200",
+		completed: "bg-green-50 text-green-700 border-green-200",
+	};
+
+	// Sort status groups by predefined order
+	const sortedStatusGroups = Object.entries(groupedDeliverables).sort(
+		([statusA], [statusB]) => {
+			const indexA = statusOrder.indexOf(statusA);
+			const indexB = statusOrder.indexOf(statusB);
+
+			// If both statuses are in the order array, sort by their position
+			if (indexA !== -1 && indexB !== -1) {
+				return indexA - indexB;
+			}
+
+			// If only one status is in the order array, prioritize it
+			if (indexA !== -1) return -1;
+			if (indexB !== -1) return 1;
+
+			// If neither status is in the order array, sort alphabetically
+			return statusA.localeCompare(statusB);
+		},
+	);
+
+	return (
+		<div className="overflow-hidden space-y-6">
+			{sortedStatusGroups.map(([status, statusDeliverables]) => (
+				<div key={status} className="border rounded-md overflow-hidden">
+					<div className="flex items-center gap-2 p-3 bg-muted/50">
+						<Tag className="h-4 w-4 text-gray-500" />
+						<h3 className="font-medium text-sm">
+							{statusDisplayNames[status] || status}
+						</h3>
+						<Badge
+							variant="outline"
+							className={cn("ml-2", statusColors[status])}
+						>
+							{statusDeliverables.length}
+						</Badge>
+					</div>
+					<div className="divide-y">
+						{statusDeliverables.map((deliverable) => (
+							<div key={deliverable.id} className="p-4">
+								<div className="flex flex-col gap-2">
+									<div className="flex justify-between">
+										<div className="flex flex-col items-start">
+											<div className="flex items-center gap-2">
+												<div className="text-sm font-medium leading-6 text-gray-900">
+													{deliverable.title || "Untitled Deliverable"}
 												</div>
-											</div>
-											<div className="flex flex-col items-end">
-												<div className="flex items-center text-sm text-gray-500">
-													<DollarSign className="h-4 w-4 mr-1 text-gray-400" />
-													{Number(deliverable.cost) > 0
-														? `₹${Number(deliverable.cost).toLocaleString()}`
-														: "No additional cost"}
-												</div>
-												<div className="flex items-center justify-end text-sm text-gray-500">
-													<Package className="h-4 w-4 mr-1 text-gray-400" />
-													{deliverable.quantity
-														? `Quantity: ${deliverable.quantity}`
-														: "Quantity: 1"}
-												</div>
+												{deliverable.dueDate && (
+													<div className="flex items-center text-xs text-gray-500">
+														<Calendar className="h-3 w-3 mr-1 text-gray-400" />
+														{format(
+															new Date(deliverable.dueDate as string),
+															"MMM d, yyyy",
+														)}
+													</div>
+												)}
+
+												<Button
+													variant="ghost"
+													size="icon"
+													className="h-6 w-6 rounded-full hover:bg-gray-100 ml-2"
+													onClick={() =>
+														setParams({
+															deliverableId: deliverable.id.toString(),
+														})
+													}
+												>
+													<Edit className="h-3.5 w-3.5 text-gray-500" />
+													<span className="sr-only">Edit deliverable</span>
+												</Button>
 											</div>
 										</div>
-
-										<div className="w-full border rounded-md p-1">
-											<div
-												onClick={(e) => toggleExpanded(deliverable.id, e)}
-												className="p-2 flex items-center justify-between cursor-pointer"
-											>
-												<div className="flex items-center gap-2">
-													<FileText className="h-4 w-4 text-gray-500" />
-													<span className="text-sm font-medium">
-														Details & Crew
-													</span>
-												</div>
-												{expandedDeliverables[deliverable.id] ? (
-													<ChevronUp className="h-4 w-4 text-gray-500" />
-												) : (
-													<ChevronDown className="h-4 w-4 text-gray-500" />
-												)}
+										<div className="flex flex-col items-end">
+											<div className="flex items-center text-sm text-gray-500">
+												<DollarSign className="h-4 w-4 mr-1 text-gray-400" />
+												{Number(deliverable.cost) > 0
+													? `₹${Number(deliverable.cost).toLocaleString()}`
+													: "No additional cost"}
 											</div>
-											{expandedDeliverables[deliverable.id] && (
-												<div className="bg-gray-50 rounded-md m-2 p-3">
-													<div className="grid grid-cols-2 gap-4">
-														<div>
-															<div className="text-xs text-gray-500 mb-1">
-																Title
-															</div>
-															<div className="text-sm">
-																{deliverable.title || "Untitled"}
-															</div>
-														</div>
-														<div>
-															<div className="text-xs text-gray-500 mb-1">
-																Due Date
-															</div>
-															<div className="text-sm">
-																{deliverable.dueDate
-																	? format(
-																			new Date(deliverable.dueDate as string),
-																			"MMMM d, yyyy",
-																		)
-																	: "No due date"}
-															</div>
-														</div>
-														<div>
-															<div className="text-xs text-gray-500 mb-1">
-																Cost
-															</div>
-															<div className="text-sm">
-																{Number(deliverable.cost) > 0
-																	? `₹${Number(
-																			deliverable.cost,
-																		).toLocaleString()}`
-																	: "No additional cost"}
-															</div>
-														</div>
-														<div>
-															<div className="text-xs text-gray-500 mb-1">
-																Quantity
-															</div>
-															<div className="text-sm">
-																{deliverable.quantity || "1"}
-															</div>
-														</div>
-														<div className="col-span-2">
-															<div className="text-xs text-gray-500 mb-1">
-																Status
-															</div>
-															<div className="text-sm">
-																{isCompleted ? (
-																	<span className="text-green-600 flex items-center">
-																		<CheckCircle className="h-3.5 w-3.5 mr-1" />
-																		Completed
-																	</span>
-																) : (
-																	<span className="text-amber-600">
-																		Pending
-																	</span>
-																)}
-															</div>
-														</div>
+											<div className="flex items-center justify-end text-sm text-gray-500">
+												<Package className="h-4 w-4 mr-1 text-gray-400" />
+												{deliverable.quantity
+													? `Quantity: ${deliverable.quantity}`
+													: "Quantity: 1"}
+											</div>
+										</div>
+									</div>
 
-														{/* Crew assignments section */}
-														{deliverable.deliverablesAssignments &&
-															deliverable.deliverablesAssignments.length >
-																0 && (
-																<div className="col-span-2 mt-2">
-																	<div className="text-xs text-gray-500 mb-2">
-																		Assigned Crew
-																	</div>
-																	<div className="space-y-2">
-																		{deliverable.deliverablesAssignments.map(
-																			(assignment) => {
-																				const name =
-																					assignment.crew?.member?.user?.name ||
-																					assignment.crew?.name ||
-																					"Unnamed";
-																				const initials = name
-																					.split(" ")
-																					.map((n) => n[0])
-																					.join("");
+									<div className="w-full border rounded-md p-1">
+										<div
+											onClick={(e) => toggleExpanded(deliverable.id, e)}
+											className="p-2 flex items-center justify-between cursor-pointer"
+										>
+											<div className="flex items-center gap-2">
+												<FileText className="h-4 w-4 text-gray-500" />
+												<span className="text-sm font-medium">
+													Details & Crew
+												</span>
+											</div>
+											{expandedDeliverables[deliverable.id] ? (
+												<ChevronUp className="h-4 w-4 text-gray-500" />
+											) : (
+												<ChevronDown className="h-4 w-4 text-gray-500" />
+											)}
+										</div>
+										{expandedDeliverables[deliverable.id] && (
+											<div className="bg-gray-50 rounded-md m-2 p-3">
+												<div className="grid grid-cols-2 gap-4">
+													<div>
+														<div className="text-xs text-gray-500 mb-1">
+															Title
+														</div>
+														<div className="text-sm">
+															{deliverable.title || "Untitled"}
+														</div>
+													</div>
+													<div>
+														<div className="text-xs text-gray-500 mb-1">
+															Due Date
+														</div>
+														<div className="text-sm">
+															{deliverable.dueDate
+																? format(
+																		new Date(deliverable.dueDate as string),
+																		"MMMM d, yyyy",
+																	)
+																: "No due date"}
+														</div>
+													</div>
+													<div>
+														<div className="text-xs text-gray-500 mb-1">
+															Cost
+														</div>
+														<div className="text-sm">
+															{Number(deliverable.cost) > 0
+																? `₹${Number(deliverable.cost).toLocaleString()}`
+																: "No additional cost"}
+														</div>
+													</div>
+													<div>
+														<div className="text-xs text-gray-500 mb-1">
+															Quantity
+														</div>
+														<div className="text-sm">
+															{deliverable.quantity || "1"}
+														</div>
+													</div>
+													<div className="col-span-2">
+														<div className="text-xs text-gray-500 mb-1">
+															Status
+														</div>
+														<div className="text-sm">
+															<Badge
+																variant="outline"
+																className={cn(statusColors[status])}
+															>
+																{statusDisplayNames[status] || status}
+															</Badge>
+														</div>
+													</div>
 
-																				return (
-																					<div
-																						key={assignment.id}
-																						className="flex items-center justify-between p-2 bg-white rounded-md shadow-sm"
-																					>
-																						<div className="flex items-center gap-3">
-																							<Avatar className="h-8 w-8">
-																								<AvatarFallback className="bg-primary/10 text-primary">
-																									{initials}
-																								</AvatarFallback>
-																							</Avatar>
-																							<div>
-																								<div className="font-medium">
-																									{name}
-																								</div>
-																								<div className="text-sm text-gray-500">
-																									{assignment.crew?.role ||
-																										"No role"}
-																								</div>
-																							</div>
-																						</div>
-																						<div className="flex items-center">
-																							{assignment.isLead && (
-																								<Badge
-																									variant="outline"
-																									className="bg-blue-50 text-blue-700 border-blue-200"
-																								>
-																									Lead
-																								</Badge>
-																							)}
-																							{assignment.crew
-																								?.specialization && (
-																								<div className="ml-2 text-sm text-gray-500">
-																									{
-																										assignment.crew
-																											.specialization
-																									}
-																								</div>
-																							)}
-																						</div>
-																					</div>
-																				);
-																			},
-																		)}
-																	</div>
-																</div>
-															)}
-
-														{(!deliverable.deliverablesAssignments ||
-															deliverable.deliverablesAssignments.length ===
-																0) && (
+													{/* Crew assignments section */}
+													{deliverable.deliverablesAssignments &&
+														deliverable.deliverablesAssignments.length > 0 && (
 															<div className="col-span-2 mt-2">
 																<div className="text-xs text-gray-500 mb-2">
 																	Assigned Crew
 																</div>
-																<div className="flex items-center text-sm text-gray-500">
-																	<Users className="h-4 w-4 mr-2 text-gray-400" />
-																	No crew assigned to this deliverable
+																<div className="space-y-2">
+																	{deliverable.deliverablesAssignments.map(
+																		(assignment) => {
+																			const name =
+																				assignment.crew?.member?.user?.name ||
+																				assignment.crew?.name ||
+																				"Unnamed";
+																			const initials = name
+																				.split(" ")
+																				.map((n) => n[0])
+																				.join("");
+
+																			return (
+																				<div
+																					key={assignment.id}
+																					className="flex items-center justify-between p-2 bg-white rounded-md shadow-sm"
+																				>
+																					<div className="flex items-center gap-3">
+																						<Avatar className="h-8 w-8">
+																							<AvatarFallback className="bg-primary/10 text-primary">
+																								{initials}
+																							</AvatarFallback>
+																						</Avatar>
+																						<div>
+																							<div className="font-medium">
+																								{name}
+																							</div>
+																							<div className="text-sm text-gray-500">
+																								{assignment.crew?.role ||
+																									"No role"}
+																							</div>
+																						</div>
+																					</div>
+																					<div className="flex items-center">
+																						{assignment.isLead && (
+																							<Badge
+																								variant="outline"
+																								className="bg-blue-50 text-blue-700 border-blue-200"
+																							>
+																								Lead
+																							</Badge>
+																						)}
+																						{assignment.crew
+																							?.specialization && (
+																							<div className="ml-2 text-sm text-gray-500">
+																								{assignment.crew.specialization}
+																							</div>
+																						)}
+																					</div>
+																				</div>
+																			);
+																		},
+																	)}
 																</div>
 															</div>
 														)}
-													</div>
+
+													{(!deliverable.deliverablesAssignments ||
+														deliverable.deliverablesAssignments.length ===
+															0) && (
+														<div className="col-span-2 mt-2">
+															<div className="text-xs text-gray-500 mb-2">
+																Assigned Crew
+															</div>
+															<div className="flex items-center text-sm text-gray-500">
+																<Users className="h-4 w-4 mr-2 text-gray-400" />
+																No crew assigned to this deliverable
+															</div>
+														</div>
+													)}
 												</div>
-											)}
-										</div>
+											</div>
+										)}
 									</div>
-									<div className="absolute bottom-0 right-full h-px w-screen bg-gray-100" />
-									<div className="absolute bottom-0 left-0 h-px w-screen bg-gray-100" />
-								</td>
-							</tr>
-						</React.Fragment>
-					))}
-				</tbody>
-			</table>
+								</div>
+							</div>
+						))}
+					</div>
+				</div>
+			))}
 		</div>
 	);
 }
@@ -314,18 +361,18 @@ export function BookingDeliverables({
 }: BookingDeliverablesProps) {
 	const { setParams } = useDeliverableParams();
 
-	// Filter deliverables by status
-	const pendingDeliverables = deliverables.filter(
-		(d) => d.status !== "completed",
+	// Filter deliverables by delivered status
+	const undeliveredDeliverables = deliverables.filter(
+		(d) => d.status !== "delivered",
 	);
-	const completedDeliverables = deliverables.filter(
-		(d) => d.status === "completed",
+	const deliveredDeliverables = deliverables.filter(
+		(d) => d.status === "delivered",
 	);
 
-	// Calculate completion percentage
-	const completionPercentage =
+	// Calculate delivery percentage
+	const deliveryPercentage =
 		deliverables.length > 0
-			? Math.round((completedDeliverables.length / deliverables.length) * 100)
+			? Math.round((deliveredDeliverables.length / deliverables.length) * 100)
 			: 0;
 
 	return (
@@ -351,41 +398,41 @@ export function BookingDeliverables({
 				<CardContent>
 					<div className="space-y-2">
 						<div className="flex justify-between text-sm text-muted-foreground">
-							<span>{completionPercentage}% complete</span>
+							<span>{deliveryPercentage}% delivered</span>
 							<span>
-								{completedDeliverables.length}/{deliverables.length}{" "}
+								{deliveredDeliverables.length}/{deliverables.length}{" "}
 								deliverables
 							</span>
 						</div>
 						<div className="h-2 bg-muted rounded-full overflow-hidden">
 							<div
 								className="h-full bg-primary"
-								style={{ width: `${completionPercentage}%` }}
+								style={{ width: `${deliveryPercentage}%` }}
 							/>
 						</div>
 					</div>
 				</CardContent>
 			</Card>
 
-			<Tabs defaultValue="pending" className="w-full">
+			<Tabs defaultValue="undelivered" className="w-full">
 				<TabsList className="grid w-full grid-cols-2">
-					<TabsTrigger value="pending">
-						Pending ({pendingDeliverables.length})
+					<TabsTrigger value="undelivered">
+						Undelivered ({undeliveredDeliverables.length})
 					</TabsTrigger>
-					<TabsTrigger value="completed">
-						Completed ({completedDeliverables.length})
+					<TabsTrigger value="delivered">
+						Delivered ({deliveredDeliverables.length})
 					</TabsTrigger>
 				</TabsList>
-				<TabsContent value="pending" className="mt-6">
+				<TabsContent value="undelivered" className="mt-6">
 					<DeliverablesList
-						deliverables={pendingDeliverables}
+						deliverables={undeliveredDeliverables}
 						bookingId={bookingId}
 					/>
 				</TabsContent>
-				<TabsContent value="completed" className="mt-6">
+				<TabsContent value="delivered" className="mt-6">
 					<DeliverablesList
-						deliverables={completedDeliverables}
-						isCompleted
+						deliverables={deliveredDeliverables}
+						isDelivered
 						bookingId={bookingId}
 					/>
 				</TabsContent>
