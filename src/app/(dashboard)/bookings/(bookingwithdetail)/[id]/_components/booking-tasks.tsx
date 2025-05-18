@@ -36,6 +36,7 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Progress } from "@/components/ui/progress";
 
 export function BookingTasks({ tasks }: { tasks: Task[] }) {
 	const { setParams } = useTaskParams();
@@ -100,6 +101,19 @@ export function BookingTasks({ tasks }: { tasks: Task[] }) {
 			Object.entries(groups).filter(([_, tasks]) => tasks.length > 0),
 		);
 	};
+
+	const completedTasks = tasks.filter(
+		(task) => task.status === "completed",
+	).length;
+
+	// Calculate completion percentage
+	const getCompletionPercentage = () => {
+		if (!tasks || tasks.length === 0) return 0;
+
+		return Math.round((completedTasks / tasks.length) * 100);
+	};
+
+	const completionPercentage = getCompletionPercentage();
 
 	const handleEditTask = (taskId: number) => {
 		setParams({ taskId: taskId.toString() });
@@ -257,7 +271,7 @@ export function BookingTasks({ tasks }: { tasks: Task[] }) {
 	return (
 		<div className="space-y-4">
 			<div className="flex justify-between items-center">
-				<h2 className="text-xl font-semibold">Shoots</h2>
+				<h2 className="text-xl font-semibold">Tasks</h2>
 				<Button
 					variant="outline"
 					size="sm"
@@ -271,6 +285,25 @@ export function BookingTasks({ tasks }: { tasks: Task[] }) {
 					New Task
 				</Button>
 			</div>
+
+			<Card>
+				<CardContent>
+					<div className="space-y-2">
+						<div className="flex justify-between text-sm text-muted-foreground">
+							<span>{completionPercentage}% completed</span>
+							<span>
+								{completedTasks}/{tasks.length} tasks
+							</span>
+						</div>
+						<div className="h-2 bg-muted rounded-full overflow-hidden">
+							<div
+								className="h-full bg-primary"
+								style={{ width: `${completionPercentage}%` }}
+							/>
+						</div>
+					</div>
+				</CardContent>
+			</Card>
 			<Tabs value={activeTab} onValueChange={setActiveTab}>
 				<TabsList className="grid grid-cols-4 mb-4">
 					<TabsTrigger value="all">All Tasks</TabsTrigger>
