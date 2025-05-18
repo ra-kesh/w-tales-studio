@@ -25,6 +25,28 @@ export function useCreateDeliverableMutation() {
 			queryClient.invalidateQueries({
 				queryKey: ["bookings", "deliverable", "list"],
 			});
+
+			queryClient.invalidateQueries({
+				queryKey: [
+					"bookings",
+					"deliverable",
+					"detail",
+					{
+						deliverableId: data.deliverableId.toString(),
+					},
+				],
+			});
+
+			queryClient.refetchQueries({
+				queryKey: [
+					"bookings",
+					"detail",
+					{
+						bookingId: data.bookingId.toString(),
+					},
+				],
+			});
+
 			queryClient.invalidateQueries({ queryKey: ["bookings", "list"] });
 			toast.success("Deliverable created successfully");
 		},
@@ -70,6 +92,16 @@ export function useUpdateDeliverableMutation() {
 					"detail",
 					{
 						deliverableId: data.deliverableId.toString(),
+					},
+				],
+			});
+
+			queryClient.refetchQueries({
+				queryKey: [
+					"bookings",
+					"detail",
+					{
+						bookingId: data.bookingId.toString(),
 					},
 				],
 			});

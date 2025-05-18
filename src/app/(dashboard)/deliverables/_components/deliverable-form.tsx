@@ -47,6 +47,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import { useParams } from "next/navigation";
 
 interface DeliverableFormProps {
 	defaultValues?: DeliverableFormValues;
@@ -59,9 +60,11 @@ export function DeliverableForm({
 	onSubmit,
 	mode = "create",
 }: DeliverableFormProps) {
-	// Clean up default values to only include fields we need
+	const params = useParams();
+	const bookingIdFromParams = params.id ? params.id.toString() : "";
+
 	const cleanedDefaultValues = {
-		bookingId: defaultValues.bookingId?.toString() ?? "",
+		bookingId: defaultValues.bookingId?.toString() || bookingIdFromParams || "",
 		title: defaultValues.title ?? "",
 		dueDate: defaultValues.dueDate ?? "",
 		isPackageIncluded: defaultValues.isPackageIncluded ?? true,
@@ -79,6 +82,7 @@ export function DeliverableForm({
 	});
 
 	useEffect(() => {
+		if (mode === "create") return;
 		form.trigger(); // triggers all form validations when component is mounted
 	}, []);
 
@@ -125,7 +129,7 @@ export function DeliverableForm({
 													"w-full justify-between",
 													!field.value && "text-muted-foreground",
 												)}
-												disabled={mode === "edit"}
+												disabled={mode === "edit" || !!bookingIdFromParams}
 											>
 												{field.value
 													? bookings?.find(
