@@ -692,7 +692,7 @@ export async function getBookingsStats(
 	const bookingsStats = await db
 		.select({
 			total: sql<number>`COUNT(*)`,
-			active: sql<number>`SUM(CASE WHEN ${bookings.status} NOT IN ('completed', 'canceled') THEN 1 ELSE 0 END)`,
+			active: sql<number>`SUM(CASE WHEN ${bookings.status} NOT IN ('completed', 'cancelled') THEN 1 ELSE 0 END)`,
 		})
 		.from(bookings)
 		.where(eq(bookings.organizationId, userOrganizationId));

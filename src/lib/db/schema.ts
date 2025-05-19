@@ -867,8 +867,6 @@ export type BookingDetail = Booking & {
 	paymentSchedules: PaymentSchedule[];
 	expenses: Expense[];
 	tasks: Task[];
-	// remove crews types
-	crews: Crew[];
 	bookingTypeValue: string;
 	packageTypeValue: string;
 };
