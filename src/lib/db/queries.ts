@@ -300,6 +300,37 @@ export async function getExpenses(
 					name: true,
 				},
 			},
+			expensesAssignments: {
+				columns: {
+					id: true,
+					crewId: true,
+					assignedAt: true,
+				},
+				with: {
+					crew: {
+						columns: {
+							id: true,
+							name: true,
+							role: true,
+							specialization: true,
+							status: true,
+						},
+						with: {
+							member: {
+								with: {
+									user: {
+										columns: {
+											name: true,
+											email: true,
+											image: true,
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
 		},
 		orderBy: (expenses, { desc }) => [
 			desc(expenses.updatedAt),

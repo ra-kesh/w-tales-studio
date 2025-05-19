@@ -3,8 +3,14 @@ import { getExpenses } from "@/lib/db/queries";
 import { getServerSession } from "@/lib/dal";
 import { ExpenseSchema } from "@/app/(dashboard)/expenses/expense-form-schema";
 import { db } from "@/lib/db/drizzle";
-import { and, eq } from "drizzle-orm";
-import { bookings, expenses } from "@/lib/db/schema";
+import { and, eq, inArray } from "drizzle-orm";
+import {
+	bookings,
+	crews,
+	expenses,
+	expensesAssignments,
+} from "@/lib/db/schema";
+import { organization } from "better-auth/plugins";
 
 export async function GET(request: Request) {
 	const { session } = await getServerSession();
@@ -29,7 +35,24 @@ export async function GET(request: Request) {
 
 		const result = await getExpenses(userOrganizationId, page, limit);
 
-		return NextResponse.json(result, { status: 200 });
+		const transformedData = result.data.map((expense) => ({
+			...expense,
+			expensesAssignments: expense.expensesAssignments?.map((assignment) => ({
+				...assignment,
+				crew: {
+					...assignment.crew,
+					name: assignment.crew.member?.user?.name || assignment.crew.name,
+				},
+			})),
+		}));
+
+		return NextResponse.json(
+			{
+				data: transformedData,
+				total: result.total,
+			},
+			{ status: 200 },
+		);
 	} catch (error: unknown) {
 		console.error("Error fetching expenses:", error);
 		const errorMessage =
@@ -85,6 +108,38 @@ export async function POST(request: Request) {
 				);
 			}
 
+			let crewAssignments: { crewId: number }[] = [];
+			if (validatedData.crewMembers && validatedData.crewMembers.length > 0) {
+				const crewIds = validatedData.crewMembers;
+
+				const existingCrews = await tx
+					.select({ id: crews.id })
+					.from(crews)
+					.where(
+						and(
+							inArray(crews.id, crewIds.map(Number)),
+							eq(crews.organizationId, userOrganizationId),
+						),
+					);
+
+				const foundCrewIds = new Set(existingCrews.map((crew) => crew.id));
+				const invalidCrewIds = crewIds.filter(
+					(id) => !foundCrewIds.has(Number(id)),
+				);
+
+				if (invalidCrewIds.length > 0) {
+					return NextResponse.json(
+						{
+							message: "Invalid crew members",
+							invalidCrewIds,
+						},
+						{ status: 400 },
+					);
+				}
+
+				crewAssignments = crewIds.map((crewId) => ({ crewId: Number(crewId) }));
+			}
+
 			// Insert the new expense
 			const [newExpense] = await tx
 				.insert(expenses)
@@ -97,11 +152,35 @@ export async function POST(request: Request) {
 					date: validatedData.date,
 					billTo: validatedData.billTo,
 					fileUrls: validatedData.fileUrls,
-					spentByUserId: null,
 					createdAt: new Date(),
 					updatedAt: new Date(),
 				})
 				.returning({ id: expenses.id });
+
+			const assignmentResults = [];
+
+			if (crewAssignments.length > 0) {
+				const assignmentValues = crewAssignments.map((assignment) => {
+					return {
+						expenseId: newExpense.id,
+						crewId: assignment.crewId,
+						organizationId: userOrganizationId,
+						assignedAt: new Date(),
+						createdAt: new Date(),
+						updatedAt: new Date(),
+					};
+				});
+
+				const assignMentsInserted = await tx
+					.insert(expensesAssignments)
+					.values(assignmentValues)
+					.returning({
+						id: expensesAssignments.id,
+						crewId: expensesAssignments.crewId,
+					});
+
+				assignmentResults.push(...assignMentsInserted);
+			}
 
 			const [updatedBooking] = await tx
 				.update(bookings)
@@ -109,18 +188,26 @@ export async function POST(request: Request) {
 				.where(eq(bookings.id, Number.parseInt(validatedData.bookingId)))
 				.returning();
 
-			return [newExpense, updatedBooking];
+			return [newExpense, updatedBooking, assignmentResults];
 		});
 
 		if (!Array.isArray(result)) {
 			throw new Error("Expected array result from transaction");
 		}
 
-		const [newExpense, updatedBooking] = result;
+		const [newExpense, updatedBooking, assignmentResults] = result as [
+			{ id: number },
+			{ id: number },
+			{ id: number; crewId: number }[],
+		];
 
 		return NextResponse.json(
 			{
-				data: { expenseId: newExpense.id, bookingId: updatedBooking.id },
+				data: {
+					expenseId: newExpense.id,
+					bookingId: updatedBooking.id,
+					assignments: assignmentResults,
+				},
 				message: "Expense created successfully",
 			},
 			{ status: 201 },

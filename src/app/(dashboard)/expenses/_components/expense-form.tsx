@@ -24,7 +24,7 @@ import {
 	type ExpenseFormValues,
 	defaultExpense,
 } from "../expense-form-schema";
-import { useBookings } from "@/hooks/use-bookings";
+import { useBookings, useMinimalBookings } from "@/hooks/use-bookings";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -42,6 +42,10 @@ import {
 } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ExpenseCategory, BillTo } from "@/lib/db/schema";
+import { useCrews } from "@/hooks/use-crews";
+import { useEffect, useMemo } from "react";
+import { useParams } from "next/navigation";
+import { MultiAsyncSelect } from "@/components/ui/multi-select";
 
 interface ExpenseFormProps {
 	defaultValues?: ExpenseFormValues;
@@ -54,6 +58,9 @@ export function ExpenseForm({
 	onSubmit,
 	mode = "create",
 }: ExpenseFormProps) {
+	const params = useParams();
+	const bookingIdFromParams = params.id ? params.id.toString() : "";
+
 	// Clean up default values to only include fields we need
 	const cleanedDefaultValues = {
 		bookingId: defaultValues.bookingId?.toString() ?? "",
@@ -62,6 +69,7 @@ export function ExpenseForm({
 		category: defaultValues.category ?? ExpenseCategory.CUSTOM,
 		billTo: defaultValues.billTo ?? BillTo.STUDIO,
 		date: defaultValues.date ?? "",
+		crewMembers: defaultValues.crewMembers ?? [],
 		fileUrls: defaultValues.fileUrls ?? [],
 	};
 
@@ -71,7 +79,29 @@ export function ExpenseForm({
 		mode: "onChange",
 	});
 
-	const { data: bookings } = useBookings();
+	useEffect(() => {
+		if (mode === "create") return;
+		form.trigger(); // triggers all form validations when component is mounted
+	}, []);
+
+	const { data: MinimalBookings } = useMinimalBookings();
+	const bookings = MinimalBookings?.data;
+
+	const { data: crewData, isLoading: isLoadingCrew } = useCrews();
+	const crewOptions = useMemo(() => {
+		if (!crewData?.data) return [];
+		return crewData.data.map((crew) => {
+			const displayName = crew.member?.user?.name || crew.name;
+			const role = crew.role ? ` (${crew.role})` : "";
+			const statusBadge =
+				crew.status !== "available" ? ` [${crew.status}]` : "";
+
+			return {
+				label: `${displayName}${role}${statusBadge}`,
+				value: crew.id.toString(),
+			};
+		});
+	}, [crewData?.data]);
 
 	return (
 		<Form {...form}>
@@ -97,15 +127,14 @@ export function ExpenseForm({
 													"w-full justify-between",
 													!field.value && "text-muted-foreground",
 												)}
-												disabled={mode === "edit"}
+												disabled={mode === "edit" || !!bookingIdFromParams}
 											>
 												{field.value
-													? bookings?.data?.find(
+													? bookings?.find(
 															(booking) =>
-																booking.id ===
-																Number.parseInt(field.value || ""),
-														)?.name || "Select booking"
-													: "Select booking"}
+																booking.id === Number.parseInt(field.value),
+														)?.name || "Select a booking"
+													: "Select a booking"}
 												<ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
 											</Button>
 										</FormControl>
@@ -113,8 +142,8 @@ export function ExpenseForm({
 									<PopoverContent className="w-full p-0 relative z-50">
 										<Command
 											filter={(value, search) => {
-												if (!bookings?.data) return 0;
-												const booking = bookings.data.find(
+												if (!bookings) return 0;
+												const booking = bookings.find(
 													(b) => b.id === Number.parseInt(value),
 												);
 												if (!booking) return 0;
@@ -129,7 +158,7 @@ export function ExpenseForm({
 												<ScrollArea className="h-64">
 													<CommandEmpty>No booking found.</CommandEmpty>
 													<CommandGroup>
-														{bookings?.data?.map((booking) => (
+														{bookings?.map((booking) => (
 															<CommandItem
 																key={booking.id}
 																value={booking.id.toString()}
@@ -147,8 +176,7 @@ export function ExpenseForm({
 																<Check
 																	className={cn(
 																		"mr-2 h-4 w-4",
-																		field.value &&
-																			field.value === booking.id.toString()
+																		field.value === booking.id.toString()
 																			? "opacity-100"
 																			: "opacity-0",
 																	)}
@@ -167,7 +195,6 @@ export function ExpenseForm({
 						)}
 					/>
 				</div>
-
 				<div className="col-span-2">
 					<FormField
 						control={form.control}
@@ -266,6 +293,31 @@ export function ExpenseForm({
 										<SelectItem value="Studio">Studio</SelectItem>
 									</SelectContent>
 								</Select>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
+				</div>
+				<div className="col-span-2">
+					<FormField
+						control={form.control}
+						name="crewMembers"
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel>Assigned Crew</FormLabel>
+								<FormControl>
+									<MultiAsyncSelect
+										options={crewOptions}
+										onValueChange={field.onChange}
+										defaultValue={field.value}
+										maxCount={5}
+										placeholder="Select crew members"
+										searchPlaceholder="Search crew..."
+										className="w-full"
+										loading={isLoadingCrew}
+										async={true}
+									/>
+								</FormControl>
 								<FormMessage />
 							</FormItem>
 						)}
