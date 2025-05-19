@@ -161,7 +161,7 @@ export const RelationType = pgEnum("relation_type", [
 	"bride",
 	"groom",
 	"family",
-	"",
+	"unknown",
 ]);
 
 export const ConfigType = pgEnum("config_type", [
@@ -216,7 +216,7 @@ export const bookingPhaseEnum = pgEnum("booking_phase", [
 	"shooting",
 	"delivery",
 	"completed",
-	"canceled",
+	"cancelled",
 ]);
 
 export const bookings = pgTable("bookings", {
