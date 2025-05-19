@@ -6,10 +6,23 @@ import CountUp from "react-countup";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { useBookings } from "@/hooks/use-bookings";
+import { useEffect, useState } from "react";
 
 export function BookingStats() {
-	const { data } = useBookings();
+	const { data, isLoading } = useBookings();
+	const [isDataReady, setIsDataReady] = useState(false);
 	const stats = data?.stats;
+
+	// Wait for data to be loaded before showing the actual values
+	useEffect(() => {
+		if (data && !isLoading) {
+			// Small delay to ensure smooth animation after data is available
+			const timer = setTimeout(() => {
+				setIsDataReady(true);
+			}, 100);
+			return () => clearTimeout(timer);
+		}
+	}, [data, isLoading]);
 
 	const metrics = [
 		{
@@ -55,12 +68,16 @@ export function BookingStats() {
 							<div className="mt-2 flex items-baseline">
 								<span className="text-2xl font-bold">
 									{metric.prefix || ""}
-									<CountUp
-										end={metric.value}
-										separator=","
-										duration={2}
-										decimals={metric.prefix ? 2 : 0}
-									/>
+									{isLoading || !isDataReady ? (
+										<span className="text-muted-foreground">...</span>
+									) : (
+										<CountUp
+											end={metric.value}
+											separator=","
+											duration={2}
+											decimals={metric.prefix ? 2 : 0}
+										/>
+									)}
 								</span>
 							</div>
 						</div>

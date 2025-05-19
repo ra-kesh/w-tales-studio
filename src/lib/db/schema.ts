@@ -157,25 +157,11 @@ export enum ExpenseCategory {
 	CUSTOM = "Custom",
 }
 
-// export enum TaskPriority {
-// 	// CRITICAL = "Critical",
-// 	HIGH = "High",
-// 	MEDIUM = "Medium",
-// 	LOW = "Low",
-// }
-// export enum TaskStatus {
-// 	INPROGRESS = "In-Progress",
-// 	DONE = "Done",
-// 	TODO = "Todo",
-// 	CANCELED = "Canceled",
-// 	BACKLOG = "Backlog",
-// }
-
 export const RelationType = pgEnum("relation_type", [
 	"bride",
 	"groom",
 	"family",
-	"",
+	"unknown",
 ]);
 
 export const ConfigType = pgEnum("config_type", [
@@ -230,7 +216,7 @@ export const bookingPhaseEnum = pgEnum("booking_phase", [
 	"shooting",
 	"delivery",
 	"completed",
-	"canceled",
+	"cancelled",
 ]);
 
 export const bookings = pgTable("bookings", {
@@ -248,7 +234,7 @@ export const bookings = pgTable("bookings", {
 	packageCost: decimal("package_cost", { precision: 10, scale: 2 }).notNull(),
 	clientId: integer("client_id")
 		.notNull()
-		.references(() => clients.id, { onDelete: "set null" }),
+		.references(() => clients.id),
 	status: bookingPhaseEnum("status").notNull().default("new"),
 	createdAt: timestamp("created_at").defaultNow(),
 	updatedAt: timestamp("updated_at")
@@ -355,12 +341,73 @@ export const expenses = pgTable("expenses", {
 	}).notNull(),
 	amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
 	date: date("date").notNull(),
-	spentByUserId: text("spent_by_user_id").references(() => users.id), // Nullable, for individual users
 	description: text("description"),
 	fileUrls: jsonb("file_urls"), // Array of file URLs
 	createdAt: timestamp("created_at").defaultNow(),
 	updatedAt: timestamp("updated_at").defaultNow(),
 });
+
+export const expensesAssignments = pgTable(
+	"expenses_assignments",
+	{
+		id: serial("id").primaryKey(),
+		expenseId: integer("expense_id")
+			.notNull()
+			.references(() => expenses.id, { onDelete: "cascade" }),
+		crewId: integer("crew_id")
+			.notNull()
+			.references(() => crews.id, { onDelete: "cascade" }),
+		organizationId: text("organization_id")
+			.notNull()
+			.references(() => organizations.id, { onDelete: "cascade" }),
+		assignedAt: timestamp("assigned_at", { withTimezone: true })
+			.notNull()
+			.defaultNow(),
+		createdAt: timestamp("created_at", { withTimezone: true })
+			.notNull()
+			.defaultNow(),
+		updatedAt: timestamp("updated_at", { withTimezone: true })
+			.notNull()
+			.defaultNow(),
+	},
+	(t) => [
+		uniqueIndex("expenses_assignments_uniq_idx").on(
+			t.expenseId,
+			t.crewId,
+			t.organizationId,
+		),
+	],
+);
+
+export const expensesRelations = relations(expenses, ({ one, many }) => ({
+	booking: one(bookings, {
+		fields: [expenses.bookingId],
+		references: [bookings.id],
+	}),
+	organization: one(organizations, {
+		fields: [expenses.organizationId],
+		references: [organizations.id],
+	}),
+	expensesAssignments: many(expensesAssignments),
+}));
+
+export const expensesAssignmentsRelations = relations(
+	expensesAssignments,
+	({ one }) => ({
+		expense: one(expenses, {
+			fields: [expensesAssignments.expenseId],
+			references: [expenses.id],
+		}),
+		crew: one(crews, {
+			fields: [expensesAssignments.crewId],
+			references: [crews.id],
+		}),
+		organization: one(organizations, {
+			fields: [expensesAssignments.organizationId],
+			references: [organizations.id],
+		}),
+	}),
+);
 
 export const crews = pgTable(
 	"crews",
@@ -389,6 +436,21 @@ export const crews = pgTable(
 		),
 	],
 );
+
+export const crewRelations = relations(crews, ({ one, many }) => ({
+	member: one(members, {
+		fields: [crews.memberId],
+		references: [members.id],
+	}),
+	organization: one(organizations, {
+		fields: [crews.organizationId],
+		references: [organizations.id],
+	}),
+	shootsAssignments: many(shootsAssignments),
+	tasksAssignments: many(tasksAssignments),
+	deliverablesAssignments: many(deliverablesAssignments),
+	expensesAssignments: many(expensesAssignments),
+}));
 
 export const shootsAssignments = pgTable(
 	"shoots_assignments",
@@ -615,35 +677,6 @@ export const paymentSchedulesRelations = relations(
 	}),
 );
 
-export const expensesRelations = relations(expenses, ({ one }) => ({
-	booking: one(bookings, {
-		fields: [expenses.bookingId],
-		references: [bookings.id],
-	}),
-	organization: one(organizations, {
-		fields: [expenses.organizationId],
-		references: [organizations.id],
-	}),
-	spentByUser: one(users, {
-		fields: [expenses.spentByUserId],
-		references: [users.id],
-	}),
-}));
-
-export const crewRelations = relations(crews, ({ one, many }) => ({
-	member: one(members, {
-		fields: [crews.memberId],
-		references: [members.id],
-	}),
-	organization: one(organizations, {
-		fields: [crews.organizationId],
-		references: [organizations.id],
-	}),
-	shootsAssignments: many(shootsAssignments),
-	tasksAssignments: many(tasksAssignments),
-	deliverablesAssignments: many(deliverablesAssignments),
-}));
-
 export const shootsRelations = relations(shoots, ({ one, many }) => ({
 	booking: one(bookings, {
 		fields: [shoots.bookingId],
@@ -673,8 +706,6 @@ export const shootsAssignmentsRelations = relations(
 		}),
 	}),
 );
-
-// Example: Add relation from tasks to assignments
 
 export const organizationRelations = relations(organizations, ({ many }) => ({
 	members: many(members),
@@ -781,6 +812,9 @@ export type DeliverablesAssignment =
 export type NewDeliverablesAssignment =
 	typeof deliverablesAssignments.$inferInsert;
 
+export type ExpensesAssignment = typeof expensesAssignments.$inferSelect;
+export type NewExpensesAssignment = typeof expensesAssignments.$inferInsert;
+
 export enum ActivityType {
 	SIGN_UP = "SIGN_UP",
 	SIGN_IN = "SIGN_IN",
@@ -833,8 +867,6 @@ export type BookingDetail = Booking & {
 	paymentSchedules: PaymentSchedule[];
 	expenses: Expense[];
 	tasks: Task[];
-	// remove crews types
-	crews: Crew[];
 	bookingTypeValue: string;
 	packageTypeValue: string;
 };

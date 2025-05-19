@@ -169,6 +169,20 @@
       "when": 1747287272034,
       "tag": "0023_overjoyed_dreadnoughts",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1747640695888,
+      "tag": "0024_bouncy_prism",
+      "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1747640892286,
+      "tag": "0025_wild_gamma_corps",
+      "breakpoints": true
     }
   ]
 }
