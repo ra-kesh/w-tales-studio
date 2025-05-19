@@ -2,15 +2,34 @@
 
 import type { ColumnDef } from "@tanstack/react-table";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ExpenseTableRowActions } from "./expense-table-row-actions";
 import type { Expense } from "@/lib/db/schema";
+import { ExpenseTableRowActions } from "./expense-table-row-actions";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
-import { FileIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  FileIcon,
+  DollarSign,
+  Calendar,
+  Tag,
+  Users,
+  FileText,
+} from "lucide-react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 export const useExpenseColumns = () => {
-  const columns: ColumnDef<Expense & { booking: { name: string } }>[] = [
+  const columns: ColumnDef<
+    Expense & {
+      booking: { name: string };
+      expensesAssignments?: Array<{
+        id: string;
+        crew: {
+          name: string;
+          member?: { user?: { name?: string | null } | null } | null;
+        };
+      }>;
+    }
+  >[] = [
     {
       id: "select",
       header: ({ table }) => (
@@ -31,31 +50,63 @@ export const useExpenseColumns = () => {
       enableHiding: false,
     },
     {
-      accessorKey: "booking",
-      header: "Booking",
+      accessorKey: "description",
+      header: "Expense",
       cell: ({ row }) => (
-        <div className="font-medium">{row.original.booking.name}</div>
+        <div className="flex flex-col space-y-1">
+          <div className="font-medium">{row.getValue("description")}</div>
+          <div className="text-sm text-muted-foreground">
+            {row.original.booking.name}
+          </div>
+        </div>
       ),
     },
     {
       accessorKey: "category",
-      header: "Category",
+      header: () => (
+        <div className="flex items-center gap-1">
+          <Tag className="h-4 w-4" />
+          <span>Category</span>
+        </div>
+      ),
       cell: ({ row }) => (
         <Badge variant="outline">{row.getValue("category")}</Badge>
       ),
     },
     {
       accessorKey: "amount",
-      header: "Amount",
+      header: () => (
+        <div className="flex items-center gap-1">
+          <DollarSign className="h-4 w-4" />
+          <span>Amount</span>
+        </div>
+      ),
       cell: ({ row }) => (
-        <div className="font-medium">
+        <div className="font-medium tabular-nums">
           ${Number(row.getValue("amount")).toFixed(2)}
         </div>
       ),
     },
     {
+      accessorKey: "date",
+      header: () => (
+        <div className="flex items-center gap-1">
+          <Calendar className="h-4 w-4" />
+          <span>Date</span>
+        </div>
+      ),
+      cell: ({ row }) => (
+        <div>{format(new Date(row.getValue("date")), "MMM dd, yyyy")}</div>
+      ),
+    },
+    {
       accessorKey: "billTo",
-      header: "Bill To",
+      header: () => (
+        <div className="flex items-center gap-1">
+          <Users className="h-4 w-4" />
+          <span>Bill To</span>
+        </div>
+      ),
       cell: ({ row }) => (
         <Badge
           variant={
@@ -66,28 +117,80 @@ export const useExpenseColumns = () => {
         </Badge>
       ),
     },
+    // {
+    //   accessorKey: "fileUrls",
+    //   header: () => (
+    //     <div className="flex items-center gap-1">
+    //       <FileText className="h-4 w-4" />
+    //       <span>Files</span>
+    //     </div>
+    //   ),
+    //   cell: ({ row }) => {
+    //     const files = row.getValue("fileUrls") as string[];
+    //     return files?.length ? (
+    //       <Button variant="outline" size="sm" className="h-8 gap-2">
+    //         <FileIcon className="h-4 w-4" />
+    //         <span className="tabular-nums">
+    //           {files.length} file{files.length !== 1 ? "s" : ""}
+    //         </span>
+    //       </Button>
+    //     ) : (
+    //       <span className="text-sm text-muted-foreground">No files</span>
+    //     );
+    //   },
+    // },
     {
-      accessorKey: "date",
-      header: "Date",
-      cell: ({ row }) => (
-        <div>{format(new Date(row.getValue("date")), "MMM dd, yyyy")}</div>
+      accessorKey: "expensesAssignments",
+      header: () => (
+        <div className="flex items-center gap-1">
+          <Users className="h-4 w-4" />
+          <span>Crew</span>
+        </div>
       ),
-    },
-    {
-      accessorKey: "description",
-      header: "Description",
-      cell: ({ row }) => <div>{row.getValue("description")}</div>,
-    },
-    {
-      accessorKey: "fileUrls",
-      header: "Files",
       cell: ({ row }) => {
-        const files = row.getValue("fileUrls") as string[];
-        return files?.length ? (
-          <Button variant="ghost" size="sm" className="h-8 w-8">
-            <FileIcon className="h-4 w-4" />
-          </Button>
-        ) : null;
+        const assignments = row.original.expensesAssignments;
+        const count = assignments?.length || 0;
+        const hasAssignments = count > 0;
+
+        return (
+          <div className="flex items-center gap-2">
+            {hasAssignments ? (
+              <>
+                <div className="flex -space-x-2">
+                  {assignments?.slice(0, 3).map((assignment) => {
+                    const name =
+                      assignment.crew.member?.user?.name ||
+                      assignment.crew.name;
+                    const initials = name
+                      ?.split(" ")
+                      .map((n: string) => n[0])
+                      .join("");
+
+                    return (
+                      <Avatar
+                        key={assignment.id}
+                        className="h-8 w-8 border-2 border-background"
+                      >
+                        <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                          {initials}
+                        </AvatarFallback>
+                      </Avatar>
+                    );
+                  })}
+                </div>
+                {count > 3 && (
+                  <Badge variant="secondary" className="rounded-full">
+                    +{count - 3}
+                  </Badge>
+                )}
+              </>
+            ) : (
+              <span className="text-sm text-muted-foreground">
+                No crew assigned
+              </span>
+            )}
+          </div>
+        );
       },
     },
     {
