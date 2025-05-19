@@ -169,6 +169,13 @@
       "when": 1747287272034,
       "tag": "0023_overjoyed_dreadnoughts",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1747640695888,
+      "tag": "0024_bouncy_prism",
+      "breakpoints": true
     }
   ]
 }
