@@ -1,10 +1,8 @@
 "use client";
 
-import { Calendar, CheckCircle, ArrowUp } from "lucide-react";
+import { ReceivedAmount } from "@/lib/db/schema";
 import { format } from "date-fns";
 import { Fragment } from "react";
-import { cn } from "@/lib/utils";
-import { ReceivedAmount } from "@/types/booking";
 
 interface ReceivedPaymentsProps {
   receivedAmounts: ReceivedAmount[];

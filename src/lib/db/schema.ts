@@ -855,30 +855,18 @@ export enum ActivityType {
   DELETE_CREW = "DELETE_CREW",
 }
 
-export type ShootWithAssignments = Shoot & {
-  shootsAssignments: ShootsAssignment[];
-};
+// export type ShootWithAssignments = Shoot & {
+//   shootsAssignments: ShootsAssignment[];
+// };
 
-export type DeliverableWithAssignments = Deliverable & {
-  deliverablesAssignments: DeliverablesAssignment[];
-};
+// export type DeliverableWithAssignments = Deliverable & {
+//   deliverablesAssignments: DeliverablesAssignment[];
+// };
 
-export type TaskWithAssignments = Task & {
-  tasksAssignments: TasksAssignment[];
-};
+// export type TaskWithAssignments = Task & {
+//   tasksAssignments: TasksAssignment[];
+// };
 
-export type expensesWithAssignments = Expense & {
-  expensesAssignments: ExpensesAssignment[];
-};
-
-export type BookingDetail = Booking & {
-  clients: Client;
-  shoots: ShootWithAssignments[];
-  deliverables: DeliverableWithAssignments[];
-  receivedAmounts: ReceivedAmount[];
-  paymentSchedules: PaymentSchedule[];
-  expenses: expensesWithAssignments;
-  tasks: TaskWithAssignments[];
-  bookingTypeValue: string;
-  packageTypeValue: string;
-};
+// export type expensesWithAssignments = Expense & {
+//   expensesAssignments: ExpensesAssignment[];
+// };

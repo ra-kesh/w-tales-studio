@@ -1,17 +1,18 @@
-export type User = {
-  name: string;
-  email: string;
-  image: string | null;
-};
-
-export type Member = {
-  id: string;
-  organizationId: string;
-  userId: string;
-  role: string;
-  createdAt: string;
-  user: User;
-};
+import {
+  Client,
+  Deliverable,
+  DeliverablesAssignment,
+  Expense,
+  ExpensesAssignment,
+  Member,
+  PaymentSchedule,
+  ReceivedAmount,
+  Shoot,
+  ShootsAssignment,
+  Task,
+  TasksAssignment,
+  User,
+} from "@/lib/db/schema";
 
 export type Crew = {
   id: number;
@@ -19,154 +20,34 @@ export type Crew = {
   role: string;
   specialization: string | null;
   status: string;
-  member: Member | null;
+  member: Member & {
+    user: Pick<User, "name" | "email" | "image"> | null;
+  };
 };
 
-export type ShootsAssignment = {
-  id: number;
-  shootId: number;
-  crewId: number;
-  isLead: boolean;
-  organizationId: string;
-  assignedAt: string;
-  createdAt: string;
-  updatedAt: string;
-  crew: Crew;
+export type deliverablesWithAssignments = Deliverable & {
+  deliverablesAssignments: DeliverablesAssignment &
+    {
+      crew: Crew;
+    }[];
 };
-
-export type Shoot = {
-  id: number;
-  bookingId: number;
-  organizationId: string;
-  title: string;
-  date: string;
-  time: string;
-  reportingTime: string | null;
-  duration: string | null;
-  location: string;
-  notes: string | null;
-  additionalServices: string | null;
-  createdAt: string;
-  updatedAt: string;
-  shootsAssignments: ShootsAssignment[];
+export type shootsWithAssignments = Shoot & {
+  shootsAssignments: ShootsAssignment &
+    {
+      crew: Crew;
+    }[];
 };
-
-export type DeliverablesAssignment = {
-  id: number;
-  deliverableId: number;
-  crewId: number;
-  isLead: boolean;
-  organizationId: string;
-  assignedAt: string;
-  createdAt: string;
-  updatedAt: string;
-  crew: Crew;
+export type tasksWithAssignments = Task & {
+  tasksAssignments: TasksAssignment &
+    {
+      crew: Crew;
+    }[];
 };
-
-export type Deliverable = {
-  id: number;
-  bookingId: number;
-  organizationId: string;
-  title: string;
-  isPackageIncluded: boolean;
-  cost: string;
-  quantity: number;
-  dueDate: string;
-  notes: string;
-  status: string;
-  fileUrl: string | null;
-  clientFeedback: string | null;
-  priority: string;
-  revisionCount: number;
-  deliveredAt: string | null;
-  createdAt: string;
-  updatedAt: string;
-  deliverablesAssignments: DeliverablesAssignment[];
-};
-
-export type ExpensesAssignment = {
-  id: number;
-  expenseId: number;
-  crewId: number;
-  organizationId: string;
-  assignedAt: string;
-  createdAt: string;
-  updatedAt: string;
-  crew: Crew;
-};
-
-export type Expense = {
-  id: number;
-  bookingId: number;
-  organizationId: string;
-  billTo: string;
-  category: string;
-  amount: string;
-  date: string;
-  description: string;
-  fileUrls: string[];
-  createdAt: string;
-  updatedAt: string;
-  expensesAssignments: ExpensesAssignment[];
-};
-
-export type ReceivedAmount = {
-  id: number;
-  bookingId: number;
-  amount: string;
-  description: string;
-  paidOn: string;
-  createdAt: string;
-  updatedAt: string;
-};
-
-export type PaymentSchedule = {
-  id: number;
-  bookingId: number;
-  amount: string;
-  description: string;
-  dueDate: string;
-  createdAt: string;
-  updatedAt: string;
-};
-
-export type TasksAssignment = {
-  id: number;
-  taskId: number;
-  crewId: number;
-  organizationId: string;
-  assignedAt: string;
-  createdAt: string;
-  updatedAt: string;
-  crew: Crew;
-};
-
-export type Task = {
-  id: number;
-  bookingId: number;
-  organizationId: string;
-  deliverableId: number | null;
-  status: string;
-  description: string;
-  priority: string;
-  dueDate: string;
-  createdAt: string;
-  updatedAt: string;
-  tasksAssignments: TasksAssignment[];
-};
-
-export type Client = {
-  id: number;
-  organizationId: string;
-  name: string;
-  brideName: string;
-  groomName: string;
-  relation: string;
-  phoneNumber: string;
-  email: string;
-  address: string;
-  createdAt: string;
-  updatedAt: string;
+export type expenseWithAssignments = Expense & {
+  expensesAssignments: ExpensesAssignment &
+    {
+      crew: Crew;
+    }[];
 };
 
 export type BookingDetail = {
@@ -182,12 +63,12 @@ export type BookingDetail = {
   updatedAt: string;
   note: string | null;
   clients: Client;
-  shoots: Shoot[];
-  deliverables: Deliverable[];
-  expenses: Expense[];
+  shoots: shootsWithAssignments[];
+  deliverables: deliverablesWithAssignments[];
+  expenses: expenseWithAssignments[];
   receivedAmounts: ReceivedAmount[];
   paymentSchedules: PaymentSchedule[];
-  tasks: Task[];
+  tasks: tasksWithAssignments[];
   bookingTypeValue: string;
   packageTypeValue: string;
 };

@@ -6,9 +6,9 @@ import { Fragment } from "react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Expense } from "@/types/booking";
+import { expenseWithAssignments } from "@/types/booking";
 
-export function Expenses({ expenses }: { expenses: Expense[] }) {
+export function Expenses({ expenses }: { expenses: expenseWithAssignments[] }) {
   if (!expenses.length) {
     return (
       <div className="text-sm text-muted-foreground py-4">
@@ -35,7 +35,7 @@ export function Expenses({ expenses }: { expenses: Expense[] }) {
 
     acc[dateKey].expenses.push(expense);
     return acc;
-  }, {} as Record<string, { date: string; dateTime: string; expenses: Expense[] }>);
+  }, {} as Record<string, { date: string; dateTime: string; expenses: expenseWithAssignments[] }>);
 
   const sortedDates = Object.values(groupedExpenses).sort(
     (a, b) => b.dateTime.localeCompare(a.dateTime) // Reverse sort - newest first
@@ -113,7 +113,7 @@ export function Expenses({ expenses }: { expenses: Expense[] }) {
 
                                 return (
                                   <Avatar
-                                    key={assignment.id}
+                                    key={assignment.crew.id}
                                     className="h-6 w-6 border-2 border-background"
                                   >
                                     <AvatarFallback className="bg-primary/10 text-primary text-xs">

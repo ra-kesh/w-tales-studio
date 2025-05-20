@@ -1,31 +1,29 @@
 "use client";
 
-import { Fragment, useState } from "react";
+import { useState } from "react";
 import { format, isPast } from "date-fns";
 import {
   CheckCircle,
   ChevronDown,
   ChevronUp,
-  Package,
   Calendar,
   Edit,
   Plus,
   MapPin,
   Users,
-  Tag,
   Clock,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 
 import { Button } from "@/components/ui/button";
 import { useShootsParams } from "@/hooks/use-shoots-params";
-import { Shoot } from "@/types/booking";
+import { shootsWithAssignments } from "@/types/booking";
 
 interface BookingShootsProps {
-  shoots: Shoot[];
+  shoots: shootsWithAssignments[];
   bookingId?: string | number;
 }
 
@@ -35,7 +33,7 @@ function ShootsList({
   isFinished = false,
   bookingId,
 }: {
-  shoots: Shoot[];
+  shoots: shootsWithAssignments[];
   isFinished?: boolean;
   bookingId?: string | number;
 }) {
@@ -79,7 +77,7 @@ function ShootsList({
 
     acc[dateKey].shoots.push(shoot);
     return acc;
-  }, {} as Record<string, { date: string; dateTime: string; shoots: Shoot[] }>);
+  }, {} as Record<string, { date: string; dateTime: string; shoots: shootsWithAssignments[] }>);
 
   // Sort dates (ascending for upcoming, descending for finished)
   const sortedDates = Object.values(groupedShoots).sort((a, b) =>
@@ -200,7 +198,7 @@ function ShootsList({
 
                             return (
                               <div
-                                key={assignment.id}
+                                key={`${assignment.crew.id}-${shoot.id}`}
                                 className="flex items-center justify-between p-2 hover:bg-accent/50 transition-colors"
                               >
                                 <div className="flex items-center gap-3">
@@ -219,14 +217,14 @@ function ShootsList({
                                   </div>
                                 </div>
                                 <div className="flex items-center">
-                                  {assignment.isLead && (
+                                  {/* {assignment.isLead && (
                                     <Badge
                                       variant="outline"
                                       className="bg-blue-50 text-blue-700 border-blue-200"
                                     >
                                       Lead
                                     </Badge>
-                                  )}
+                                  )} */}
                                   {assignment.crew?.specialization && (
                                     <div className="ml-2 text-sm text-gray-500">
                                       {assignment.crew.specialization}

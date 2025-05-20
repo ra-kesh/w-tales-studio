@@ -26,15 +26,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { useTaskParams } from "@/hooks/use-task-params";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Task } from "@/types/booking";
+import { tasksWithAssignments } from "@/types/booking";
 
-export function BookingTasks({ tasks }: { tasks: Task[] }) {
+export function BookingTasks({ tasks }: { tasks: tasksWithAssignments[] }) {
   const { setParams } = useTaskParams();
   const [activeTab, setActiveTab] = useState("all");
 
   // Helper function to get status groups
   const getStatusGroups = () => {
-    const groups: Record<string, Task[]> = {};
+    const groups: Record<string, tasksWithAssignments[]> = {};
     tasks?.forEach((task) => {
       const status = task.status || "todo";
       if (!groups[status]) groups[status] = [];
@@ -45,7 +45,7 @@ export function BookingTasks({ tasks }: { tasks: Task[] }) {
 
   // Helper function to get priority groups
   const getPriorityGroups = () => {
-    const groups: Record<string, Task[]> = {};
+    const groups: Record<string, tasksWithAssignments[]> = {};
     tasks?.forEach((task) => {
       const priority = task.priority || "medium";
       if (!groups[priority]) groups[priority] = [];
@@ -56,7 +56,7 @@ export function BookingTasks({ tasks }: { tasks: Task[] }) {
 
   // Helper function to get due date groups - improved logic
   const getDueDateGroups = () => {
-    const groups: Record<string, Task[]> = {
+    const groups: Record<string, tasksWithAssignments[]> = {
       Today: [],
       Tomorrow: [],
       "This Week": [],
@@ -181,7 +181,7 @@ export function BookingTasks({ tasks }: { tasks: Task[] }) {
   };
 
   // Render task card
-  const renderTaskCard = (task: Task) => {
+  const renderTaskCard = (task: tasksWithAssignments) => {
     return (
       <div
         key={task.id}
@@ -219,7 +219,7 @@ export function BookingTasks({ tasks }: { tasks: Task[] }) {
 
                     return (
                       <div
-                        key={assignment.id}
+                        key={assignment.crew?.id}
                         className="flex items-center gap-2"
                       >
                         <Avatar className="h-6 w-6">

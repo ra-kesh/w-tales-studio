@@ -22,14 +22,14 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useDeliverableParams } from "@/hooks/use-deliverable-params";
 import { cn } from "@/lib/utils";
-import { Deliverable } from "@/types/booking";
+import { deliverablesWithAssignments } from "@/types/booking";
 
 function DeliverablesList({
   deliverables,
   isDelivered = false,
   bookingId,
 }: {
-  deliverables: Deliverable[];
+  deliverables: deliverablesWithAssignments[];
   isDelivered?: boolean;
   bookingId?: string | number;
 }) {
@@ -68,7 +68,7 @@ function DeliverablesList({
     }
     acc[status].push(deliverable);
     return acc;
-  }, {} as Record<string, Deliverable[]>);
+  }, {} as Record<string, deliverablesWithAssignments[]>);
 
   // Define status display names and order
   const statusOrder = isDelivered
@@ -278,7 +278,7 @@ function DeliverablesList({
 
                                       return (
                                         <div
-                                          key={assignment.id}
+                                          key={assignment.crew?.id}
                                           className="flex items-center justify-between p-2 bg-white rounded-md shadow-sm"
                                         >
                                           <div className="flex items-center gap-3">
@@ -298,14 +298,14 @@ function DeliverablesList({
                                             </div>
                                           </div>
                                           <div className="flex items-center">
-                                            {assignment.isLead && (
+                                            {/* {assignment.isLead && (
                                               <Badge
                                                 variant="outline"
                                                 className="bg-blue-50 text-blue-700 border-blue-200"
                                               >
                                                 Lead
                                               </Badge>
-                                            )}
+                                            )} */}
                                             {assignment.crew
                                               ?.specialization && (
                                               <div className="ml-2 text-sm text-gray-500">
@@ -349,7 +349,7 @@ function DeliverablesList({
 }
 
 interface BookingDeliverablesProps {
-  deliverables: Deliverable[];
+  deliverables: deliverablesWithAssignments[];
   bookingId?: string | number;
 }
 

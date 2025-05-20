@@ -3,7 +3,7 @@
 import { Calendar, Clock, ArrowDown } from "lucide-react";
 import { format } from "date-fns";
 import { Fragment } from "react";
-import { PaymentSchedule } from "@/types/booking";
+import { PaymentSchedule } from "@/lib/db/schema";
 
 interface UpcomingPaymentsProps {
   paymentSchedules: PaymentSchedule[];
