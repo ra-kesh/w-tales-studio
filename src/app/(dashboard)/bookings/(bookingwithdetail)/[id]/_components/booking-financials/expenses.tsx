@@ -4,15 +4,11 @@ import { Calendar, TrendingDown, ArrowDown, Users } from "lucide-react";
 import { format } from "date-fns";
 import { Fragment } from "react";
 import { cn } from "@/lib/utils";
-import type { Expense } from "@/lib/db/schema";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Expense } from "@/types/booking";
 
-interface ExpensesProps {
-  expenses: Expense[];
-}
-
-export function Expenses({ expenses }: ExpensesProps) {
+export function Expenses({ expenses }: { expenses: Expense[] }) {
   if (!expenses.length) {
     return (
       <div className="text-sm text-muted-foreground py-4">
@@ -47,18 +43,18 @@ export function Expenses({ expenses }: ExpensesProps) {
 
   const getCategoryBadgeStyles = (category: string) => {
     switch (category?.toLowerCase()) {
-      case 'travel':
-        return 'bg-blue-50 text-blue-700 ring-blue-600/20';
-      case 'food':
-        return 'bg-green-50 text-green-700 ring-green-600/20';
-      case 'equipment':
-        return 'bg-purple-50 text-purple-700 ring-purple-600/20';
-      case 'location':
-        return 'bg-orange-50 text-orange-700 ring-orange-600/20';
-      case 'drink':
-        return 'bg-pink-50 text-pink-700 ring-pink-600/20';
+      case "travel":
+        return "bg-blue-50 text-blue-700 ring-blue-600/20";
+      case "food":
+        return "bg-green-50 text-green-700 ring-green-600/20";
+      case "equipment":
+        return "bg-purple-50 text-purple-700 ring-purple-600/20";
+      case "location":
+        return "bg-orange-50 text-orange-700 ring-orange-600/20";
+      case "drink":
+        return "bg-pink-50 text-pink-700 ring-pink-600/20";
       default:
-        return 'bg-gray-50 text-gray-700 ring-gray-600/20';
+        return "bg-gray-50 text-gray-700 ring-gray-600/20";
     }
   };
 
@@ -86,10 +82,12 @@ export function Expenses({ expenses }: ExpensesProps) {
                         ₹{Number(expense.amount).toLocaleString()}
                       </span>
                       {expense.category && (
-                        <div className={cn(
-                          "rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset",
-                          getCategoryBadgeStyles(expense.category)
-                        )}>
+                        <div
+                          className={cn(
+                            "rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset",
+                            getCategoryBadgeStyles(expense.category)
+                          )}
+                        >
                           {expense.category}
                         </div>
                       )}
@@ -97,36 +95,44 @@ export function Expenses({ expenses }: ExpensesProps) {
                     <div className="mt-1 text-sm text-gray-500">
                       {(expense.description as string) || "Expense"}
                     </div>
-                    {expense.expensesAssignments && expense.expensesAssignments.length > 0 && (
-                      <div className="mt-2 flex items-center gap-2">
-                        <Users className="h-4 w-4 text-gray-400" />
-                        <div className="flex -space-x-2">
-                          {expense.expensesAssignments.slice(0, 3).map((assignment) => {
-                            const name = assignment.crew.member?.user?.name || assignment.crew.name;
-                            const initials = name
-                              ?.split(" ")
-                              .map((n) => n[0])
-                              .join("");
+                    {expense.expensesAssignments &&
+                      expense.expensesAssignments.length > 0 && (
+                        <div className="mt-2 flex items-center gap-2">
+                          <Users className="h-4 w-4 text-gray-400" />
+                          <div className="flex -space-x-2">
+                            {expense.expensesAssignments
+                              .slice(0, 3)
+                              .map((assignment) => {
+                                const name =
+                                  assignment.crew.member?.user?.name ||
+                                  assignment.crew.name;
+                                const initials = name
+                                  ?.split(" ")
+                                  .map((n) => n[0])
+                                  .join("");
 
-                            return (
-                              <Avatar
-                                key={assignment.id}
-                                className="h-6 w-6 border-2 border-background"
-                              >
-                                <AvatarFallback className="bg-primary/10 text-primary text-xs">
-                                  {initials}
-                                </AvatarFallback>
-                              </Avatar>
-                            );
-                          })}
+                                return (
+                                  <Avatar
+                                    key={assignment.id}
+                                    className="h-6 w-6 border-2 border-background"
+                                  >
+                                    <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                                      {initials}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                );
+                              })}
+                          </div>
+                          {expense.expensesAssignments.length > 3 && (
+                            <Badge
+                              variant="secondary"
+                              className="rounded-full text-xs"
+                            >
+                              +{expense.expensesAssignments.length - 3}
+                            </Badge>
+                          )}
                         </div>
-                        {expense.expensesAssignments.length > 3 && (
-                          <Badge variant="secondary" className="rounded-full text-xs">
-                            +{expense.expensesAssignments.length - 3}
-                          </Badge>
-                        )}
-                      </div>
-                    )}
+                      )}
                   </div>
                 </div>
 
