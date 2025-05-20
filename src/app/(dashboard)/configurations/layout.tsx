@@ -21,14 +21,9 @@ const SettingsLayout = ({ children }: SettingsLayoutProps) => {
 	];
 
 	return (
-		<div className="hidden h-full flex-1 flex-col space-y-8 p-10 md:flex ">
-			<div className="flex items-center justify-between space-y-2">
-				<div>
-					<h2 className="text-2xl font-bold tracking-tight">Configurations</h2>
-				</div>
-			</div>
+		<div className="hidden h-full flex-1 flex-col space-y-8 p-8 pt-0 md:flex ">
 			<div className="flex flex-col space-y-4">
-				<SimpleTabsList className="w-full justify-start gap-6 border-t">
+				<SimpleTabsList className="w-full justify-start gap-6">
 					{tabs.map((tab) => (
 						<SimpleTabsTrigger
 							key={tab.path}
