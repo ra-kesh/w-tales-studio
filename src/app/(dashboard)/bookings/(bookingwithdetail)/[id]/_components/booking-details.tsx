@@ -12,7 +12,6 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
-import type { BookingDetail } from "@/lib/db/schema";
 import { BookingOverview } from "./booking-overview";
 import { BookingShoots } from "./booking-shoots";
 import { BookingDeliverables } from "./booking-deliverables";
@@ -77,8 +76,8 @@ export function BookingDetails({ id }: { id: string }) {
   return (
     <div className="h-full flex-1 flex flex-col border-r">
       <div ref={headerRef} className="border-b bg-white z-10">
-        <div className="p-6 pb-4">
-          <div className="flex items-center justify-between mb-4">
+        <div className="p-6 pb-2">
+          {/* <div className="flex items-center justify-between mb-4">
             <Button
               variant="ghost"
               size="sm"
@@ -94,15 +93,68 @@ export function BookingDetails({ id }: { id: string }) {
                 Edit Booking
               </Button>
             </div>
-          </div>
+          </div> */}
 
-          <div className="flex items-start justify-between">
+          <div className="flex flex-col items-start justify-between">
             <div className="flex gap-4">
               <h2 className="text-2xl font-bold tracking-tight">
                 {booking?.name}
               </h2>
               <div>
                 <Badge variant={"secondary"}>{booking?.status}</Badge>
+              </div>
+            </div>
+            <div className="mt-4 rounded-lg bg-muted/70 w-full">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-3 p-4">
+                <div className="space-y-1">
+                  <p className="text-xs font-medium text-muted-foreground">
+                    Bride Name
+                  </p>
+                  <p className="text-sm font-medium">
+                    {booking.clients.brideName || "Not specified"}
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs font-medium text-muted-foreground">
+                    Groom Name
+                  </p>
+                  <p className="text-sm font-medium">
+                    {booking.clients.groomName || "Not specified"}
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs font-medium text-muted-foreground">
+                    Email address
+                  </p>
+                  <p className="text-sm font-medium">
+                    {booking.clients.email || "Not provided"}
+                  </p>
+                </div>
+
+                <div className="space-y-1">
+                  <p className="text-xs font-medium text-muted-foreground">
+                    Package Type
+                  </p>
+                  <p className="text-sm font-medium">
+                    {booking.packageTypeValue}
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs font-medium text-muted-foreground">
+                    Package Cost
+                  </p>
+                  <p className="text-sm font-medium">
+                    ₹{Number(booking.packageCost).toLocaleString()}
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs font-medium text-muted-foreground">
+                    Phone number
+                  </p>
+                  <p className="text-sm font-medium">
+                    {booking.clients.phoneNumber || "Not provided"}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
