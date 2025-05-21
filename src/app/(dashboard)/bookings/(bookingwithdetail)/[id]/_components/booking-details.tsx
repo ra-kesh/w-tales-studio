@@ -1,24 +1,12 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import {
-  CheckSquare,
-  Camera,
-  Image,
-  X,
-  Edit,
-  Info,
-  ArrowLeft,
-  XIcon,
-  XSquareIcon,
-  DollarSign,
-} from "lucide-react";
+import { CheckSquare, Camera, Image, Edit, Info, XIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { BookingOverview } from "./booking-overview";
 import { BookingShoots } from "./booking-shoots";
 import { BookingDeliverables } from "./booking-deliverables";
-import { BookingFinancials } from "./booking-financials";
 import { BookingTasks } from "./booking-tasks";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -61,11 +49,6 @@ export function BookingDetails({ id }: { id: string }) {
       label: "Tasks",
       icon: <CheckSquare className="h-4 w-4 mr-2" />,
     },
-    // {
-    //   id: "financials",
-    //   label: "Financials",
-    //   icon: <DollarSign className="h-4 w-4 mr-2" />,
-    // },
   ];
 
   const handleClose = () => {
@@ -103,7 +86,7 @@ export function BookingDetails({ id }: { id: string }) {
                 </Button>
               </div>
             </div>
-            <div className="mt-1 rounded-lg bg-muted/70 w-full">
+            <div className="mt-1 rounded-lg bg-muted/40 w-full">
               <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-3 p-4">
                 <div className="space-y-1">
                   <p className="text-xs font-medium text-muted-foreground">
@@ -193,15 +176,6 @@ export function BookingDetails({ id }: { id: string }) {
           )}
 
           {activeTab === "tasks" && <BookingTasks tasks={booking?.tasks} />}
-
-          {/* {activeTab === "financials" && (
-            <BookingFinancials
-              packageCost={booking.packageCost}
-              receivedAmounts={booking.receivedAmounts}
-              paymentSchedules={booking.paymentSchedules}
-              expenses={booking.expenses}
-            />
-          )} */}
         </div>
       </ScrollArea>
     </div>
