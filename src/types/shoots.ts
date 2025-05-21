@@ -1,25 +1,11 @@
-import type { Shoot } from "@/lib/db/schema";
-
-export type ShootAssignment = {
-	crew: {
-		name: string | null;
-		role: string | null;
-		specialization: string | null;
-		member?: {
-			user?: {
-				name: string | null;
-			};
-		};
-	};
-	isLead?: boolean;
-};
+import type { Shoot, ShootsAssignment } from "@/lib/db/schema";
 
 export type ShootRowData = Shoot & {
-	booking: { name: string };
-	shootsAssignments: ShootAssignment[];
+  booking: { name: string };
+  shootsAssignments: ShootsAssignment[];
 };
 
 export interface ShootsResponse {
-	data: ShootRowData[];
-	total: number;
+  data: ShootRowData[];
+  total: number;
 }

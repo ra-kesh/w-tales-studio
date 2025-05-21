@@ -26,11 +26,6 @@ export default async function ShootsPage() {
 	});
 	return (
 		<div className="h-full flex-1 flex flex-col p-8">
-			<div className="flex items-center justify-between mb-8">
-				<div>
-					<h2 className="text-2xl font-bold tracking-tight">Shoots</h2>
-				</div>
-			</div>
 			<Suspense fallback={<div>Loading...</div>}>
 				<HydrationBoundary state={dehydrate(queryClient)}>
 					<Shoots />

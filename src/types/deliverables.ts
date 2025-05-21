@@ -1,25 +1,11 @@
-import type { Deliverable } from "@/lib/db/schema";
-
-export type DeliverableAssignment = {
-	crew: {
-		name: string | null;
-		role: string | null;
-		specialization: string | null;
-		member?: {
-			user?: {
-				name: string | null;
-			};
-		};
-	};
-	isLead?: boolean;
-};
+import type { Deliverable, DeliverablesAssignment } from "@/lib/db/schema";
 
 export type DeliverableRowData = Deliverable & {
-	booking: { name: string };
-	deliverablesAssignments: DeliverableAssignment[];
+  booking: { name: string };
+  deliverablesAssignments: DeliverablesAssignment[];
 };
 
 export interface DeliverablesResponse {
-	data: DeliverableRowData[];
-	total: number;
+  data: DeliverableRowData[];
+  total: number;
 }
