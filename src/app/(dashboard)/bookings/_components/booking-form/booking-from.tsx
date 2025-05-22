@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BookingDetailForm } from "./booking-detail-form";
 import {
@@ -11,11 +11,12 @@ import {
 import { ShootDetailForm } from "./shoot-detail-form";
 import { BookingDeliveryForm } from "./booking-delivery-form";
 import { BookingPaymentForm } from "./booking-payment-form";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form } from "@/components/ui/form";
+import { useQueryState } from "nuqs";
 
 const BookingForm = ({
 	defaultValues,
@@ -34,11 +35,6 @@ const BookingForm = ({
 		mode: "onChange",
 	});
 
-	console.log(form.getValues());
-
-	console.log(form.formState.errors);
-
-	const searchParams = useSearchParams();
 	const router = useRouter();
 
 	const detailsTabRef = useRef<HTMLButtonElement>(null);
@@ -46,17 +42,8 @@ const BookingForm = ({
 	const deliverablesTabRef = useRef<HTMLButtonElement>(null);
 	const shootsTabRef = useRef<HTMLButtonElement>(null);
 
-	const createQueryString = useCallback(
-		(name: string, value: string) => {
-			const params = new URLSearchParams(searchParams.toString());
-			params.set(name, value);
-
-			return params.toString();
-		},
-		[searchParams],
-	);
-
 	const tabOrder = ["details", "payments", "shoots", "deliverables"];
+
 	const tabRefs = {
 		details: detailsTabRef,
 		payments: paymentsTabRef,
@@ -64,12 +51,14 @@ const BookingForm = ({
 		shoots: shootsTabRef,
 	};
 
-	const getInitialTabs = () => {
-		const tab = searchParams.get("tab");
-		return tab && tabOrder.includes(tab) ? tab : "details";
-	};
-
-	const [activeTab, setActiveTab] = React.useState(() => getInitialTabs());
+	// Replace the searchParams and createQueryString with nuqs
+	const [activeTab, setActiveTab] = useQueryState("tab", {
+		defaultValue: "details",
+		parse: (value) => {
+			return tabOrder.includes(value) ? value : "details";
+		},
+		serialize: (value) => value,
+	});
 
 	useEffect(() => {
 		const handleKeyDown = (e: KeyboardEvent) => {
@@ -99,11 +88,8 @@ const BookingForm = ({
 		};
 	}, [activeTab]);
 
-	type TabChangeHandler = (newTab: string) => void;
-
-	const handleTabChange: TabChangeHandler = (newTab) => {
+	const handleTabChange = (newTab: string) => {
 		setActiveTab(newTab);
-		router.push(`?${createQueryString("tab", newTab)}`, { scroll: false });
 	};
 
 	const goToPreviousTab = () => {
@@ -128,9 +114,7 @@ const BookingForm = ({
 			form.reset({ ...defaultBooking });
 			handleTabChange("details");
 		}
-	}, [form.formState, defaultBooking, form.reset, mode, handleTabChange]);
-
-	const isFormValid = form.formState.isValid;
+	}, [form.formState, form.reset, mode]);
 
 	return (
 		<Form {...form}>
@@ -194,9 +178,18 @@ const BookingForm = ({
 							Next
 						</Button>
 					</div>
-					<Button type="submit" disabled={isPending}>
-						{isPending ? "Submitting..." : "Submit"}
-					</Button>
+					<div className="flex items-center gap-4">
+						<Button
+							variant={"secondary"}
+							type="button"
+							onClick={() => router.back()}
+						>
+							Cancel
+						</Button>
+						<Button type="submit" disabled={isPending}>
+							{isPending ? "Submitting..." : "Submit"}
+						</Button>
+					</div>
 				</div>
 			</form>
 		</Form>
