@@ -4,9 +4,9 @@ import React, { useCallback, useEffect, useRef } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BookingDetailForm } from "./booking-detail-form";
 import {
-  type BookingFormValues,
-  BookingSchema,
-  defaultBooking,
+	type BookingFormValues,
+	BookingSchema,
+	defaultBooking,
 } from "./booking-form-schema";
 import { ShootDetailForm } from "./shoot-detail-form";
 import { BookingDeliveryForm } from "./booking-delivery-form";
@@ -18,185 +18,189 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Form } from "@/components/ui/form";
 
 const BookingForm = ({
-  defaultValues,
-  onSubmit,
-  isPending,
-  mode = "add",
+	defaultValues,
+	onSubmit,
+	isPending,
+	mode = "add",
 }: {
-  defaultValues: BookingFormValues;
-  onSubmit: (data: BookingFormValues) => void;
-  isPending?: boolean;
-  mode?: "add" | "edit";
+	defaultValues: BookingFormValues;
+	onSubmit: (data: BookingFormValues) => void;
+	isPending?: boolean;
+	mode?: "add" | "edit";
 }) => {
-  const form = useForm<BookingFormValues>({
-    resolver: zodResolver(BookingSchema),
-    defaultValues: defaultValues,
-    mode: "onChange",
-  });
+	const form = useForm<BookingFormValues>({
+		resolver: zodResolver(BookingSchema),
+		defaultValues: defaultValues,
+		mode: "onChange",
+	});
 
-  const searchParams = useSearchParams();
-  const router = useRouter();
+	console.log(form.getValues());
 
-  const detailsTabRef = useRef<HTMLButtonElement>(null);
-  const paymentsTabRef = useRef<HTMLButtonElement>(null);
-  const deliverablesTabRef = useRef<HTMLButtonElement>(null);
-  const shootsTabRef = useRef<HTMLButtonElement>(null);
+	console.log(form.formState.errors);
 
-  const createQueryString = useCallback(
-    (name: string, value: string) => {
-      const params = new URLSearchParams(searchParams.toString());
-      params.set(name, value);
+	const searchParams = useSearchParams();
+	const router = useRouter();
 
-      return params.toString();
-    },
-    [searchParams]
-  );
+	const detailsTabRef = useRef<HTMLButtonElement>(null);
+	const paymentsTabRef = useRef<HTMLButtonElement>(null);
+	const deliverablesTabRef = useRef<HTMLButtonElement>(null);
+	const shootsTabRef = useRef<HTMLButtonElement>(null);
 
-  const tabOrder = ["details", "payments", "shoots", "deliverables"];
-  const tabRefs = {
-    details: detailsTabRef,
-    payments: paymentsTabRef,
-    deliverables: deliverablesTabRef,
-    shoots: shootsTabRef,
-  };
+	const createQueryString = useCallback(
+		(name: string, value: string) => {
+			const params = new URLSearchParams(searchParams.toString());
+			params.set(name, value);
 
-  const getInitialTabs = () => {
-    const tab = searchParams.get("tab");
-    return tab && tabOrder.includes(tab) ? tab : "details";
-  };
+			return params.toString();
+		},
+		[searchParams],
+	);
 
-  const [activeTab, setActiveTab] = React.useState(() => getInitialTabs());
+	const tabOrder = ["details", "payments", "shoots", "deliverables"];
+	const tabRefs = {
+		details: detailsTabRef,
+		payments: paymentsTabRef,
+		deliverables: deliverablesTabRef,
+		shoots: shootsTabRef,
+	};
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (
-        (e.key === "ArrowLeft" || e.key === "ArrowRight") &&
-        e.target instanceof HTMLElement &&
-        !["INPUT", "TEXTAREA", "SELECT"].includes(e.target.tagName)
-      ) {
-        const isSomeTabFocused = Object.values(tabRefs).some(
-          (ref) => ref.current === document.activeElement
-        );
+	const getInitialTabs = () => {
+		const tab = searchParams.get("tab");
+		return tab && tabOrder.includes(tab) ? tab : "details";
+	};
 
-        if (!isSomeTabFocused) {
-          e.preventDefault();
-          const activeTabRef = tabRefs[activeTab as keyof typeof tabRefs];
-          if (activeTabRef?.current) {
-            activeTabRef.current.focus();
-          }
-        }
-      }
-    };
+	const [activeTab, setActiveTab] = React.useState(() => getInitialTabs());
 
-    window.addEventListener("keydown", handleKeyDown);
+	useEffect(() => {
+		const handleKeyDown = (e: KeyboardEvent) => {
+			if (
+				(e.key === "ArrowLeft" || e.key === "ArrowRight") &&
+				e.target instanceof HTMLElement &&
+				!["INPUT", "TEXTAREA", "SELECT"].includes(e.target.tagName)
+			) {
+				const isSomeTabFocused = Object.values(tabRefs).some(
+					(ref) => ref.current === document.activeElement,
+				);
 
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [activeTab]);
+				if (!isSomeTabFocused) {
+					e.preventDefault();
+					const activeTabRef = tabRefs[activeTab as keyof typeof tabRefs];
+					if (activeTabRef?.current) {
+						activeTabRef.current.focus();
+					}
+				}
+			}
+		};
 
-  type TabChangeHandler = (newTab: string) => void;
+		window.addEventListener("keydown", handleKeyDown);
 
-  const handleTabChange: TabChangeHandler = (newTab) => {
-    setActiveTab(newTab);
-    router.push(`?${createQueryString("tab", newTab)}`, { scroll: false });
-  };
+		return () => {
+			window.removeEventListener("keydown", handleKeyDown);
+		};
+	}, [activeTab]);
 
-  const goToPreviousTab = () => {
-    const currentIndex = tabOrder.indexOf(activeTab);
-    if (currentIndex > 0) {
-      handleTabChange(tabOrder[currentIndex - 1]);
-    }
-  };
+	type TabChangeHandler = (newTab: string) => void;
 
-  const goToNextTab = () => {
-    const currentIndex = tabOrder.indexOf(activeTab);
-    if (currentIndex < tabOrder.length - 1) {
-      handleTabChange(tabOrder[currentIndex + 1]);
-    }
-  };
+	const handleTabChange: TabChangeHandler = (newTab) => {
+		setActiveTab(newTab);
+		router.push(`?${createQueryString("tab", newTab)}`, { scroll: false });
+	};
 
-  const isFirstTab = tabOrder.indexOf(activeTab) === 0;
-  const isLastTab = tabOrder.indexOf(activeTab) === tabOrder.length - 1;
+	const goToPreviousTab = () => {
+		const currentIndex = tabOrder.indexOf(activeTab);
+		if (currentIndex > 0) {
+			handleTabChange(tabOrder[currentIndex - 1]);
+		}
+	};
 
-  React.useEffect(() => {
-    if (form.formState.isSubmitSuccessful && mode === "add") {
-      form.reset({ ...defaultBooking });
-      handleTabChange("details");
-    }
-  }, [form.formState, defaultBooking, form.reset, mode, handleTabChange]);
+	const goToNextTab = () => {
+		const currentIndex = tabOrder.indexOf(activeTab);
+		if (currentIndex < tabOrder.length - 1) {
+			handleTabChange(tabOrder[currentIndex + 1]);
+		}
+	};
 
-  const isFormValid = form.formState.isValid;
+	const isFirstTab = tabOrder.indexOf(activeTab) === 0;
+	const isLastTab = tabOrder.indexOf(activeTab) === tabOrder.length - 1;
 
-  return (
-    <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="container max-w-5xl py-8"
-      >
-        <Tabs
-          value={activeTab}
-          onValueChange={handleTabChange}
-          className="space-y-6"
-        >
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger ref={detailsTabRef} value="details">
-              Details
-            </TabsTrigger>
-            <TabsTrigger ref={paymentsTabRef} value="payments">
-              Payments
-            </TabsTrigger>
-            <TabsTrigger ref={shootsTabRef} value="shoots">
-              Shoots
-            </TabsTrigger>
-            <TabsTrigger ref={deliverablesTabRef} value="deliverables">
-              Deliverables
-            </TabsTrigger>
-          </TabsList>
+	React.useEffect(() => {
+		if (form.formState.isSubmitSuccessful && mode === "add") {
+			form.reset({ ...defaultBooking });
+			handleTabChange("details");
+		}
+	}, [form.formState, defaultBooking, form.reset, mode, handleTabChange]);
 
-          <TabsContent value="details" className="space-y-4">
-            <BookingDetailForm />
-          </TabsContent>
+	const isFormValid = form.formState.isValid;
 
-          <TabsContent value="payments" className="space-y-4">
-            <BookingPaymentForm />
-          </TabsContent>
+	return (
+		<Form {...form}>
+			<form
+				onSubmit={form.handleSubmit(onSubmit)}
+				className="container max-w-5xl py-8"
+			>
+				<Tabs
+					value={activeTab}
+					onValueChange={handleTabChange}
+					className="space-y-6"
+				>
+					<TabsList className="grid w-full grid-cols-4">
+						<TabsTrigger ref={detailsTabRef} value="details">
+							Details
+						</TabsTrigger>
+						<TabsTrigger ref={paymentsTabRef} value="payments">
+							Payments
+						</TabsTrigger>
+						<TabsTrigger ref={shootsTabRef} value="shoots">
+							Shoots
+						</TabsTrigger>
+						<TabsTrigger ref={deliverablesTabRef} value="deliverables">
+							Deliverables
+						</TabsTrigger>
+					</TabsList>
 
-          <TabsContent value="shoots" className="space-y-4">
-            <ShootDetailForm />
-          </TabsContent>
+					<TabsContent value="details" className="space-y-4">
+						<BookingDetailForm />
+					</TabsContent>
 
-          <TabsContent value="deliverables" className="space-y-4">
-            <BookingDeliveryForm />
-          </TabsContent>
-        </Tabs>
+					<TabsContent value="payments" className="space-y-4">
+						<BookingPaymentForm />
+					</TabsContent>
 
-        <div className="flex justify-between">
-          <div className="flex items-center gap-4">
-            <Button
-              type="button"
-              variant={"outline"}
-              onClick={goToPreviousTab}
-              disabled={isFirstTab}
-            >
-              Previous
-            </Button>
-            <Button
-              type="button"
-              variant={"outline"}
-              onClick={goToNextTab}
-              disabled={isLastTab}
-            >
-              Next
-            </Button>
-          </div>
-          <Button type="submit" disabled={!isFormValid || isPending}>
-            {isPending ? "Submitting..." : "Submit"}
-          </Button>
-        </div>
-      </form>
-    </Form>
-  );
+					<TabsContent value="shoots" className="space-y-4">
+						<ShootDetailForm />
+					</TabsContent>
+
+					<TabsContent value="deliverables" className="space-y-4">
+						<BookingDeliveryForm />
+					</TabsContent>
+				</Tabs>
+
+				<div className="flex justify-between">
+					<div className="flex items-center gap-4">
+						<Button
+							type="button"
+							variant={"outline"}
+							onClick={goToPreviousTab}
+							disabled={isFirstTab}
+						>
+							Previous
+						</Button>
+						<Button
+							type="button"
+							variant={"outline"}
+							onClick={goToNextTab}
+							disabled={isLastTab}
+						>
+							Next
+						</Button>
+					</div>
+					<Button type="submit" disabled={isPending}>
+						{isPending ? "Submitting..." : "Submit"}
+					</Button>
+				</div>
+			</form>
+		</Form>
+	);
 };
 
 export default BookingForm;
