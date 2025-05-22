@@ -17,6 +17,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form } from "@/components/ui/form";
 import { useQueryState } from "nuqs";
+import { AlertCircle } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const BookingForm = ({
 	defaultValues,
@@ -59,6 +61,54 @@ const BookingForm = ({
 		},
 		serialize: (value) => value,
 	});
+
+	// Track which tabs have errors
+	const [tabsWithErrors, setTabsWithErrors] = React.useState<
+		Record<string, boolean>
+	>({});
+
+	// Update tabs with errors whenever form state changes
+	React.useEffect(() => {
+		if (form.formState.errors) {
+			const errorFields = Object.keys(form.formState.errors);
+
+			// Map to determine which fields belong to which tabs
+			const tabFieldMapping: Record<string, string[]> = {
+				details: [
+					"bookingName",
+					"bookingType",
+					"packageType",
+					"packageCost",
+					"clientName",
+					"groomName",
+					"brideName",
+					"address",
+					"relation",
+					"phone",
+					"email",
+					"note",
+				],
+				payments: ["payments", "scheduledPayments"],
+				shoots: ["shoots"],
+				deliverables: ["deliverables"],
+			};
+
+			// Check which tabs have errors
+			const newTabsWithErrors = tabOrder.reduce((acc, tab) => {
+				const hasError = errorFields.some((field) => {
+					// Check if the field or its parent belongs to this tab
+					return tabFieldMapping[tab].some(
+						(tabField) =>
+							field === tabField || field.startsWith(`${tabField}.`),
+					);
+				});
+
+				return { ...acc, [tab]: hasError };
+			}, {});
+
+			setTabsWithErrors(newTabsWithErrors);
+		}
+	}, [form.formState.errors]);
 
 	useEffect(() => {
 		const handleKeyDown = (e: KeyboardEvent) => {
@@ -109,6 +159,51 @@ const BookingForm = ({
 	const isFirstTab = tabOrder.indexOf(activeTab) === 0;
 	const isLastTab = tabOrder.indexOf(activeTab) === tabOrder.length - 1;
 
+	// Get a summary of all errors
+	const getErrorSummary = () => {
+		const errors = form.formState.errors;
+		if (!errors || Object.keys(errors).length === 0) return null;
+
+		// Count errors by tab
+		const errorsByTab = tabOrder.reduce(
+			(acc, tab) => {
+				const count = Object.keys(tabsWithErrors).filter(
+					(t) => t === tab && tabsWithErrors[t],
+				).length;
+				if (count > 0) acc[tab] = count;
+				return acc;
+			},
+			{} as Record<string, number>,
+		);
+
+		if (Object.keys(errorsByTab).length === 0) return null;
+
+		return (
+			<Alert variant="destructive" className="mb-4">
+				<AlertCircle className="h-4 w-4" />
+				<AlertTitle>Validation Errors</AlertTitle>
+				<AlertDescription>
+					Please fix the following errors before submitting:
+					<ul className="mt-2 list-disc pl-5">
+						{Object.keys(tabsWithErrors).map((tab) =>
+							tabsWithErrors[tab] ? (
+								<li key={tab} className="text-sm">
+									<button
+										type="button"
+										className="text-primary underline"
+										onClick={() => handleTabChange(tab)}
+									>
+										{tab.charAt(0).toUpperCase() + tab.slice(1)} tab
+									</button>
+								</li>
+							) : null,
+						)}
+					</ul>
+				</AlertDescription>
+			</Alert>
+		);
+	};
+
 	React.useEffect(() => {
 		if (form.formState.isSubmitSuccessful && mode === "add") {
 			form.reset({ ...defaultBooking });
@@ -122,23 +217,42 @@ const BookingForm = ({
 				onSubmit={form.handleSubmit(onSubmit)}
 				className="container max-w-5xl py-8"
 			>
+				{/* Error Summary */}
+				{form.formState.isSubmitted && getErrorSummary()}
+
 				<Tabs
 					value={activeTab}
 					onValueChange={handleTabChange}
 					className="space-y-6"
 				>
 					<TabsList className="grid w-full grid-cols-4">
-						<TabsTrigger ref={detailsTabRef} value="details">
+						<TabsTrigger
+							ref={detailsTabRef}
+							value="details"
+							className="relative"
+						>
 							Details
+							
 						</TabsTrigger>
-						<TabsTrigger ref={paymentsTabRef} value="payments">
+						<TabsTrigger
+							ref={paymentsTabRef}
+							value="payments"
+							className="relative"
+						>
 							Payments
+					
 						</TabsTrigger>
-						<TabsTrigger ref={shootsTabRef} value="shoots">
+						<TabsTrigger ref={shootsTabRef} value="shoots" className="relative">
 							Shoots
+					
 						</TabsTrigger>
-						<TabsTrigger ref={deliverablesTabRef} value="deliverables">
+						<TabsTrigger
+							ref={deliverablesTabRef}
+							value="deliverables"
+							className="relative"
+						>
 							Deliverables
+							
 						</TabsTrigger>
 					</TabsList>
 
