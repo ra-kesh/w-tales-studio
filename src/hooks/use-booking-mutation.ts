@@ -2,12 +2,14 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 import { sanitizeEmptiness } from "@/lib/utils";
 import type { BookingFormValues } from "@/app/(dashboard)/bookings/_components/booking-form/booking-form-schema";
 
 export const useBookingMutation = () => {
   const queryClient = useQueryClient();
+  const router = useRouter();
 
   async function addBooking(data: BookingFormValues) {
     const response = await fetch("/api/bookings", {
@@ -44,7 +46,17 @@ export const useBookingMutation = () => {
       if (context?.toastId) {
         toast.dismiss(context.toastId);
       }
-      toast.success("Booking added successfully");
+
+      // Enhanced toast with action button
+      toast.success("Booking added successfully", {
+        description: `${variables.bookingName} has been added to your bookings.`,
+        action: {
+          label: "View Booking",
+          onClick: () => router.push(`/bookings/${data.data.bookingId}`),
+        },
+        duration: 5000, // Show for 5 seconds to give user time to click
+      });
+
       queryClient.invalidateQueries({
         queryKey: ["bookings", "list"],
       });
@@ -58,6 +70,7 @@ export const useBookingMutation = () => {
 
 export const useUpdateBookingMutation = (id: string) => {
   const queryClient = useQueryClient();
+  const router = useRouter();
 
   async function updateBooking(data: BookingFormValues) {
     const response = await fetch(`/api/bookings/${id}`, {
@@ -93,6 +106,16 @@ export const useUpdateBookingMutation = (id: string) => {
         toast.dismiss(context.toastId);
       }
 
+      // Enhanced toast with action button
+      toast.success("Booking updated successfully", {
+        description: `${variables.bookingName} has been updated.`,
+        action: {
+          label: "View Details",
+          onClick: () => router.push(`/bookings/${data.data.bookingId}`),
+        },
+        duration: 5000, // Show for 5 seconds to give user time to click
+      });
+
       queryClient.invalidateQueries({
         queryKey: [
           "bookings",
@@ -103,7 +126,6 @@ export const useUpdateBookingMutation = (id: string) => {
         ],
       });
       queryClient.invalidateQueries({ queryKey: ["bookings", "list"] });
-      toast.success("Booking updated successfully");
     },
   });
 };
