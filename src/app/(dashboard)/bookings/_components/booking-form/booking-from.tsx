@@ -1,202 +1,313 @@
 "use client";
 
-import React, { useCallback, useEffect, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BookingDetailForm } from "./booking-detail-form";
 import {
-  type BookingFormValues,
-  BookingSchema,
-  defaultBooking,
+	type BookingFormValues,
+	BookingSchema,
+	defaultBooking,
 } from "./booking-form-schema";
 import { ShootDetailForm } from "./shoot-detail-form";
 import { BookingDeliveryForm } from "./booking-delivery-form";
 import { BookingPaymentForm } from "./booking-payment-form";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form } from "@/components/ui/form";
+import { useQueryState } from "nuqs";
+import { AlertCircle } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const BookingForm = ({
-  defaultValues,
-  onSubmit,
-  isPending,
-  mode = "add",
+	defaultValues,
+	onSubmit,
+	isPending,
+	mode = "add",
 }: {
-  defaultValues: BookingFormValues;
-  onSubmit: (data: BookingFormValues) => void;
-  isPending?: boolean;
-  mode?: "add" | "edit";
+	defaultValues: BookingFormValues;
+	onSubmit: (data: BookingFormValues) => void;
+	isPending?: boolean;
+	mode?: "add" | "edit";
 }) => {
-  const form = useForm<BookingFormValues>({
-    resolver: zodResolver(BookingSchema),
-    defaultValues: defaultValues,
-    mode: "onChange",
-  });
+	const form = useForm<BookingFormValues>({
+		resolver: zodResolver(BookingSchema),
+		defaultValues: defaultValues,
+		mode: "onChange",
+	});
 
-  const searchParams = useSearchParams();
-  const router = useRouter();
+	const router = useRouter();
 
-  const detailsTabRef = useRef<HTMLButtonElement>(null);
-  const paymentsTabRef = useRef<HTMLButtonElement>(null);
-  const deliverablesTabRef = useRef<HTMLButtonElement>(null);
-  const shootsTabRef = useRef<HTMLButtonElement>(null);
+	const detailsTabRef = useRef<HTMLButtonElement>(null);
+	const paymentsTabRef = useRef<HTMLButtonElement>(null);
+	const deliverablesTabRef = useRef<HTMLButtonElement>(null);
+	const shootsTabRef = useRef<HTMLButtonElement>(null);
 
-  const createQueryString = useCallback(
-    (name: string, value: string) => {
-      const params = new URLSearchParams(searchParams.toString());
-      params.set(name, value);
+	const tabOrder = ["details", "payments", "shoots", "deliverables"];
 
-      return params.toString();
-    },
-    [searchParams]
-  );
+	const tabRefs = {
+		details: detailsTabRef,
+		payments: paymentsTabRef,
+		deliverables: deliverablesTabRef,
+		shoots: shootsTabRef,
+	};
 
-  const tabOrder = ["details", "payments", "shoots", "deliverables"];
-  const tabRefs = {
-    details: detailsTabRef,
-    payments: paymentsTabRef,
-    deliverables: deliverablesTabRef,
-    shoots: shootsTabRef,
-  };
+	// Replace the searchParams and createQueryString with nuqs
+	const [activeTab, setActiveTab] = useQueryState("tab", {
+		defaultValue: "details",
+		parse: (value) => {
+			return tabOrder.includes(value) ? value : "details";
+		},
+		serialize: (value) => value,
+	});
 
-  const getInitialTabs = () => {
-    const tab = searchParams.get("tab");
-    return tab && tabOrder.includes(tab) ? tab : "details";
-  };
+	// Track which tabs have errors
+	const [tabsWithErrors, setTabsWithErrors] = React.useState<
+		Record<string, boolean>
+	>({});
 
-  const [activeTab, setActiveTab] = React.useState(() => getInitialTabs());
+	// Update tabs with errors whenever form state changes
+	React.useEffect(() => {
+		if (form.formState.errors) {
+			const errorFields = Object.keys(form.formState.errors);
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (
-        (e.key === "ArrowLeft" || e.key === "ArrowRight") &&
-        e.target instanceof HTMLElement &&
-        !["INPUT", "TEXTAREA", "SELECT"].includes(e.target.tagName)
-      ) {
-        const isSomeTabFocused = Object.values(tabRefs).some(
-          (ref) => ref.current === document.activeElement
-        );
+			// Map to determine which fields belong to which tabs
+			const tabFieldMapping: Record<string, string[]> = {
+				details: [
+					"bookingName",
+					"bookingType",
+					"packageType",
+					"packageCost",
+					"clientName",
+					"groomName",
+					"brideName",
+					"address",
+					"relation",
+					"phone",
+					"email",
+					"note",
+				],
+				payments: ["payments", "scheduledPayments"],
+				shoots: ["shoots"],
+				deliverables: ["deliverables"],
+			};
 
-        if (!isSomeTabFocused) {
-          e.preventDefault();
-          const activeTabRef = tabRefs[activeTab as keyof typeof tabRefs];
-          if (activeTabRef?.current) {
-            activeTabRef.current.focus();
-          }
-        }
-      }
-    };
+			// Check which tabs have errors
+			const newTabsWithErrors = tabOrder.reduce((acc, tab) => {
+				const hasError = errorFields.some((field) => {
+					// Check if the field or its parent belongs to this tab
+					return tabFieldMapping[tab].some(
+						(tabField) =>
+							field === tabField || field.startsWith(`${tabField}.`),
+					);
+				});
 
-    window.addEventListener("keydown", handleKeyDown);
+				return { ...acc, [tab]: hasError };
+			}, {});
 
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [activeTab]);
+			setTabsWithErrors(newTabsWithErrors);
+		}
+	}, [form.formState.errors]);
 
-  type TabChangeHandler = (newTab: string) => void;
+	useEffect(() => {
+		const handleKeyDown = (e: KeyboardEvent) => {
+			if (
+				(e.key === "ArrowLeft" || e.key === "ArrowRight") &&
+				e.target instanceof HTMLElement &&
+				!["INPUT", "TEXTAREA", "SELECT"].includes(e.target.tagName)
+			) {
+				const isSomeTabFocused = Object.values(tabRefs).some(
+					(ref) => ref.current === document.activeElement,
+				);
 
-  const handleTabChange: TabChangeHandler = (newTab) => {
-    setActiveTab(newTab);
-    router.push(`?${createQueryString("tab", newTab)}`, { scroll: false });
-  };
+				if (!isSomeTabFocused) {
+					e.preventDefault();
+					const activeTabRef = tabRefs[activeTab as keyof typeof tabRefs];
+					if (activeTabRef?.current) {
+						activeTabRef.current.focus();
+					}
+				}
+			}
+		};
 
-  const goToPreviousTab = () => {
-    const currentIndex = tabOrder.indexOf(activeTab);
-    if (currentIndex > 0) {
-      handleTabChange(tabOrder[currentIndex - 1]);
-    }
-  };
+		window.addEventListener("keydown", handleKeyDown);
 
-  const goToNextTab = () => {
-    const currentIndex = tabOrder.indexOf(activeTab);
-    if (currentIndex < tabOrder.length - 1) {
-      handleTabChange(tabOrder[currentIndex + 1]);
-    }
-  };
+		return () => {
+			window.removeEventListener("keydown", handleKeyDown);
+		};
+	}, [activeTab]);
 
-  const isFirstTab = tabOrder.indexOf(activeTab) === 0;
-  const isLastTab = tabOrder.indexOf(activeTab) === tabOrder.length - 1;
+	const handleTabChange = (newTab: string) => {
+		setActiveTab(newTab);
+	};
 
-  React.useEffect(() => {
-    if (form.formState.isSubmitSuccessful && mode === "add") {
-      form.reset({ ...defaultBooking });
-      handleTabChange("details");
-    }
-  }, [form.formState, defaultBooking, form.reset, mode, handleTabChange]);
+	const goToPreviousTab = () => {
+		const currentIndex = tabOrder.indexOf(activeTab);
+		if (currentIndex > 0) {
+			handleTabChange(tabOrder[currentIndex - 1]);
+		}
+	};
 
-  const isFormValid = form.formState.isValid;
+	const goToNextTab = () => {
+		const currentIndex = tabOrder.indexOf(activeTab);
+		if (currentIndex < tabOrder.length - 1) {
+			handleTabChange(tabOrder[currentIndex + 1]);
+		}
+	};
 
-  return (
-    <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="container max-w-5xl py-8"
-      >
-        <Tabs
-          value={activeTab}
-          onValueChange={handleTabChange}
-          className="space-y-6"
-        >
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger ref={detailsTabRef} value="details">
-              Details
-            </TabsTrigger>
-            <TabsTrigger ref={paymentsTabRef} value="payments">
-              Payments
-            </TabsTrigger>
-            <TabsTrigger ref={shootsTabRef} value="shoots">
-              Shoots
-            </TabsTrigger>
-            <TabsTrigger ref={deliverablesTabRef} value="deliverables">
-              Deliverables
-            </TabsTrigger>
-          </TabsList>
+	const isFirstTab = tabOrder.indexOf(activeTab) === 0;
+	const isLastTab = tabOrder.indexOf(activeTab) === tabOrder.length - 1;
 
-          <TabsContent value="details" className="space-y-4">
-            <BookingDetailForm />
-          </TabsContent>
+	// Get a summary of all errors
+	const getErrorSummary = () => {
+		const errors = form.formState.errors;
+		if (!errors || Object.keys(errors).length === 0) return null;
 
-          <TabsContent value="payments" className="space-y-4">
-            <BookingPaymentForm />
-          </TabsContent>
+		// Count errors by tab
+		const errorsByTab = tabOrder.reduce(
+			(acc, tab) => {
+				const count = Object.keys(tabsWithErrors).filter(
+					(t) => t === tab && tabsWithErrors[t],
+				).length;
+				if (count > 0) acc[tab] = count;
+				return acc;
+			},
+			{} as Record<string, number>,
+		);
 
-          <TabsContent value="shoots" className="space-y-4">
-            <ShootDetailForm />
-          </TabsContent>
+		if (Object.keys(errorsByTab).length === 0) return null;
 
-          <TabsContent value="deliverables" className="space-y-4">
-            <BookingDeliveryForm />
-          </TabsContent>
-        </Tabs>
+		return (
+			<Alert variant="destructive" className="mb-4">
+				<AlertCircle className="h-4 w-4" />
+				<AlertTitle>Validation Errors</AlertTitle>
+				<AlertDescription>
+					Please fix the following errors before submitting:
+					<ul className="mt-2 list-disc pl-5">
+						{Object.keys(tabsWithErrors).map((tab) =>
+							tabsWithErrors[tab] ? (
+								<li key={tab} className="text-sm">
+									<button
+										type="button"
+										className="text-primary underline"
+										onClick={() => handleTabChange(tab)}
+									>
+										{tab.charAt(0).toUpperCase() + tab.slice(1)} tab
+									</button>
+								</li>
+							) : null,
+						)}
+					</ul>
+				</AlertDescription>
+			</Alert>
+		);
+	};
 
-        <div className="flex justify-between">
-          <div className="flex items-center gap-4">
-            <Button
-              type="button"
-              variant={"outline"}
-              onClick={goToPreviousTab}
-              disabled={isFirstTab}
-            >
-              Previous
-            </Button>
-            <Button
-              type="button"
-              variant={"outline"}
-              onClick={goToNextTab}
-              disabled={isLastTab}
-            >
-              Next
-            </Button>
-          </div>
-          <Button type="submit" disabled={!isFormValid || isPending}>
-            {isPending ? "Submitting..." : "Submit"}
-          </Button>
-        </div>
-      </form>
-    </Form>
-  );
+	React.useEffect(() => {
+		if (form.formState.isSubmitSuccessful && mode === "add") {
+			form.reset({ ...defaultBooking });
+			handleTabChange("details");
+		}
+	}, [form.formState, form.reset, mode]);
+
+	return (
+		<Form {...form}>
+			<form
+				onSubmit={form.handleSubmit(onSubmit)}
+				className="container max-w-5xl py-8"
+			>
+				{/* Error Summary */}
+				{form.formState.isSubmitted && getErrorSummary()}
+
+				<Tabs
+					value={activeTab}
+					onValueChange={handleTabChange}
+					className="space-y-6"
+				>
+					<TabsList className="grid w-full grid-cols-4">
+						<TabsTrigger
+							ref={detailsTabRef}
+							value="details"
+							className="relative"
+						>
+							Details
+							
+						</TabsTrigger>
+						<TabsTrigger
+							ref={paymentsTabRef}
+							value="payments"
+							className="relative"
+						>
+							Payments
+					
+						</TabsTrigger>
+						<TabsTrigger ref={shootsTabRef} value="shoots" className="relative">
+							Shoots
+					
+						</TabsTrigger>
+						<TabsTrigger
+							ref={deliverablesTabRef}
+							value="deliverables"
+							className="relative"
+						>
+							Deliverables
+							
+						</TabsTrigger>
+					</TabsList>
+
+					<TabsContent value="details" className="space-y-4">
+						<BookingDetailForm />
+					</TabsContent>
+
+					<TabsContent value="payments" className="space-y-4">
+						<BookingPaymentForm />
+					</TabsContent>
+
+					<TabsContent value="shoots" className="space-y-4">
+						<ShootDetailForm />
+					</TabsContent>
+
+					<TabsContent value="deliverables" className="space-y-4">
+						<BookingDeliveryForm />
+					</TabsContent>
+				</Tabs>
+
+				<div className="flex justify-between">
+					<div className="flex items-center gap-4">
+						<Button
+							type="button"
+							variant={"outline"}
+							onClick={goToPreviousTab}
+							disabled={isFirstTab}
+						>
+							Previous
+						</Button>
+						<Button
+							type="button"
+							variant={"outline"}
+							onClick={goToNextTab}
+							disabled={isLastTab}
+						>
+							Next
+						</Button>
+					</div>
+					<div className="flex items-center gap-4">
+						<Button
+							variant={"secondary"}
+							type="button"
+							onClick={() => router.back()}
+						>
+							Cancel
+						</Button>
+						<Button type="submit" disabled={isPending}>
+							{isPending ? "Submitting..." : "Submit"}
+						</Button>
+					</div>
+				</div>
+			</form>
+		</Form>
+	);
 };
 
 export default BookingForm;

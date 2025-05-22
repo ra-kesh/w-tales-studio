@@ -2,7 +2,6 @@
 
 import React, { Suspense } from "react";
 import Bookingform from "../_components/booking-form/booking-from";
-import { getServerSession } from "@/lib/dal";
 import { defaultBooking } from "../_components/booking-form/booking-form-schema";
 import { useBookingMutation } from "@/hooks/use-booking-mutation";
 

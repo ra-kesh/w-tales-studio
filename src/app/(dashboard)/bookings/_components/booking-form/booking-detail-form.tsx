@@ -212,6 +212,7 @@ export const BookingDetailForm = () => {
 													</SelectTrigger>
 												</FormControl>
 												<SelectContent>
+													<SelectItem value={"unknown"}>N/a</SelectItem>
 													<SelectItem value={"bride"}>Bride</SelectItem>
 													<SelectItem value={"groom"}>Groom</SelectItem>
 													<SelectItem value={"family"}>Family</SelectItem>
