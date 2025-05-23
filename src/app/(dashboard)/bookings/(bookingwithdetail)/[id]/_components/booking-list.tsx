@@ -12,7 +12,7 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 
-import { useRouter, useParams } from "next/navigation";
+import { useRouter, useParams, useSearchParams } from "next/navigation";
 import type { Booking as BaseBooking, Shoot } from "@/lib/db/schema";
 import { cn } from "@/lib/utils";
 
@@ -28,11 +28,13 @@ interface BookingListProps {
 export function BookingList({ table, columns }: BookingListProps) {
 	const router = useRouter();
 	const params = useParams();
+	const searchParams = useSearchParams();
 
 	const currentBookingId = params?.id;
 
 	const handleRowClick = (id: number) => {
-		router.push(`/bookings/${id}`);
+		router.prefetch(`/bookings/${id}`);
+		router.push(`/bookings/${id}?${searchParams.toString()}`);
 	};
 
 	return (
