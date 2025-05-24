@@ -1,4 +1,15 @@
-import { and, asc, count, desc, eq, inArray, or, sql } from "drizzle-orm";
+import {
+	and,
+	asc,
+	count,
+	desc,
+	eq,
+	gte,
+	inArray,
+	lte,
+	or,
+	sql,
+} from "drizzle-orm";
 import { client, db } from "./drizzle";
 import {
 	members,
@@ -116,6 +127,7 @@ type SortOption = {
 
 interface BookingFilters {
 	packageType?: string;
+	createdAt?: string;
 }
 
 export async function getBookings(
@@ -127,7 +139,6 @@ export async function getBookings(
 ) {
 	const offset = (page - 1) * limit;
 
-	// Fetch booking and package configs
 	const bookingConfigData = await db
 		.select({
 			key: bookingConfigs.key,
@@ -170,6 +181,30 @@ export async function getBookings(
 			.map((type) => type.trim());
 		if (packageTypes.length > 0) {
 			whereConditions.push(inArray(bookings.packageType, packageTypes));
+		}
+	}
+
+	if (filters.createdAt) {
+		const dates = filters.createdAt
+			.split(",")
+			.map((date) => date.trim())
+			.filter((date) => date);
+
+		if (dates.length === 1) {
+			// Single date
+			const date = new Date(dates[0]);
+			date.setUTCHours(0, 0, 0, 0);
+			whereConditions.push(gte(bookings.createdAt, date));
+			// date.setUTCHours(23, 59, 59, 999);
+			// whereConditions.push(lte(bookings.createdAt, date));
+		} else if (dates.length === 2) {
+			// Date range
+			const startDate = new Date(dates[0]);
+			startDate.setUTCHours(0, 0, 0, 0);
+			const endDate = new Date(dates[1]);
+			endDate.setUTCHours(23, 59, 59, 999);
+			whereConditions.push(gte(bookings.createdAt, startDate));
+			whereConditions.push(lte(bookings.createdAt, endDate));
 		}
 	}
 
@@ -238,11 +273,7 @@ export async function getBookings(
 		packageType: packageTypeMap.get(booking.packageType) ?? booking.packageType,
 	}));
 
-	const total = await db
-		.select({ count: sql<number>`count(*)` })
-		.from(bookings)
-		.where(eq(bookings.organizationId, userOrganizationId))
-		.then((result) => result[0]?.count || 0);
+	const total = await db.$count(bookings, and(...whereConditions));
 
 	return {
 		data: formattedBookings,

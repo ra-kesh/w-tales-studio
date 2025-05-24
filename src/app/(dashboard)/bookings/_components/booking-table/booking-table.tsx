@@ -13,14 +13,12 @@ import {
 } from "@/components/ui/table";
 
 import { BookingTablePagination } from "./booking-table-pagination";
-import { BookingTableToolbar } from "./booking-table-toolbar";
 import { useRouter } from "next/navigation";
 import type { Booking, Shoot } from "@/lib/db/schema";
 import { format } from "date-fns";
 import { Clock, MapPin } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Calendar } from "lucide-react";
-import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
 
 interface BookingTableProps {
 	table: Table<Booking & { shoots: Shoot[] }>;
@@ -37,7 +35,6 @@ export function BookingTable({ table, columns }: BookingTableProps) {
 
 	return (
 		<div className="space-y-4">
-			{/* <DataTableToolbar table={table} /> */}
 			<div className="rounded-md border">
 				<UITable>
 					<TableHeader>

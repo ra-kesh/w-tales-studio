@@ -252,6 +252,7 @@ type SortOption = {
 
 interface BookingFilters {
 	packageType?: string;
+	createdAt?: string; // Assuming date is in ISO format
 }
 
 // In the GET function of your route.ts file
@@ -308,6 +309,7 @@ export async function GET(request: Request) {
 		// Extract filter parameters
 		const filters: BookingFilters = {
 			packageType: searchParams.get("packageType") || undefined,
+			createdAt: searchParams.get("createdAt") || undefined,
 		};
 
 		const result = await getBookings(

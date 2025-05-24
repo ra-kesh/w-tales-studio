@@ -21,29 +21,63 @@ function getIsDateRange(value: DateSelection): value is DateRange {
 	return value && typeof value === "object" && !Array.isArray(value);
 }
 
-function parseAsDate(timestamp: number | string | undefined): Date | undefined {
-	if (!timestamp) return undefined;
-	const numericTimestamp =
-		typeof timestamp === "string" ? Number(timestamp) : timestamp;
-	const date = new Date(numericTimestamp);
+// function parseAsDate(timestamp: number | string | undefined): Date | undefined {
+// 	if (!timestamp) return undefined;
+// 	const numericTimestamp =
+// 		typeof timestamp === "string" ? Number(timestamp) : timestamp;
+// 	const date = new Date(numericTimestamp);
+// 	return !Number.isNaN(date.getTime()) ? date : undefined;
+// }
+
+function parseAsDate(dateString: string | undefined): Date | undefined {
+	if (!dateString) return undefined;
+	const date = new Date(dateString);
 	return !Number.isNaN(date.getTime()) ? date : undefined;
 }
 
-function parseColumnFilterValue(value: unknown) {
+function formatDateAsString(date: Date | undefined): string | undefined {
+	if (!date) return undefined;
+	return date.toISOString().split("T")[0];
+}
+
+// function parseColumnFilterValue(value: unknown) {
+//   if (value === null || value === undefined) {
+//     return [];
+//   }
+
+//   if (Array.isArray(value)) {
+//     return value.map((item) => {
+//       if (typeof item === "number" || typeof item === "string") {
+//         return item;
+//       }
+//       return undefined;
+//     });
+//   }
+
+//   if (typeof value === "string" || typeof value === "number") {
+//     return [value];
+//   }
+
+//   return [];
+// }
+
+function parseColumnFilterValue(value: unknown): string[] {
 	if (value === null || value === undefined) {
 		return [];
 	}
 
 	if (Array.isArray(value)) {
-		return value.map((item) => {
-			if (typeof item === "number" || typeof item === "string") {
-				return item;
-			}
-			return undefined;
-		});
+		return value
+			.map((item) => {
+				if (typeof item === "string") {
+					return item; // Already a string in YYYY-MM-DD format
+				}
+				return undefined;
+			})
+			.filter((item): item is string => !!item);
 	}
 
-	if (typeof value === "string" || typeof value === "number") {
+	if (typeof value === "string") {
 		return [value];
 	}
 
@@ -84,16 +118,22 @@ export function DataTableDateFilter<TData>({
 	const onSelect = React.useCallback(
 		(date: Date | DateRange | undefined) => {
 			if (!date) {
+				console.log("Cleared date filter");
 				column.setFilterValue(undefined);
 				return;
 			}
 
 			if (multiple && !("getTime" in date)) {
-				const from = date.from?.getTime();
-				const to = date.to?.getTime();
-				column.setFilterValue(from || to ? [from, to] : undefined);
+				const from = formatDateAsString(date.from);
+				const to = formatDateAsString(date.to);
+				const filterValue =
+					from || to ? [from, to].filter((d): d is string => !!d) : undefined;
+				console.log("Selected date range:", filterValue);
+				column.setFilterValue(filterValue);
 			} else if (!multiple && "getTime" in date) {
-				column.setFilterValue(date.getTime());
+				const formattedDate = formatDateAsString(date);
+				console.log("Selected single date:", formattedDate);
+				column.setFilterValue(formattedDate ? [formattedDate] : undefined);
 			}
 		},
 		[column, multiple],
@@ -119,9 +159,11 @@ export function DataTableDateFilter<TData>({
 	const formatDateRange = React.useCallback((range: DateRange) => {
 		if (!range.from && !range.to) return "";
 		if (range.from && range.to) {
-			return `${formatDate(range.from)} - ${formatDate(range.to)}`;
+			return `${formatDateAsString(range.from)} - ${formatDateAsString(
+				range.to,
+			)}`;
 		}
-		return formatDate(range.from ?? range.to);
+		return formatDateAsString(range.from ?? range.to);
 	}, []);
 
 	const label = React.useMemo(() => {
@@ -142,7 +184,7 @@ export function DataTableDateFilter<TData>({
 								orientation="vertical"
 								className="mx-0.5 data-[orientation=vertical]:h-4"
 							/>
-							<span>{formatDate(dateText)}</span>
+							<span>{dateText}</span>
 						</>
 					)}
 				</span>
