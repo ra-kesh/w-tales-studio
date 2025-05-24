@@ -237,6 +237,23 @@ export async function POST(request: Request) {
 	}
 }
 
+type AllowedSortFields =
+	| "name"
+	| "createdAt"
+	| "updatedAt"
+	| "packageCost"
+	| "bookingType"
+	| "status";
+
+type SortOption = {
+	id: AllowedSortFields;
+	desc: boolean;
+};
+
+interface BookingFilters {
+	packageType?: string;
+}
+
 // In the GET function of your route.ts file
 export async function GET(request: Request) {
 	const { session } = await getServerSession();
@@ -260,21 +277,45 @@ export async function GET(request: Request) {
 		const limit = Number.parseInt(searchParams.get("perPage") || "10", 10);
 
 		const sortParam = searchParams.get("sort");
-		let sortOptions = undefined;
+		let sortOptions: SortOption[] | undefined = undefined;
 
 		if (sortParam) {
 			try {
-				sortOptions = JSON.parse(sortParam);
+				const parsedSortOptions = JSON.parse(sortParam);
+				// Validate and filter sort options
+				const allowedFields: AllowedSortFields[] = [
+					"name",
+					"createdAt",
+					"updatedAt",
+					"packageCost",
+					"bookingType",
+					"status",
+				];
+				sortOptions = parsedSortOptions.filter(
+					(option: { id: AllowedSortFields; desc: boolean }) => {
+						if (!option.id || !allowedFields.includes(option.id)) {
+							console.warn(`Invalid sort field: ${option.id}`);
+							return false;
+						}
+						return true;
+					},
+				);
 			} catch (error) {
 				console.error("Error parsing sort parameter:", error);
 			}
 		}
 
+		// Extract filter parameters
+		const filters: BookingFilters = {
+			packageType: searchParams.get("packageType") || undefined,
+		};
+
 		const result = await getBookings(
 			userOrganizationId,
 			page,
 			limit,
-			// sortOptions,
+			sortOptions,
+			filters,
 		);
 
 		const stats = await getBookingsStats(userOrganizationId);

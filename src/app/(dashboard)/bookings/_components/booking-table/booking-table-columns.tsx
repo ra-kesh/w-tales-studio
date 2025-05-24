@@ -31,8 +31,9 @@ import { DataTableColumnHeader } from "@/app/(dashboard)/tasks/_components/task-
 import { usePackageTypes } from "@/hooks/use-configs";
 
 export const useBookingColumns = () => {
-	const { data: packageTypes, isLoading: isPackageTypesLoading } = usePackageTypes();
-	
+	const { data: packageTypes, isLoading: isPackageTypesLoading } =
+		usePackageTypes();
+
 	const columns: ColumnDef<Booking & { shoots: Shoot[] }>[] = [
 		{
 			id: "select",
@@ -64,13 +65,13 @@ export const useBookingColumns = () => {
 				const type = row.original.bookingType;
 				return (
 					<div className="flex items-center gap-3">
-						<div className="font-medium">{bookingName}</div>
-						<Badge
+						{/* <Badge
 							variant="outline"
-							className="bg-primary/5 hover:bg-primary/10"
+							// className="bg-primary/5 hover:bg-primary/10"
 						>
 							{type || "Not specified"}
-						</Badge>
+						</Badge> */}
+						<div className="font-medium">{bookingName}</div>
 					</div>
 				);
 			},
@@ -81,6 +82,8 @@ export const useBookingColumns = () => {
 				icon: Text,
 			},
 			enableColumnFilter: true,
+			enableSorting: false,
+			enableHiding: false,
 		},
 
 		{
@@ -90,29 +93,7 @@ export const useBookingColumns = () => {
 				<DataTableColumnHeader column={column} title="Package" />
 			),
 			cell: ({ row }) => {
-				const cost = row.original.packageCost;
-				const formatted =
-					typeof cost === "number" || typeof cost === "string"
-						? new Intl.NumberFormat("en-US", {
-								style: "currency",
-								currency: "INR",
-								minimumFractionDigits: 0,
-								maximumFractionDigits: 0,
-							}).format(Number(cost))
-						: "$0";
-
-				return (
-					<div className="flex items-center gap-3">
-						<div className="flex flex-col gap-1">
-							<div className="flex items-center ">
-								<span className=" font-medium tabular-nums">{formatted}</span>
-							</div>
-							<span className="text-md text-muted-foreground">
-								{row.original.packageType}
-							</span>
-						</div>
-					</div>
-				);
+				return <span className="text-md ">{row.original.packageType}</span>;
 			},
 			meta: {
 				label: "Package",
@@ -126,14 +107,37 @@ export const useBookingColumns = () => {
 				icon: PackageIcon,
 			},
 			enableColumnFilter: true,
+			enableSorting: false,
+			enableHiding: false,
+		},
+		{
+			id: "packageCost",
+			accessorKey: "packageCost",
+			header: ({ column }) => (
+				<DataTableColumnHeader column={column} title="Cost" />
+			),
+			cell: ({ row }) => {
+				const cost = row.original.packageCost;
+				const formatted =
+					typeof cost === "number" || typeof cost === "string"
+						? new Intl.NumberFormat("en-US", {
+								style: "currency",
+								currency: "INR",
+								minimumFractionDigits: 0,
+								maximumFractionDigits: 0,
+							}).format(Number(cost))
+						: "$0";
+
+				return <span className=" font-medium tabular-nums">{formatted}</span>;
+			},
 		},
 
 		{
 			accessorKey: "shoots",
 			header: () => (
-				<div className="flex items-center gap-1">
-					<Calendar className="h-4 w-4" />
+				<div className="flex items-center gap-2">
 					<span>Shoots</span>
+					<Calendar className="h-4 w-4" />
 				</div>
 			),
 			cell: ({ row }) => {

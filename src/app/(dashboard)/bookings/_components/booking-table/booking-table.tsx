@@ -78,7 +78,7 @@ export function BookingTable({ table, columns }: BookingTableProps) {
 									</TableRow>
 									{row.getIsExpanded() && (
 										<TableRow className="bg-muted/30 transition-colors">
-											<TableCell className="p-0" colSpan={3} />
+											<TableCell className="p-0" colSpan={4} />
 											<TableCell className="p-0" colSpan={1}>
 												<div className="p-4 rounded-md bg-card border border-border/50 m-2 shadow-sm">
 													<div className="flex items-center justify-between mb-3">

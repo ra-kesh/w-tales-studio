@@ -1,4 +1,4 @@
-import { and, count, desc, eq, or, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, inArray, or, sql } from "drizzle-orm";
 import { client, db } from "./drizzle";
 import {
 	members,
@@ -101,11 +101,29 @@ export async function getDeliverables(
 
 const packageConfigs = alias(configurations, "package_configs");
 const bookingConfigs = alias(configurations, "booking_configs");
+type AllowedSortFields =
+	| "name"
+	| "createdAt"
+	| "updatedAt"
+	| "packageCost"
+	| "bookingType"
+	| "status";
+
+type SortOption = {
+	id: AllowedSortFields;
+	desc: boolean;
+};
+
+interface BookingFilters {
+	packageType?: string;
+}
 
 export async function getBookings(
 	userOrganizationId: string,
 	page = 1,
 	limit = 10,
+	sortOptions: SortOption[] | undefined = undefined,
+	filters: BookingFilters = {},
 ) {
 	const offset = (page - 1) * limit;
 
@@ -143,9 +161,28 @@ export async function getBookings(
 		packageConfigData.map((config) => [config.key, config.value]),
 	);
 
+	const whereConditions = [eq(bookings.organizationId, userOrganizationId)];
+
+	if (filters.packageType) {
+		// Apply packageType filter
+		const packageTypes = filters.packageType
+			.split(",")
+			.map((type) => type.trim());
+		if (packageTypes.length > 0) {
+			whereConditions.push(inArray(bookings.packageType, packageTypes));
+		}
+	}
+
+	const orderBy =
+		sortOptions && sortOptions.length > 0
+			? sortOptions.map((item) =>
+					item.desc ? desc(bookings[item.id]) : asc(bookings[item.id]),
+				)
+			: [desc(bookings.updatedAt)];
+
 	// Fetch bookings with related data
 	const bookingsData = await db.query.bookings.findMany({
-		where: eq(bookings.organizationId, userOrganizationId),
+		where: and(...whereConditions),
 		with: {
 			clients: true,
 			shoots: {
@@ -190,10 +227,7 @@ export async function getBookings(
 				},
 			},
 		},
-		orderBy: (bookings, { desc }) => [
-			desc(bookings.updatedAt),
-			desc(bookings.createdAt),
-		],
+		orderBy,
 		limit,
 		offset,
 	});

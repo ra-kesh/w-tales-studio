@@ -39,9 +39,9 @@ export default function Bookings(props: {
 		<div className="flex-1 min-w-0 border-t">
 			<DataTableToolbar table={table} />
 			{/* <BookingTableToolbar table={table} /> */}
-			<ViewTransition name="experimental-label">
-				<BookingTable table={table} columns={columns} />
-			</ViewTransition>
+			{/* <ViewTransition name="experimental-label"> */}
+			<BookingTable table={table} columns={columns} />
+			{/* </ViewTransition> */}
 		</div>
 	);
 }
