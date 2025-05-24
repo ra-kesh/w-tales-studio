@@ -91,7 +91,10 @@ export const getFiltersStateParser = <TData>(
 			a.every(
 				(filter, index) =>
 					filter.id === b[index]?.id &&
-					filter.value === b[index]?.value &&
+					(Array.isArray(filter.value) && Array.isArray(b[index]?.value)
+						? filter.value.length === b[index].value.length &&
+							filter.value.every((v, i) => v === b[index].value[i])
+						: filter.value === b[index]?.value) &&
 					filter.variant === b[index]?.variant &&
 					filter.operator === b[index]?.operator,
 			),

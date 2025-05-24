@@ -12,7 +12,7 @@ import {
 	TooltipProvider,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
+import { cn, formatDate } from "@/lib/utils";
 import {
 	Camera,
 	ChevronRight,
@@ -23,7 +23,12 @@ import {
 	Tag,
 	Package,
 	Users,
+	Text,
+	CalendarIcon,
+	PackageIcon,
 } from "lucide-react";
+import { DataTableColumnHeader } from "@/app/(dashboard)/tasks/_components/task-table-column-header";
+import { usePackageTypes } from "@/hooks/use-configs";
 
 export const useBookingColumns = () => {
 	const columns: ColumnDef<Booking & { shoots: Shoot[] }>[] = [
@@ -47,8 +52,11 @@ export const useBookingColumns = () => {
 			enableHiding: false,
 		},
 		{
+			id: "name",
 			accessorKey: "name",
-			header: "Name",
+			header: ({ column }) => (
+				<DataTableColumnHeader column={column} title="Name" />
+			),
 			cell: ({ row }) => {
 				const bookingName = row.getValue("name") as string;
 				const type = row.original.bookingType;
@@ -64,15 +72,20 @@ export const useBookingColumns = () => {
 					</div>
 				);
 			},
+			meta: {
+				label: "Name",
+				placeholder: "Search names...",
+				variant: "text",
+				icon: Text,
+			},
+			enableColumnFilter: true,
 		},
 
 		{
+			id: "packageType",
 			accessorKey: "packageType",
-			header: () => (
-				<div className="flex items-center gap-1">
-					<Package className="h-4 w-4" />
-					<span>Package</span>
-				</div>
+			header: ({ column }) => (
+				<DataTableColumnHeader column={column} title="Package" />
 			),
 			cell: ({ row }) => {
 				const cost = row.original.packageCost;
@@ -80,7 +93,7 @@ export const useBookingColumns = () => {
 					typeof cost === "number" || typeof cost === "string"
 						? new Intl.NumberFormat("en-US", {
 								style: "currency",
-								currency: "USD",
+								currency: "INR",
 								minimumFractionDigits: 0,
 								maximumFractionDigits: 0,
 							}).format(Number(cost))
@@ -99,6 +112,17 @@ export const useBookingColumns = () => {
 					</div>
 				);
 			},
+			meta: {
+				label: "Package",
+				variant: "multiSelect",
+				options:
+					usePackageTypes().data?.map((type) => ({
+						label: type.label,
+						value: type.value,
+					})) ?? [],
+				icon: PackageIcon,
+			},
+			enableColumnFilter: true,
 		},
 
 		{
@@ -157,6 +181,21 @@ export const useBookingColumns = () => {
 					</div>
 				);
 			},
+		},
+
+		{
+			id: "createdAt",
+			accessorKey: "createdAt",
+			header: ({ column }) => (
+				<DataTableColumnHeader column={column} title="Created" />
+			),
+			cell: ({ cell }) => formatDate(cell.getValue<Date>()),
+			meta: {
+				label: "Created At",
+				variant: "dateRange",
+				icon: CalendarIcon,
+			},
+			enableColumnFilter: true,
 		},
 		{
 			accessorKey: "clients",

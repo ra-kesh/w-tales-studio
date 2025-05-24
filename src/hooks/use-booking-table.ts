@@ -3,7 +3,6 @@
 import * as React from "react";
 import {
 	useReactTable,
-	type ColumnDef,
 	type ColumnFiltersState,
 	type SortingState,
 	type VisibilityState,
@@ -19,7 +18,6 @@ import {
 	type Updater,
 	getFacetedMinMaxValues,
 } from "@tanstack/react-table";
-import { useBookings } from "./use-bookings";
 import type { ExtendedColumnSort } from "@/types/data-table";
 import {
 	parseAsArrayOf,
@@ -58,7 +56,6 @@ interface UseDataTableProps<TData>
 	debounceMs?: number;
 	throttleMs?: number;
 	clearOnDefault?: boolean;
-	enableAdvancedFilter?: boolean;
 	scroll?: boolean;
 	shallow?: boolean;
 	startTransition?: React.TransitionStartFunction;
@@ -73,7 +70,6 @@ export function useBookingTable<TData>(props: UseDataTableProps<TData>) {
 		debounceMs = DEBOUNCE_MS,
 		throttleMs = THROTTLE_MS,
 		clearOnDefault = false,
-		enableAdvancedFilter = false,
 		scroll = false,
 		shallow = true,
 		startTransition,
@@ -165,13 +161,13 @@ export function useBookingTable<TData>(props: UseDataTableProps<TData>) {
 	);
 
 	const filterableColumns = React.useMemo(() => {
-		if (enableAdvancedFilter) return [];
+		// if (enableAdvancedFilter) return [];
 
 		return columns.filter((column) => column.enableColumnFilter);
-	}, [columns, enableAdvancedFilter]);
+	}, [columns]);
 
 	const filterParsers = React.useMemo(() => {
-		if (enableAdvancedFilter) return {};
+		// if (enableAdvancedFilter) return {};
 
 		return filterableColumns.reduce<
 			Record<string, Parser<string> | Parser<string[]>>
@@ -186,7 +182,7 @@ export function useBookingTable<TData>(props: UseDataTableProps<TData>) {
 			}
 			return acc;
 		}, {});
-	}, [filterableColumns, queryStateOptions, enableAdvancedFilter]);
+	}, [filterableColumns, queryStateOptions]);
 
 	const [filterValues, setFilterValues] = useQueryStates(filterParsers);
 
@@ -197,9 +193,16 @@ export function useBookingTable<TData>(props: UseDataTableProps<TData>) {
 		},
 		debounceMs,
 	);
+	const processFilterValue = (value: string | string[]) => {
+		if (Array.isArray(value)) return value;
+		if (typeof value === "string" && /[^a-zA-Z0-9]/.test(value)) {
+			return value.split(/[^a-zA-Z0-9]+/).filter(Boolean);
+		}
+		return [value];
+	};
 
 	const initialColumnFilters: ColumnFiltersState = React.useMemo(() => {
-		if (enableAdvancedFilter) return [];
+		// if (enableAdvancedFilter) return [];
 
 		return Object.entries(filterValues).reduce<ColumnFiltersState>(
 			(filters, [key, value]) => {
@@ -219,14 +222,16 @@ export function useBookingTable<TData>(props: UseDataTableProps<TData>) {
 			},
 			[],
 		);
-	}, [filterValues, enableAdvancedFilter]);
+	}, [filterValues]);
 
 	const [columnFilters, setColumnFilters] =
 		React.useState<ColumnFiltersState>(initialColumnFilters);
 
+	console.log("Column Filters:", columnFilters);
+
 	const onColumnFiltersChange = React.useCallback(
 		(updaterOrValue: Updater<ColumnFiltersState>) => {
-			if (enableAdvancedFilter) return;
+			// if (enableAdvancedFilter) return;
 
 			setColumnFilters((prev) => {
 				const next =
@@ -253,36 +258,10 @@ export function useBookingTable<TData>(props: UseDataTableProps<TData>) {
 				return next;
 			});
 		},
-		[debouncedSetFilterValues, filterableColumns, enableAdvancedFilter],
+		[debouncedSetFilterValues, filterableColumns],
 	);
 
 	const [expanded, setExpanded] = React.useState({});
-
-	// const table = useReactTable({
-	// 	data: Array.isArray(data?.data)
-	// 		? data.data
-	// 		: data?.data
-	// 			? [data.data]
-	// 			: defaultData,
-	// 	columns,
-	// 	state: {
-	// 		sorting,
-	// 		columnVisibility,
-	// 		rowSelection,
-	// 		columnFilters,
-	// 	},
-	// 	enableRowSelection: true,
-	// 	onRowSelectionChange: setRowSelection,
-	// 	onSortingChange: setSorting,
-	// 	onColumnFiltersChange: setColumnFilters,
-	// 	onColumnVisibilityChange: setColumnVisibility,
-	// 	getCoreRowModel: getCoreRowModel(),
-	// 	getFilteredRowModel: getFilteredRowModel(),
-	// 	getPaginationRowModel: getPaginationRowModel(),
-	// 	getSortedRowModel: getSortedRowModel(),
-	// 	getFacetedRowModel: getFacetedRowModel(),
-	// 	getFacetedUniqueValues: getFacetedUniqueValues(),
-	// });
 
 	const table = useReactTable({
 		...tableProps,

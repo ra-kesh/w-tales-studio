@@ -1,4 +1,5 @@
 import { clsx, type ClassValue } from "clsx";
+import { format } from "date-fns";
 import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
@@ -87,4 +88,14 @@ export function generateKey(value: string): string {
 		.replace(/[^a-z0-9\s-]/g, "") // Remove special characters except spaces and hyphens
 		.trim()
 		.replace(/[\s-]+/g, "_"); // Replace both spaces and hyphens with underscores
+}
+
+export function formatDate(date: Date | string | number | undefined) {
+	if (!date) return "";
+
+	try {
+		return format(new Date(date), "EEEE, MMM dd, yyyy");
+	} catch (_err) {
+		return "";
+	}
 }
