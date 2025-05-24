@@ -31,6 +31,8 @@ import { DataTableColumnHeader } from "@/app/(dashboard)/tasks/_components/task-
 import { usePackageTypes } from "@/hooks/use-configs";
 
 export const useBookingColumns = () => {
+	const { data: packageTypes, isLoading: isPackageTypesLoading } = usePackageTypes();
+	
 	const columns: ColumnDef<Booking & { shoots: Shoot[] }>[] = [
 		{
 			id: "select",
@@ -115,11 +117,12 @@ export const useBookingColumns = () => {
 			meta: {
 				label: "Package",
 				variant: "multiSelect",
-				options:
-					usePackageTypes().data?.map((type) => ({
-						label: type.label,
-						value: type.value,
-					})) ?? [],
+				options: isPackageTypesLoading
+					? []
+					: (packageTypes?.map((type) => ({
+							label: type.label,
+							value: type.value,
+						})) ?? []),
 				icon: PackageIcon,
 			},
 			enableColumnFilter: true,

@@ -5,7 +5,7 @@ import {
 	HydrationBoundary,
 	QueryClient,
 } from "@tanstack/react-query";
-import { getBookings } from "@/lib/db/queries";
+import { getBookings, getConfigs } from "@/lib/db/queries";
 import { Suspense } from "react";
 
 const BookingLayout = async ({ children }: { children: React.ReactNode }) => {
@@ -16,6 +16,15 @@ const BookingLayout = async ({ children }: { children: React.ReactNode }) => {
 	await queryClient.prefetchQuery({
 		queryKey: ["bookings", "list"],
 		queryFn: () => getBookings(session?.session.activeOrganizationId as string),
+	});
+
+	await queryClient.prefetchQuery({
+		queryKey: ["configurations", "package_type"],
+		queryFn: () =>
+			getConfigs(
+				session?.session.activeOrganizationId as string,
+				"package_type",
+			),
 	});
 
 	return (
