@@ -20,12 +20,17 @@ import { Clock, MapPin } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Calendar } from "lucide-react";
 
-interface BookingTableProps {
+interface BookingTableProps extends React.ComponentProps<"div"> {
 	table: Table<Booking & { shoots: Shoot[] }>;
 	columns: ColumnDef<Booking & { shoots: Shoot[] }>[];
 }
 
-export function BookingTable({ table, columns }: BookingTableProps) {
+export function BookingTable({
+	table,
+	columns,
+	children,
+	...props
+}: BookingTableProps) {
 	const router = useRouter();
 
 	const handleRowClick = async (id: number) => {
@@ -34,7 +39,7 @@ export function BookingTable({ table, columns }: BookingTableProps) {
 	};
 
 	return (
-		<div className="space-y-4">
+		<div className="space-y-4 " {...props}>
 			<div className="rounded-md border">
 				<UITable>
 					<TableHeader>
@@ -156,7 +161,7 @@ export function BookingTable({ table, columns }: BookingTableProps) {
 					</TableBody>
 				</UITable>
 			</div>
-			<BookingTablePagination table={table} />
+			{children}
 		</div>
 	);
 }

@@ -2,16 +2,15 @@
 
 import React, { use } from "react";
 import { BookingTable } from "../_components/booking-table/booking-table";
-import { unstable_ViewTransition as ViewTransition } from "react";
 import { useBookingColumns } from "../_components/booking-table/booking-table-columns";
 import { useBookingTable } from "@/hooks/use-booking-table";
 
-import { BookingTableToolbar } from "../_components/booking-table/booking-table-toolbar";
 import { useBookings } from "@/hooks/use-bookings";
 import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { DataTableSkeleton } from "@/components/data-table/data-table-skeleton";
+import { BookingTablePagination } from "../_components/booking-table/booking-table-pagination";
 
 type Params = Promise<{ slug: string }>;
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
@@ -60,10 +59,11 @@ export default function Bookings(props: {
 				/>
 			) : (
 				<>
-					<BookingTable table={table} columns={columns} />
+					<BookingTable table={table} columns={columns}>
+						<BookingTablePagination table={table} />
+					</BookingTable>
 				</>
 			)}
-			{/* </ViewTransition> */}
 		</div>
 	);
 }
