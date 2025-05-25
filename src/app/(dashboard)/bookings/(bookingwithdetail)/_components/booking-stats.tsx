@@ -7,31 +7,27 @@ import { CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import type { BookingStats as BookingStatsType } from "@/lib/db/queries";
 
-export function BookingStats({
-  initialStats,
-}: {
-  initialStats: BookingStatsType;
-}) {
+export function BookingStats({ stats }: { stats: BookingStatsType }) {
   const metrics = [
     {
       title: "Total Bookings",
-      value: initialStats?.totalBookings || 0,
+      value: stats?.totalBookings || 0,
       icon: BookOpen,
     },
     {
       title: "Active Bookings",
-      value: initialStats?.activeBookings || 0,
+      value: stats?.activeBookings || 0,
       icon: Calendar,
     },
     {
       title: "Total Expenses",
-      value: initialStats?.totalExpenses || 0,
+      value: stats?.totalExpenses || 0,
       icon: Wallet,
       prefix: "₹",
     },
     {
       title: "Total Revenue",
-      value: initialStats?.totalRevenue || 0,
+      value: stats?.totalRevenue || 0,
       icon: DollarSign,
       prefix: "₹",
     },
@@ -53,10 +49,10 @@ export function BookingStats({
               <h3 className="text-sm font-medium text-muted-foreground">
                 {metric.title}
               </h3>
-              <div className="mt-2 flex items-baseline">
-                <span className="text-2xl font-bold">
+              <div className="flex items-baseline">
+                <span className="text-xl font-semibold text-balance">
                   {metric.prefix || ""}
-                  {!initialStats ? (
+                  {!stats ? (
                     <span className="text-muted-foreground">...</span>
                   ) : (
                     <CountUp
