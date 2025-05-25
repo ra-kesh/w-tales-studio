@@ -1,10 +1,10 @@
 import {
 	and,
 	asc,
-	count,
 	desc,
 	eq,
 	gte,
+	ilike,
 	inArray,
 	lte,
 	or,
@@ -128,6 +128,7 @@ type SortOption = {
 interface BookingFilters {
 	packageType?: string;
 	createdAt?: string;
+	name?: string; // Optional filter for booking name
 }
 
 export async function getBookings(
@@ -206,6 +207,11 @@ export async function getBookings(
 			whereConditions.push(gte(bookings.createdAt, startDate));
 			whereConditions.push(lte(bookings.createdAt, endDate));
 		}
+	}
+
+	if (filters.name) {
+		const searchTerm = `%${filters.name}%`;
+		whereConditions.push(ilike(bookings.name, searchTerm));
 	}
 
 	const orderBy =

@@ -252,7 +252,8 @@ type SortOption = {
 
 interface BookingFilters {
 	packageType?: string;
-	createdAt?: string; // Assuming date is in ISO format
+	createdAt?: string;
+	name?: string;
 }
 
 // In the GET function of your route.ts file
@@ -276,6 +277,7 @@ export async function GET(request: Request) {
 		const { searchParams } = new URL(request.url);
 		const page = Number.parseInt(searchParams.get("page") || "1", 10);
 		const limit = Number.parseInt(searchParams.get("perPage") || "10", 10);
+		const name = searchParams.get("name") || undefined;
 
 		const sortParam = searchParams.get("sort");
 		let sortOptions: SortOption[] | undefined = undefined;
@@ -310,6 +312,7 @@ export async function GET(request: Request) {
 		const filters: BookingFilters = {
 			packageType: searchParams.get("packageType") || undefined,
 			createdAt: searchParams.get("createdAt") || undefined,
+			name: name || undefined,
 		};
 
 		const result = await getBookings(
