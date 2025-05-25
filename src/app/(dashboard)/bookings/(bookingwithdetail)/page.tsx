@@ -9,6 +9,9 @@ import { useBookingTable } from "@/hooks/use-booking-table";
 import { BookingTableToolbar } from "../_components/booking-table/booking-table-toolbar";
 import { useBookings } from "@/hooks/use-bookings";
 import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { DataTableSkeleton } from "@/components/data-table/data-table-skeleton";
 
 type Params = Promise<{ slug: string }>;
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
@@ -37,10 +40,29 @@ export default function Bookings(props: {
 
 	return (
 		<div className="flex-1 min-w-0 border-t">
-			<DataTableToolbar table={table} />
-			{/* <BookingTableToolbar table={table} /> */}
-			{/* <ViewTransition name="experimental-label"> */}
-			<BookingTable table={table} columns={columns} />
+			<DataTableToolbar table={table}>
+				<Link
+					href={{
+						pathname: "/bookings/add",
+						query: { tab: "details" },
+					}}
+					prefetch={true}
+				>
+					<Button>Add Booking</Button>
+				</Link>
+			</DataTableToolbar>
+			{isLoading ? (
+				<DataTableSkeleton
+					columnCount={7}
+					filterCount={0}
+					cellWidths={["20rem", "10rem", "10rem", "6rem", "6rem", "6rem"]}
+					shrinkZero
+				/>
+			) : (
+				<>
+					<BookingTable table={table} columns={columns} />
+				</>
+			)}
 			{/* </ViewTransition> */}
 		</div>
 	);
