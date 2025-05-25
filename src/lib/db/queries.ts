@@ -810,8 +810,8 @@ export async function getCrews(organizationId: string) {
 }
 
 export type BookingStats = {
-	totalBookings?: number; // Only for bookings page
-	activeBookings?: number; // Only for bookings page
+	totalBookings: number;
+	activeBookings: number;
 	totalExpenses: number;
 	totalRevenue: number;
 };

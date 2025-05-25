@@ -5,7 +5,12 @@ import {
   HydrationBoundary,
   QueryClient,
 } from "@tanstack/react-query";
-import { getBookings, getBookingsStats, getConfigs } from "@/lib/db/queries";
+import {
+  getBookings,
+  getBookingsStats,
+  getConfigs,
+  type BookingStats as BookingStatsType,
+} from "@/lib/db/queries"; // Import BookingStatsType
 import { Suspense } from "react";
 
 const BookingLayout = async ({ children }: { children: React.ReactNode }) => {
@@ -14,17 +19,34 @@ const BookingLayout = async ({ children }: { children: React.ReactNode }) => {
 
   const queryClient = new QueryClient();
 
-  const bookingsStats = await getBookingsStats(userOrganizationId);
+  let bookingsStats: BookingStatsType;
 
-  await queryClient.prefetchQuery({
-    queryKey: ["bookings", "list"],
-    queryFn: () => getBookings(userOrganizationId),
-  });
+  if (userOrganizationId) {
+    bookingsStats = await getBookingsStats(userOrganizationId);
+  } else {
+    bookingsStats = {
+      totalBookings: 0,
+      activeBookings: 0,
+      totalExpenses: 0,
+      totalRevenue: 0,
+    };
 
-  await queryClient.prefetchQuery({
-    queryKey: ["configurations", "package_type"],
-    queryFn: () => getConfigs(userOrganizationId, "package_type"),
-  });
+    console.warn(
+      "User organization ID not found during booking layout prerender. Using default stats."
+    );
+  }
+
+  if (userOrganizationId) {
+    await queryClient.prefetchQuery({
+      queryKey: ["bookings", "list"],
+      queryFn: () => getBookings(userOrganizationId),
+    });
+
+    await queryClient.prefetchQuery({
+      queryKey: ["configurations", "package_type"],
+      queryFn: () => getConfigs(userOrganizationId, "package_type"),
+    });
+  }
 
   return (
     <div className="hidden h-full flex-1 flex-col space-y-4 p-8 md:flex relative">
