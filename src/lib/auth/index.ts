@@ -1,7 +1,13 @@
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { betterAuth } from "better-auth";
 import { db } from "../db/drizzle";
-import { admin, organization, username } from "better-auth/plugins";
+import {
+	admin,
+	multiSession,
+	oneTap,
+	organization,
+	username,
+} from "better-auth/plugins";
 import { nextCookies } from "better-auth/next-js";
 import { getActiveOrganization } from "../db/queries";
 
@@ -13,7 +19,12 @@ export const auth = betterAuth({
 	emailAndPassword: {
 		enabled: true,
 	},
-
+	socialProviders: {
+		google: {
+			clientId: process.env.GOOGLE_CLIENT_ID || "",
+			clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+		},
+	},
 	plugins: [
 		username(),
 		admin(),
@@ -22,7 +33,17 @@ export const auth = betterAuth({
 			allowUserToCreateOrganization: true,
 		}),
 		nextCookies(),
+		multiSession(),
+		oneTap(),
 	],
+	account: {
+		accountLinking: {
+			enabled: true,
+			trustedProviders: ["google", "email-password"],
+			allowDifferentEmails: false,
+		},
+	},
+
 	databaseHooks: {
 		session: {
 			create: {
