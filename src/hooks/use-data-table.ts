@@ -1,35 +1,37 @@
 "use client";
 
-import * as React from "react";
 import {
-	useReactTable,
 	type ColumnFiltersState,
+	type PaginationState,
+	type RowSelectionState,
 	type SortingState,
+	type TableOptions,
+	type TableState,
+	type Updater,
 	type VisibilityState,
 	getCoreRowModel,
+	getFacetedMinMaxValues,
 	getFacetedRowModel,
 	getFacetedUniqueValues,
 	getFilteredRowModel,
 	getPaginationRowModel,
 	getSortedRowModel,
-	type TableOptions,
-	type TableState,
-	type PaginationState,
-	type Updater,
-	getFacetedMinMaxValues,
+	useReactTable,
 } from "@tanstack/react-table";
-import type { ExtendedColumnSort } from "@/types/data-table";
 import {
+	type Parser,
+	type UseQueryStateOptions,
 	parseAsArrayOf,
 	parseAsInteger,
 	parseAsString,
-	type Parser,
 	useQueryState,
-	type UseQueryStateOptions,
 	useQueryStates,
 } from "nuqs";
+import * as React from "react";
+
+import { useDebouncedCallback } from "@/hooks/use-debounced-callback";
 import { getSortingStateParser } from "@/lib/parsers";
-import { useDebouncedCallback } from "./use-debounced-callback";
+import type { ExtendedColumnSort } from "@/types/data-table";
 
 const PAGE_KEY = "page";
 const PER_PAGE_KEY = "perPage";
@@ -56,12 +58,13 @@ interface UseDataTableProps<TData>
 	debounceMs?: number;
 	throttleMs?: number;
 	clearOnDefault?: boolean;
+	enableAdvancedFilter?: boolean;
 	scroll?: boolean;
 	shallow?: boolean;
 	startTransition?: React.TransitionStartFunction;
 }
 
-export function useBookingTable<TData>(props: UseDataTableProps<TData>) {
+export function useDataTable<TData>(props: UseDataTableProps<TData>) {
 	const {
 		columns,
 		pageCount = -1,
@@ -70,6 +73,7 @@ export function useBookingTable<TData>(props: UseDataTableProps<TData>) {
 		debounceMs = DEBOUNCE_MS,
 		throttleMs = THROTTLE_MS,
 		clearOnDefault = false,
+		enableAdvancedFilter = false,
 		scroll = false,
 		shallow = true,
 		startTransition,
@@ -99,9 +103,11 @@ export function useBookingTable<TData>(props: UseDataTableProps<TData>) {
 		],
 	);
 
-	const [rowSelection, setRowSelection] = React.useState({});
+	const [rowSelection, setRowSelection] = React.useState<RowSelectionState>(
+		initialState?.rowSelection ?? {},
+	);
 	const [columnVisibility, setColumnVisibility] =
-		React.useState<VisibilityState>({});
+		React.useState<VisibilityState>(initialState?.columnVisibility ?? {});
 
 	const [page, setPage] = useQueryState(
 		PAGE_KEY,
@@ -161,13 +167,13 @@ export function useBookingTable<TData>(props: UseDataTableProps<TData>) {
 	);
 
 	const filterableColumns = React.useMemo(() => {
-		// if (enableAdvancedFilter) return [];
+		if (enableAdvancedFilter) return [];
 
 		return columns.filter((column) => column.enableColumnFilter);
-	}, [columns]);
+	}, [columns, enableAdvancedFilter]);
 
 	const filterParsers = React.useMemo(() => {
-		// if (enableAdvancedFilter) return {};
+		if (enableAdvancedFilter) return {};
 
 		return filterableColumns.reduce<
 			Record<string, Parser<string> | Parser<string[]>>
@@ -182,7 +188,7 @@ export function useBookingTable<TData>(props: UseDataTableProps<TData>) {
 			}
 			return acc;
 		}, {});
-	}, [filterableColumns, queryStateOptions]);
+	}, [filterableColumns, queryStateOptions, enableAdvancedFilter]);
 
 	const [filterValues, setFilterValues] = useQueryStates(filterParsers);
 
@@ -193,16 +199,9 @@ export function useBookingTable<TData>(props: UseDataTableProps<TData>) {
 		},
 		debounceMs,
 	);
-	const processFilterValue = (value: string | string[]) => {
-		if (Array.isArray(value)) return value;
-		if (typeof value === "string" && /[^a-zA-Z0-9]/.test(value)) {
-			return value.split(/[^a-zA-Z0-9]+/).filter(Boolean);
-		}
-		return [value];
-	};
 
 	const initialColumnFilters: ColumnFiltersState = React.useMemo(() => {
-		// if (enableAdvancedFilter) return [];
+		if (enableAdvancedFilter) return [];
 
 		return Object.entries(filterValues).reduce<ColumnFiltersState>(
 			(filters, [key, value]) => {
@@ -222,16 +221,14 @@ export function useBookingTable<TData>(props: UseDataTableProps<TData>) {
 			},
 			[],
 		);
-	}, [filterValues]);
+	}, [filterValues, enableAdvancedFilter]);
 
 	const [columnFilters, setColumnFilters] =
 		React.useState<ColumnFiltersState>(initialColumnFilters);
 
-	console.log("Column Filters:", columnFilters);
-
 	const onColumnFiltersChange = React.useCallback(
 		(updaterOrValue: Updater<ColumnFiltersState>) => {
-			// if (enableAdvancedFilter) return;
+			if (enableAdvancedFilter) return;
 
 			setColumnFilters((prev) => {
 				const next =
@@ -258,10 +255,8 @@ export function useBookingTable<TData>(props: UseDataTableProps<TData>) {
 				return next;
 			});
 		},
-		[debouncedSetFilterValues, filterableColumns],
+		[debouncedSetFilterValues, filterableColumns, enableAdvancedFilter],
 	);
-
-	const [expanded, setExpanded] = React.useState({});
 
 	const table = useReactTable({
 		...tableProps,
@@ -297,13 +292,5 @@ export function useBookingTable<TData>(props: UseDataTableProps<TData>) {
 		manualFiltering: true,
 	});
 
-	return {
-		table,
-
-		rowSelection,
-		columnVisibility,
-		columnFilters,
-		sorting,
-		expanded,
-	};
+	return { table, shallow, debounceMs, throttleMs };
 }

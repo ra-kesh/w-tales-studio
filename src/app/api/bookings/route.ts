@@ -237,6 +237,26 @@ export async function POST(request: Request) {
 	}
 }
 
+type AllowedSortFields =
+	| "name"
+	| "createdAt"
+	| "updatedAt"
+	| "packageCost"
+	| "bookingType"
+	| "status";
+
+type SortOption = {
+	id: AllowedSortFields;
+	desc: boolean;
+};
+
+interface BookingFilters {
+	packageType?: string;
+	createdAt?: string;
+	name?: string;
+}
+
+// In the GET function of your route.ts file
 export async function GET(request: Request) {
 	const { session } = await getServerSession();
 
@@ -256,10 +276,52 @@ export async function GET(request: Request) {
 	try {
 		const { searchParams } = new URL(request.url);
 		const page = Number.parseInt(searchParams.get("page") || "1", 10);
-		const limit = Number.parseInt(searchParams.get("limit") || "10", 10);
-		const fields = searchParams.get("fields") || "";
+		const limit = Number.parseInt(searchParams.get("perPage") || "10", 10);
+		const name = searchParams.get("name") || undefined;
 
-		const result = await getBookings(userOrganizationId, page, limit, fields);
+		const sortParam = searchParams.get("sort");
+		let sortOptions: SortOption[] | undefined = undefined;
+
+		if (sortParam) {
+			try {
+				const parsedSortOptions = JSON.parse(sortParam);
+				// Validate and filter sort options
+				const allowedFields: AllowedSortFields[] = [
+					"name",
+					"createdAt",
+					"updatedAt",
+					"packageCost",
+					"bookingType",
+					"status",
+				];
+				sortOptions = parsedSortOptions.filter(
+					(option: { id: AllowedSortFields; desc: boolean }) => {
+						if (!option.id || !allowedFields.includes(option.id)) {
+							console.warn(`Invalid sort field: ${option.id}`);
+							return false;
+						}
+						return true;
+					},
+				);
+			} catch (error) {
+				console.error("Error parsing sort parameter:", error);
+			}
+		}
+
+		// Extract filter parameters
+		const filters: BookingFilters = {
+			packageType: searchParams.get("packageType") || undefined,
+			createdAt: searchParams.get("createdAt") || undefined,
+			name: name || undefined,
+		};
+
+		const result = await getBookings(
+			userOrganizationId,
+			page,
+			limit,
+			sortOptions,
+			filters,
+		);
 
 		const stats = await getBookingsStats(userOrganizationId);
 

@@ -4,9 +4,11 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { Checkbox } from "@/components/ui/checkbox";
 import type { Booking } from "@/lib/db/schema";
 import { Badge } from "@/components/ui/badge";
+import { Text } from "lucide-react";
+import { DataTableColumnHeader } from "@/app/(dashboard)/tasks/_components/task-table-column-header";
 
 export const useBookingListColumns = () => {
-	const columns: ColumnDef<Pick<Booking, "name" | "bookingType">>[] = [
+	const columns: ColumnDef<Pick<Booking, "id" | "name" | "bookingType">>[] = [
 		{
 			id: "select",
 			header: ({ table }) => (
@@ -27,23 +29,35 @@ export const useBookingListColumns = () => {
 			enableHiding: false,
 		},
 		{
+			id: "name",
 			accessorKey: "name",
-			header: "Name",
+			header: ({ column }) => (
+				<DataTableColumnHeader column={column} title="Name" />
+			),
 			cell: ({ row }) => {
 				const bookingName = row.getValue("name") as string;
 				const type = row.original.bookingType;
 				return (
 					<div className="flex items-center gap-3 py-2">
-						<div className="font-medium">{bookingName}</div>
-						<Badge
+						{/* <Badge
 							variant="outline"
-							className="bg-primary/5 hover:bg-primary/10"
+							// className="bg-primary/5 hover:bg-primary/10"
 						>
 							{type || "Not specified"}
-						</Badge>
+						</Badge> */}
+						<div className="font-medium">{bookingName}</div>
 					</div>
 				);
 			},
+			meta: {
+				label: "Name",
+				placeholder: "Search names...",
+				variant: "text",
+				icon: Text,
+			},
+			enableColumnFilter: true,
+			enableSorting: false,
+			enableHiding: false,
 		},
 	];
 

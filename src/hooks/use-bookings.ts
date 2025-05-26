@@ -1,11 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
-import type { Booking, BookingDetail, Shoot } from "@/lib/db/schema";
+import type { Booking, Shoot } from "@/lib/db/schema";
 import type { BookingFormValues } from "@/app/(dashboard)/bookings/_components/booking-form/booking-form-schema";
 import type { BookingStats } from "@/lib/db/queries";
+import { useSearchParams } from "next/navigation";
+import type { BookingDetail } from "@/types/booking";
 
 interface BookingResponse {
 	data: (Booking & { shoots: Shoot[] })[];
 	total: number;
+	pageCount: number;
 	stats: BookingStats;
 }
 interface MinimalBookingResponse {
@@ -14,10 +17,9 @@ interface MinimalBookingResponse {
 }
 
 export async function fetchBookings(
-	page = 1,
-	limit = 10,
+	searchParams: URLSearchParams,
 ): Promise<BookingResponse> {
-	const response = await fetch(`/api/bookings?page=${page}&limit=${limit}`, {
+	const response = await fetch(`/api/bookings?${searchParams}`, {
 		headers: {
 			"Content-Type": "application/json",
 		},
@@ -44,10 +46,11 @@ export async function fetchMinimalBookings(): Promise<MinimalBookingResponse> {
 	return response.json();
 }
 
-export function useBookings(page?: number, limit?: number) {
+export function useBookings() {
+	const searchParams = useSearchParams();
 	return useQuery<BookingResponse, Error>({
-		queryKey: ["bookings", "list"],
-		queryFn: () => fetchBookings(page, limit),
+		queryKey: ["bookings", "list", searchParams.toString()],
+		queryFn: () => fetchBookings(searchParams),
 	});
 }
 
@@ -124,7 +127,7 @@ export function transformBookingToFormData(
 			time: shoot.time ?? "",
 			location: (shoot.location as string) ?? "",
 			crews: shoot.shootsAssignments?.map((assignment) =>
-				assignment.crewId.toString(),
+				assignment.crew.id.toString(),
 			),
 		})),
 
