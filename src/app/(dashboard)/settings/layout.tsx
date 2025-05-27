@@ -22,7 +22,7 @@ const SettingsLayout = ({ children }: SettingsLayoutProps) => {
 	];
 
 	return (
-		<div className="hidden h-full flex-1 flex-col space-y-8 p-8 pt-0 md:flex">
+		<div className="hidden h-full flex-1 flex-col space-y-8 p-6 pt-0 md:flex">
 			<div className="flex flex-col space-y-8">
 				<SimpleTabsList className="w-full justify-start gap-6">
 					{tabs.map((tab) => (

@@ -25,7 +25,7 @@ export default async function ShootsPage() {
 		queryFn: () => getShoots(session?.session.activeOrganizationId as string),
 	});
 	return (
-		<div className="h-full flex-1 flex flex-col p-8">
+		<div className="h-full flex-1 flex flex-col p-6">
 			<Suspense fallback={<div>Loading...</div>}>
 				<HydrationBoundary state={dehydrate(queryClient)}>
 					<Shoots />

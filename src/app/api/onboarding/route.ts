@@ -13,13 +13,16 @@ export async function GET(request: Request) {
 
 	try {
 		if (!userOrganizationId) {
-			return {
-				onboarded: false,
-				organizationCreated: false,
-				packageCreated: false,
-				bookingCreated: false,
-				membersInvited: false,
-			};
+			return NextResponse.json(
+				{
+					onboarded: false,
+					organizationCreated: false,
+					packageCreated: false,
+					bookingCreated: false,
+					membersInvited: false,
+				},
+				{ status: 200 },
+			);
 		}
 
 		const onboardingStatus = await getOnboardingStatus(userOrganizationId);

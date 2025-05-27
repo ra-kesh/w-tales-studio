@@ -21,7 +21,7 @@ export default async function DeliverablesPage() {
 	});
 
 	return (
-		<div className="h-full flex-1 flex flex-col p-8">
+		<div className="h-full flex-1 flex flex-col p-6">
 			<Suspense fallback={<div>Loading...</div>}>
 				<HydrationBoundary state={dehydrate(queryClient)}>
 					<Deliverables />

@@ -13,7 +13,7 @@ import type { Session } from "@/types/auth";
 
 // Define page metadata for different routes
 const pageMetadata: Record<string, { title: string; description?: string }> = {
-	"/home": { title: "Home", description: "Welcome to your studio" },
+	"/home": { title: "Home", description: "Welcome to WeddingTales Studio" },
 	"/dashboard": { title: "Dashboard", description: "Overview of your studio" },
 	"/bookings": {
 		title: "Bookings",
@@ -111,26 +111,6 @@ export function SiteHeader({
 							</p>
 						)}
 					</div>
-
-					{/* Original breadcrumb code (commented out)
-          <Breadcrumb>
-            <BreadcrumbList>
-              {breadcrumbs.map((breadcrumb, index) => (
-                <BreadcrumbItem key={breadcrumb.href}>
-                  {breadcrumb.isLast ? (
-                    <BreadcrumbPage>{breadcrumb.label}</BreadcrumbPage>
-                  ) : (
-                    <>
-                      <BreadcrumbLink href={breadcrumb.href}>
-                        {breadcrumb.label}
-                      </BreadcrumbLink>
-                      <BreadcrumbSeparator />
-                    </>
-                  )}
-                </BreadcrumbItem>
-              ))}
-            </BreadcrumbList>
-          </Breadcrumb> */}
 				</div>
 				<div>
 					<NavUser sessions={sessions} />
