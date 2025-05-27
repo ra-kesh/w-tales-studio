@@ -10,7 +10,6 @@ import {
 import { Button } from "@/components/ui/button";
 import {
 	CheckCircle2,
-	Circle,
 	ArrowRight,
 	Users,
 	Package,

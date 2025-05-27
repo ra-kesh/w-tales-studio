@@ -1,6 +1,5 @@
-import React from "react";
+import React, { Suspense } from "react";
 import HomeContent from "./home";
-import { Sparkles } from "lucide-react";
 import { getGreeting } from "@/lib/utils";
 import { getServerSession } from "@/lib/dal";
 
