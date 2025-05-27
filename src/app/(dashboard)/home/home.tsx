@@ -9,10 +9,13 @@ import { Announcements } from "./_components/announcements";
 import { RecentUpdates } from "./_components/recent-updates";
 import { useEffect } from "react";
 import { cn } from "@/lib/utils";
+import { useSession } from "@/lib/auth/auth-client";
 
 type TabValue = "home" | "getting-started" | "announcements" | "recent-updates";
 
 const HomeContent = () => {
+	const { data: session } = useSession();
+	console.log("Session data:", session);
 	const { data: onboarding, isLoading: onboardingLoading } = useOnboarding();
 	const [activeTab, setActiveTab] = useQueryState<TabValue>("tab", {
 		defaultValue: "home",
