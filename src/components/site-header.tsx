@@ -13,6 +13,7 @@ import type { Session } from "@/types/auth";
 
 // Define page metadata for different routes
 const pageMetadata: Record<string, { title: string; description?: string }> = {
+	"/home": { title: "Home", description: "Welcome to your studio" },
 	"/dashboard": { title: "Dashboard", description: "Overview of your studio" },
 	"/bookings": {
 		title: "Bookings",

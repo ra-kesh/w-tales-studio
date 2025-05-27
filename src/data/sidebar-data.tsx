@@ -16,6 +16,7 @@ import {
 	SettingsIcon,
 	SquareTerminal,
 	UsersIcon,
+	Home,
 } from "lucide-react";
 
 export const sidebarData = {
@@ -37,6 +38,12 @@ export const sidebarData = {
 		// },
 	],
 	navMain: [
+		{
+			title: "Home",
+			url: "/home",
+			icon: Home,
+			isActive: true,
+		},
 		{
 			title: "Dashboard",
 			url: "/dashboard",
