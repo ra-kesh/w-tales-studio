@@ -859,3 +859,38 @@ export async function getBookingsStats(
 		totalRevenue,
 	};
 }
+
+export async function getOnboardingStatus(userOrganizationId: string): Promise<{
+	onboarded: boolean;
+	organizationCreated: boolean;
+	packageCreated: boolean;
+	bookingCreated: boolean;
+	membersInvited: boolean;
+}> {
+	const [packagesCount, bookingsCount, membersCount] = await Promise.all([
+		db.$count(
+			configurations,
+			and(
+				eq(configurations.type, "package_type"),
+				or(
+					eq(configurations.organizationId, userOrganizationId),
+					eq(configurations.isSystem, true),
+				),
+			),
+		),
+		db.$count(bookings, eq(bookings.organizationId, userOrganizationId)),
+		db.$count(members, eq(members.organizationId, userOrganizationId)),
+	]);
+
+	return {
+		onboarded:
+			packagesCount > 0 &&
+			bookingsCount > 0 &&
+			userOrganizationId !== null &&
+			membersCount > 1,
+		organizationCreated: !!userOrganizationId,
+		packageCreated: packagesCount > 0,
+		bookingCreated: bookingsCount > 0,
+		membersInvited: membersCount > 1,
+	};
+}
