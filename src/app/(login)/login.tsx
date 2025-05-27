@@ -89,7 +89,7 @@ export function Login({
 								onClick={async () => {
 									await authClient.signIn.social({
 										provider: "google",
-										callbackURL: "/dashboard",
+										callbackURL: "/home",
 									});
 								}}
 							>
