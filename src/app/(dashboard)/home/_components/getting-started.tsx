@@ -8,20 +8,14 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import {
-	CheckCircle2,
-	ArrowRight,
-	Users,
-	Package,
-	Calendar,
-	Building,
-} from "lucide-react";
+import { CheckCircle2, Users, Package, Calendar, Building } from "lucide-react";
 import { useOnboarding } from "@/hooks/use-onboarding";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 import CreateOrganisationDialog from "@/components/create-organisation-dialog";
 import { OpenPackageSheet } from "../../configurations/_components/open-package-sheet";
+import InviteMemberDialog from "@/components/invite-member-dialog";
 
 interface Step {
 	id: string;
@@ -95,7 +89,7 @@ export function GettingStarted() {
 			icon: Users,
 			href: "/settings/team",
 			completed: onboarding.membersInvited,
-			// actionComponent: <YourInviteMembersComponent /> // Add custom component if needed
+			actionComponent: <InviteMemberDialog />, // Add custom component if needed
 		},
 	];
 
@@ -209,21 +203,10 @@ export function GettingStarted() {
 									</p>
 								</div>
 
-								{isNext &&
-									(step.actionComponent ? (
-										<div>{step.actionComponent}</div>
-									) : (
-										// Otherwise, render the default button with link
-										<Button asChild size="sm">
-											<Link
-												href={step.href}
-												className="flex items-center gap-1"
-											>
-												Start
-												<ArrowRight className="h-3 w-3" />
-											</Link>
-										</Button>
-									))}
+								{isNext && step.actionComponent && (
+									<div>{step.actionComponent}</div>
+								)}
+
 								{step.completed && (
 									<Button asChild variant="outline" size="sm">
 										<Link href={step.href}>View</Link>
