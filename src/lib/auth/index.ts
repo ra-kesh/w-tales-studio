@@ -46,10 +46,10 @@ export const auth = betterAuth({
 						teamName: data.organization.name,
 						inviteLink:
 							process.env.NODE_ENV === "development"
-								? `http://localhost:3000/accept-invitation/${data.id}`
+								? `http://localhost:3000/sign-in?redirect=/accept-invitation/${data.id}`
 								: `${
 										process.env.BETTER_AUTH_URL || "https://wtp.rakyesh.com"
-									}/accept-invitation/${data.id}`,
+									}/sign-in?redirect=/accept-invitation/${data.id}`,
 					}),
 				});
 			},

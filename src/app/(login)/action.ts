@@ -26,6 +26,14 @@ export const signIn = validatedAction(signInSchema, async (data, formData) => {
 		};
 	}
 
+	const redirectTo = formData.get("redirect") as string | null;
+
+	console.log({ redirectTo });
+
+	if (redirectTo) {
+		redirect(`${redirectTo}`);
+	}
+
 	redirect("/home");
 });
 
@@ -53,6 +61,12 @@ export const signUp = validatedAction(signUpSchema, async (data, formData) => {
 			email,
 			password,
 		};
+	}
+
+	const redirectTo = formData.get("redirect") as string | null;
+
+	if (redirectTo) {
+		redirect(`${redirectTo}`);
 	}
 
 	redirect("/home");
