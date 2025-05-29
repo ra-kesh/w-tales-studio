@@ -1,144 +1,125 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import { format } from "date-fns";
+import type { ActiveOrganization, Session } from "@/types/auth";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+import EditOrganisationDialog from "@/components/edit-organisation-dialog";
 
-const organizationSchema = z.object({
-  name: z.string().min(2),
-  email: z.string().email(),
-  phone: z.string().min(10),
-  address: z.string().min(10),
-  website: z.string().url().optional(),
-  description: z.string().optional(),
-});
+export function OrganizationSettings(props: {
+	session: Session | null;
+	activeOrganization: ActiveOrganization | null;
+}) {
+	const { activeOrganization } = props;
 
-export function OrganizationSettings() {
-  const form = useForm({
-    resolver: zodResolver(organizationSchema),
-    defaultValues: {
-      name: "Pixel Perfect Studios",
-      email: "contact@pixelperfect.com",
-      phone: "+91 98765 43210",
-      address: "123 Creative Avenue, Bangalore, Karnataka 560001",
-      website: "https://pixelperfect.com",
-      description: "Premier wedding photography studio capturing moments that last forever.",
-    },
-  });
+	const getInitials = (name: string) => {
+		return name
+			.split(" ")
+			.map((part) => part[0])
+			.join("")
+			.toUpperCase();
+	};
 
-  const onSubmit = async (data: z.infer<typeof organizationSchema>) => {
-    console.log(data);
-    // TODO: Implement update logic
-  };
+	return (
+		<div>
+			<div className="flex justify-between items-center">
+				<div className="px-4 sm:px-0">
+					<h3 className="text-base/7 font-semibold text-gray-900">
+						Studio Information
+					</h3>
+					<p className="mt-1 max-w-2xl text-sm/6 text-gray-500">
+						Details of the studio currently selected.
+					</p>
+				</div>
+				<div>
+					<EditOrganisationDialog organization={activeOrganization} />
+				</div>
+			</div>
+			<div className="mt-6 border-t border-gray-100">
+				<dl className="divide-y divide-gray-100">
+					<div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+						<dt className="text-sm/6 font-medium text-gray-900 lg:flex lg:items-center">
+							Stdio Logo
+						</dt>
+						<dd className="mt-1 text-sm/6 text-gray-700 sm:col-span-2 sm:mt-0">
+							<Avatar className="rounded-full h-10 w-10">
+								<AvatarImage
+									className="object-cover w-full h-full rounded-full"
+									src={activeOrganization?.logo || undefined}
+								/>
+								<AvatarFallback className="rounded-full">
+									{activeOrganization?.name?.charAt(0) || "P"}
+								</AvatarFallback>
+							</Avatar>
+						</dd>
+					</div>
+					<div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+						<dt className="text-sm/6 font-medium text-gray-900">Studio Name</dt>
+						<dd className="mt-1 text-sm/6 text-gray-700 sm:col-span-2 sm:mt-0">
+							{activeOrganization?.name}
+						</dd>
+					</div>
+					<div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+						<dt className="text-sm/6 font-medium text-gray-900">Studio Slug</dt>
+						<dd className="mt-1 text-sm/6 text-gray-700 sm:col-span-2 sm:mt-0">
+							{activeOrganization?.slug}
+						</dd>
+					</div>
 
-  return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Organization Details</CardTitle>
-            <CardDescription>
-              Update your organization's basic information
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Studio Name</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Contact Email</FormLabel>
-                    <FormControl>
-                      <Input type="email" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="phone"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Phone Number</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="website"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Website</FormLabel>
-                    <FormControl>
-                      <Input type="url" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <FormField
-              control={form.control}
-              name="address"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Studio Address</FormLabel>
-                  <FormControl>
-                    <Textarea {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>About Studio</FormLabel>
-                  <FormControl>
-                    <Textarea {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </CardContent>
-        </Card>
-
-        <div className="flex justify-end">
-          <Button type="submit">Save Changes</Button>
-        </div>
-      </form>
-    </Form>
-  );
+					<div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+						<dt className="text-sm/6 font-medium text-gray-900">Created At</dt>
+						<dd className="mt-1 text-sm/6 text-gray-700 sm:col-span-2 sm:mt-0">
+							{format(
+								new Date(activeOrganization?.createdAt || "N/a"),
+								"MMMM dd, yyyy",
+							)}
+						</dd>
+					</div>
+					<div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+						<dt className="text-sm/6 font-medium text-gray-900">Memebers</dt>
+						<dd className="mt-2 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+							<ul className="divide-y divide-gray-100 rounded-md border border-gray-200">
+								{activeOrganization?.members.map((member) => (
+									<div
+										key={member.id}
+										className="flex items-center justify-between p-4"
+									>
+										<div className="flex items-center space-x-4">
+											<Avatar>
+												<AvatarImage src={member.user.image || undefined} />
+												<AvatarFallback>
+													{getInitials(member.user.name)}
+												</AvatarFallback>
+											</Avatar>
+											<div>
+												<p className="font-medium">{member.user.name}</p>
+												<p className="text-sm text-muted-foreground">
+													{member.user.email}
+												</p>
+											</div>
+										</div>
+										<div className="flex items-center space-x-4">
+											<Badge
+												variant={
+													member.role === "owner" ? "default" : "outline"
+												}
+											>
+												{member.role.charAt(0).toUpperCase() +
+													member.role.slice(1)}
+											</Badge>
+											<p className="text-sm text-muted-foreground">
+												Joined{" "}
+												{format(new Date(member.createdAt), "MMM dd, yyyy")}
+											</p>
+										</div>
+									</div>
+								))}
+							</ul>
+						</dd>
+					</div>
+				</dl>
+			</div>
+		</div>
+	);
 }
