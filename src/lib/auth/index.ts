@@ -12,6 +12,7 @@ import { nextCookies } from "better-auth/next-js";
 import { getActiveOrganization } from "../db/queries";
 import { resend } from "../email/resend";
 import { reactInvitationEmail } from "../email/invitation";
+import { reactResetPasswordEmail } from "../email/resetPassword";
 
 const from = process.env.BETTER_AUTH_EMAIL || "mail@updates.rakyesh.com";
 const to = process.env.TEST_EMAIL || "";
@@ -21,8 +22,30 @@ export const auth = betterAuth({
 		provider: "pg",
 		usePlural: true,
 	}),
+	emailVerification: {
+		async sendVerificationEmail({ user, url }) {
+			const res = await resend.emails.send({
+				from,
+				to: to || user.email,
+				subject: "Verify your email address",
+				html: `<a href="${url}">Verify your email address</a>`,
+			});
+			console.log(res, user.email);
+		},
+	},
 	emailAndPassword: {
 		enabled: true,
+		async sendResetPassword({ user, url }) {
+			await resend.emails.send({
+				from,
+				to: user.email,
+				subject: "Reset your password",
+				react: reactResetPasswordEmail({
+					username: user.email,
+					resetLink: url,
+				}),
+			});
+		},
 	},
 	socialProviders: {
 		google: {
@@ -83,5 +106,12 @@ export const auth = betterAuth({
 			},
 		},
 	},
+	advanced: {
+		ipAddress: {
+			ipAddressHeaders: ["x-client-ip", "x-forwarded-for"],
+			disableIpTracking: false,
+		},
+	},
+
 	disabledPaths: ["/sign-up/email", "/sign-in/email"],
 });
