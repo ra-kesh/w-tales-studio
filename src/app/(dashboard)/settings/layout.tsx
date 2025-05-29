@@ -15,10 +15,10 @@ const SettingsLayout = ({ children }: SettingsLayoutProps) => {
 
 	const tabs = [
 		{ path: "/settings/organization", label: "Organization" },
-		{ path: "/settings/team", label: "Team & Invites" },
-		{ path: "/settings/branding", label: "Branding" },
+		{ path: "/settings/team", label: "Invites" },
+		// { path: "/settings/branding", label: "Branding" },
 		{ path: "/settings/security", label: "Security" },
-		{ path: "/settings/billing", label: "Billing" },
+		// { path: "/settings/billing", label: "Billing" },
 	];
 
 	return (
