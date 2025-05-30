@@ -3,6 +3,7 @@ import { betterAuth } from "better-auth";
 import { db } from "../db/drizzle";
 import {
 	admin,
+	customSession,
 	multiSession,
 	oneTap,
 	organization,
@@ -13,6 +14,9 @@ import { getActiveOrganization } from "../db/queries";
 import { resend } from "../email/resend";
 import { reactInvitationEmail } from "../email/invitation";
 import { reactResetPasswordEmail } from "../email/resetPassword";
+
+import { members } from "../db/schema";
+import { eq, and } from "drizzle-orm";
 
 const from = process.env.BETTER_AUTH_EMAIL || "mail@updates.rakyesh.com";
 const to = process.env.TEST_EMAIL || "";
@@ -76,12 +80,19 @@ export const auth = betterAuth({
 					}),
 				});
 			},
-			//todo: add custom logic later based on subscription
 			allowUserToCreateOrganization: true,
 		}),
 		nextCookies(),
 		multiSession(),
 		oneTap(),
+		customSession(async ({ user, session }) => {
+			const roles = await findUserRoles(session.userId);
+			return {
+				roles,
+				user,
+				session,
+			};
+		}),
 	],
 	account: {
 		accountLinking: {
@@ -115,3 +126,20 @@ export const auth = betterAuth({
 
 	disabledPaths: ["/sign-up/email", "/sign-in/email"],
 });
+
+async function findUserRoles(userId: string): Promise<string[]> {
+	const organization = await getActiveOrganization(userId);
+
+	const memberships = await db
+		.select({ role: members.role })
+		.from(members)
+		.where(
+			and(
+				eq(members.userId, userId),
+				eq(members.organizationId, organization.organizationId as string),
+			),
+		);
+
+	// Return an array of roles (or an empty array if none are found).
+	return memberships.map((membership) => membership.role);
+}
