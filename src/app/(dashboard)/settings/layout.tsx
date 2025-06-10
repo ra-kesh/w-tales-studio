@@ -15,7 +15,7 @@ const SettingsLayout = ({ children }: SettingsLayoutProps) => {
 
 	const tabs = [
 		{ path: "/settings/organization", label: "Organization" },
-		{ path: "/settings/team", label: "Invites" },
+		{ path: "/settings/invites", label: "Invites" },
 		{ path: "/settings/profile", label: "Profile" },
 	];
 

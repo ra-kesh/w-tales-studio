@@ -22,14 +22,18 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "./ui/select";
+import { useRouter } from "next/navigation";
+import { set } from "date-fns";
 
-function InviteMemberDialog({ view = false }: { view?: boolean }) {
+function InviteMemberDialog() {
 	const [open, setOpen] = useState(false);
 	const [email, setEmail] = useState("");
 	const [role, setRole] = useState("member");
 	const [loading, setLoading] = useState(false);
 
 	const queryClient = useQueryClient();
+
+	const router = useRouter();
 
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
@@ -49,6 +53,7 @@ function InviteMemberDialog({ view = false }: { view?: boolean }) {
 				<div className="flex flex-col gap-2">
 					<Label>Email</Label>
 					<Input
+						type="email"
 						placeholder="Email"
 						value={email}
 						onChange={(e) => setEmail(e.target.value)}
@@ -74,14 +79,21 @@ function InviteMemberDialog({ view = false }: { view?: boolean }) {
 								role: role as "member",
 								fetchOptions: {
 									throw: true,
+									onRequest: () => {
+										setLoading(true);
+									},
 									onSuccess: () => {
 										queryClient.invalidateQueries({
 											queryKey: ["onboarding"],
 										});
+										setLoading(false);
 										setOpen(false);
+										setEmail("");
+										setRole("member");
 										queryClient.refetchQueries({
 											queryKey: ["onboarding"],
 										});
+										router.refresh();
 									},
 									// onSuccess: (ctx) => {
 									// 	if (optimisticOrg) {

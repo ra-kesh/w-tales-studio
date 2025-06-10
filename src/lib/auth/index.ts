@@ -86,7 +86,11 @@ export const auth = betterAuth({
 		multiSession(),
 		oneTap(),
 		customSession(async ({ user, session }) => {
-			const roles = await findUserRoles(session.userId);
+			const roles = await findUserRoles(
+				session.userId,
+				session.activeOrganizationId,
+			);
+
 			return {
 				roles,
 				user,
@@ -127,8 +131,13 @@ export const auth = betterAuth({
 	disabledPaths: ["/sign-up/email", "/sign-in/email"],
 });
 
-async function findUserRoles(userId: string): Promise<string[]> {
-	const organization = await getActiveOrganization(userId);
+async function findUserRoles(
+	userId: string,
+	activeOrganizationId: string | null,
+): Promise<string[]> {
+	if (!activeOrganizationId) {
+		return [];
+	}
 
 	const memberships = await db
 		.select({ role: members.role })
@@ -136,7 +145,7 @@ async function findUserRoles(userId: string): Promise<string[]> {
 		.where(
 			and(
 				eq(members.userId, userId),
-				eq(members.organizationId, organization.organizationId as string),
+				eq(members.organizationId, activeOrganizationId),
 			),
 		);
 

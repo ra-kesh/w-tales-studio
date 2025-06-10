@@ -1,12 +1,14 @@
 import { createAuthClient } from "better-auth/react";
 import {
 	adminClient,
+	customSessionClient,
 	multiSessionClient,
 	oneTapClient,
 	organizationClient,
 	usernameClient,
 } from "better-auth/client/plugins";
 import { toast } from "sonner";
+import type { auth } from ".";
 
 export const authClient = createAuthClient({
 	plugins: [
@@ -24,6 +26,7 @@ export const authClient = createAuthClient({
 				maxAttempts: 1, // Maximum number of attempts before triggering onPromptNotification (default: 5)
 			},
 		}),
+		customSessionClient<typeof auth>(),
 	],
 	fetchOptions: {
 		onError: (ctx) => {

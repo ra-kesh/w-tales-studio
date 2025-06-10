@@ -165,6 +165,9 @@ export function TeamInvites({
 							You don't have any pending invitations. Invite new members to join
 							your organization.
 						</p>
+						<div className="mt-4">
+							<InviteMemberDialog />
+						</div>
 					</CardContent>
 				</Card>
 			)}
