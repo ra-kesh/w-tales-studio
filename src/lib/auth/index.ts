@@ -1,5 +1,5 @@
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { betterAuth } from "better-auth";
+import { betterAuth, type BetterAuthOptions } from "better-auth";
 import { db } from "../db/drizzle";
 import {
 	admin,
@@ -21,7 +21,7 @@ import { eq, and } from "drizzle-orm";
 const from = process.env.BETTER_AUTH_EMAIL || "mail@updates.rakyesh.com";
 const to = process.env.TEST_EMAIL || "";
 
-export const auth = betterAuth({
+const options = {
 	database: drizzleAdapter(db, {
 		provider: "pg",
 		usePlural: true,
@@ -85,18 +85,6 @@ export const auth = betterAuth({
 		nextCookies(),
 		multiSession(),
 		oneTap(),
-		customSession(async ({ user, session }) => {
-			const roles = await findUserRoles(
-				session.userId,
-				session.activeOrganizationId,
-			);
-
-			return {
-				roles,
-				user,
-				session,
-			};
-		}),
 	],
 	account: {
 		accountLinking: {
@@ -105,16 +93,20 @@ export const auth = betterAuth({
 			allowDifferentEmails: false,
 		},
 	},
-
 	databaseHooks: {
 		session: {
 			create: {
-				before: async (session) => {
-					const organization = await getActiveOrganization(session.userId);
+				before: async (sessionInput) => {
+					const activeOrgInfo = await getActiveOrganization(
+						sessionInput.userId,
+					);
+					const activeOrganizationId = activeOrgInfo
+						? activeOrgInfo.organizationId
+						: null;
 					return {
 						data: {
-							...session,
-							activeOrganizationId: organization.organizationId,
+							...sessionInput,
+							activeOrganizationId: activeOrganizationId,
 						},
 					};
 				},
@@ -127,18 +119,35 @@ export const auth = betterAuth({
 			disableIpTracking: false,
 		},
 	},
-
 	disabledPaths: ["/sign-up/email", "/sign-in/email"],
+} satisfies BetterAuthOptions;
+
+export const auth = betterAuth({
+	...options,
+	plugins: [
+		...(options.plugins ?? []),
+		customSession(async ({ user, session }) => {
+			const roles = await findUserRoles(
+				session.userId,
+				session.activeOrganizationId,
+			);
+
+			return {
+				roles,
+				user,
+				session,
+			};
+		}, options),
+	],
 });
 
 async function findUserRoles(
 	userId: string,
-	activeOrganizationId: string | null,
+	activeOrganizationId: string | null | undefined,
 ): Promise<string[]> {
 	if (!activeOrganizationId) {
 		return [];
 	}
-
 	const memberships = await db
 		.select({ role: members.role })
 		.from(members)
@@ -148,7 +157,7 @@ async function findUserRoles(
 				eq(members.organizationId, activeOrganizationId),
 			),
 		);
-
-	// Return an array of roles (or an empty array if none are found).
-	return memberships.map((membership) => membership.role);
+	return memberships
+		.map((membership) => membership.role)
+		.filter((role) => role != null) as string[];
 }
