@@ -26,7 +26,15 @@ export const signIn = validatedAction(signInSchema, async (data, formData) => {
 		};
 	}
 
-	redirect("/bookings");
+	const redirectTo = formData.get("redirect") as string | null;
+
+	console.log({ redirectTo });
+
+	if (redirectTo) {
+		redirect(`${redirectTo}`);
+	}
+
+	redirect("/home");
 });
 
 const signUpSchema = z.object({
@@ -55,5 +63,11 @@ export const signUp = validatedAction(signUpSchema, async (data, formData) => {
 		};
 	}
 
-	redirect("/bookings");
+	const redirectTo = formData.get("redirect") as string | null;
+
+	if (redirectTo) {
+		redirect(`${redirectTo}`);
+	}
+
+	redirect("/home");
 });

@@ -24,6 +24,7 @@ import {
 	type ConfigType,
 	type Shoot,
 	crews,
+	invitations,
 } from "./schema";
 import { alias } from "drizzle-orm/pg-core";
 import type { BookingDetail } from "@/types/booking";
@@ -857,5 +858,40 @@ export async function getBookingsStats(
 		activeBookings,
 		totalExpenses,
 		totalRevenue,
+	};
+}
+
+export async function getOnboardingStatus(userOrganizationId: string): Promise<{
+	onboarded: boolean;
+	organizationCreated: boolean;
+	packageCreated: boolean;
+	bookingCreated: boolean;
+	membersInvited: boolean;
+}> {
+	const [packagesCount, bookingsCount, invitationsCount] = await Promise.all([
+		db.$count(
+			configurations,
+			and(
+				eq(configurations.type, "package_type"),
+				or(
+					eq(configurations.organizationId, userOrganizationId),
+					eq(configurations.isSystem, true),
+				),
+			),
+		),
+		db.$count(bookings, eq(bookings.organizationId, userOrganizationId)),
+		db.$count(invitations, eq(invitations.organizationId, userOrganizationId)),
+	]);
+
+	return {
+		onboarded:
+			packagesCount > 0 &&
+			bookingsCount > 0 &&
+			userOrganizationId !== null &&
+			invitationsCount > 0,
+		organizationCreated: !!userOrganizationId,
+		packageCreated: packagesCount > 0,
+		bookingCreated: bookingsCount > 0,
+		membersInvited: invitationsCount > 0,
 	};
 }

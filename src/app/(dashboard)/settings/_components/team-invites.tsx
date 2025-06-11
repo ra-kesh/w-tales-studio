@@ -1,208 +1,216 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
+	Card,
+	CardContent,
+	CardDescription,
+	CardFooter,
+	CardHeader,
+	CardTitle,
 } from "@/components/ui/card";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+
 import { Badge } from "@/components/ui/badge";
+import InviteMemberDialog from "@/components/invite-member-dialog";
+import type { ActiveOrganization } from "@/types/auth";
+import CreateOrganizationDialog from "@/components/create-organisation-dialog";
+import { CheckCircle, Clock, Loader2, Mail, Trash } from "lucide-react";
+import { format } from "date-fns";
+import { useState } from "react";
+import { authClient } from "@/lib/auth/auth-client";
+import { toast } from "sonner";
+import { usePathname, useRouter } from "next/navigation";
+import CopyButton from "@/components/copy-button";
 
-const inviteSchema = z.object({
-  email: z.string().email(),
-  role: z.enum(["photographer", "cinematographer", "editor", "assistant"]),
-});
+export function TeamInvites({
+	activeOrganization,
+}: { activeOrganization: ActiveOrganization | null }) {
+	const [isRevoking, setIsRevoking] = useState<string[]>([]);
 
-const mockInvites = [
-  {
-    id: 1,
-    email: "sarah@gmail.com",
-    role: "photographer",
-    status: "pending",
-    sent: "2024-01-15",
-  },
-  {
-    id: 2,
-    email: "john@gmail.com",
-    role: "editor",
-    status: "accepted",
-    sent: "2024-01-14",
-  },
-  {
-    id: 3,
-    email: "mike@gmail.com",
-    role: "cinematographer",
-    status: "expired",
-    sent: "2024-01-10",
-  },
-];
+	if (!activeOrganization) {
+		return (
+			<div className="flex items-center justify-center h-[70vh]">
+				<Card className="w-[400px]">
+					<CardHeader>
+						<CardTitle className="text-center">No Organization Found</CardTitle>
+						<CardDescription className="text-center">
+							You don't have an active organization.
+						</CardDescription>
+					</CardHeader>
+					<CardFooter className="flex justify-center">
+						<CreateOrganizationDialog />
+					</CardFooter>
+				</Card>
+			</div>
+		);
+	}
 
-export function TeamInvites() {
-  const form = useForm({
-    // resolver: zodResolver(inviteSchema),
-    defaultValues: {
-      email: "",
-      role: "photographer",
-    },
-  });
+	const pendingInvitations = activeOrganization?.invitations.filter(
+		(inv) => inv.status === "pending",
+	);
+	const acceptedInvitations = activeOrganization?.invitations.filter(
+		(inv) => inv.status === "accepted",
+	);
 
-  const onSubmit = async (data: z.infer<typeof inviteSchema>) => {
-    console.log(data);
-    // TODO: Implement invite logic
-    form.reset();
-  };
+	const router = useRouter();
 
-  return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Invite Team Member</CardTitle>
-          <CardDescription>
-            Send invitations to new team members
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Form {...form}>
-            <form
-              onSubmit={form.handleSubmit(onSubmit as any)}
-              className="space-y-4"
-            >
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email Address</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="email"
-                          placeholder="team@studio.com"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="role"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Role</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select role" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="photographer">
-                            Photographer
-                          </SelectItem>
-                          <SelectItem value="cinematographer">
-                            Cinematographer
-                          </SelectItem>
-                          <SelectItem value="editor">Editor</SelectItem>
-                          <SelectItem value="assistant">Assistant</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <div className="flex justify-end">
-                <Button type="submit">Send Invitation</Button>
-              </div>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
+	const pathName = usePathname();
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Pending Invitations</CardTitle>
-          <CardDescription>Manage and track sent invitations</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Email</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Sent Date</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {mockInvites.map((invite) => (
-                <TableRow key={invite.id}>
-                  <TableCell>{invite.email}</TableCell>
-                  <TableCell className="capitalize">{invite.role}</TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={
-                        invite.status === "accepted"
-                          ? "default"
-                          : invite.status === "pending"
-                          ? "secondary"
-                          : "destructive"
-                      }
-                    >
-                      {invite.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    {new Date(invite.sent).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    {invite.status === "pending" && (
-                      <Button variant="ghost" size="sm">
-                        Resend
-                      </Button>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-    </div>
-  );
+	return (
+		<>
+			{pendingInvitations.length > 0 ? (
+				<Card>
+					<CardHeader className="flex justify-between items-center">
+						<div>
+							<CardTitle>Pending Invitations</CardTitle>
+							<CardDescription>
+								These invitations are waiting for a response.
+							</CardDescription>
+						</div>
+						<div>
+							<InviteMemberDialog />
+						</div>
+					</CardHeader>
+					<CardContent className="p-0">
+						<div className="divide-y">
+							{pendingInvitations.map((invitation) => (
+								<div
+									key={invitation.id}
+									className="flex items-center justify-between p-3"
+								>
+									<div className="flex items-center space-x-4">
+										<div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+											<Mail className="h-5 w-5 text-muted-foreground" />
+										</div>
+										<div>
+											<p className="font-normal">{invitation.email}</p>
+											<p className="text-xs text-muted-foreground">
+												Expires{" "}
+												{format(new Date(invitation.expiresAt), "MMM dd, yyyy")}
+											</p>
+										</div>
+									</div>
+									<div className="flex items-center space-x-4">
+										<Badge variant="outline">{invitation.role}</Badge>
+										<Badge
+											variant="secondary"
+											className="flex items-center gap-1"
+										>
+											<Clock className="h-3 w-3" /> Pending
+										</Badge>
+										<div className="flex items-center gap-2">
+											<Button
+												disabled={isRevoking.includes(invitation.id)}
+												size="sm"
+												variant="outline"
+												onClick={() => {
+													authClient.organization.cancelInvitation(
+														{
+															invitationId: invitation.id,
+														},
+														{
+															onRequest: () => {
+																setIsRevoking([...isRevoking, invitation.id]);
+															},
+															onSuccess: () => {
+																toast.message(
+																	"Invitation revoked successfully",
+																);
+																setIsRevoking(
+																	isRevoking.filter(
+																		(id) => id !== invitation.id,
+																	),
+																);
+
+																router.refresh();
+															},
+															onError: (ctx) => {
+																toast.error(ctx.error.message);
+																setIsRevoking(
+																	isRevoking.filter(
+																		(id) => id !== invitation.id,
+																	),
+																);
+																router.refresh();
+															},
+														},
+													);
+												}}
+											>
+												{isRevoking.includes(invitation.id) ? (
+													<Loader2 className="animate-spin" size={16} />
+												) : (
+													"Revoke"
+												)}
+											</Button>
+											<div>
+												<CopyButton
+													textToCopy={`${process.env.NODE_ENV === "development" ? "http://localhost:3000" : "https://wtp.rakyesh.com"}/sign-in?redirect=/accept-invitation/${invitation.id}`}
+												/>
+											</div>
+										</div>
+									</div>
+								</div>
+							))}
+						</div>
+					</CardContent>
+				</Card>
+			) : (
+				<Card>
+					<CardContent className="flex flex-col items-center justify-center py-10">
+						<Mail className="h-12 w-12 text-muted-foreground mb-4" />
+						<h3 className="text-lg font-medium">No Pending Invitations</h3>
+						<p className="text-muted-foreground text-center max-w-md mt-1">
+							You don't have any pending invitations. Invite new members to join
+							your organization.
+						</p>
+						<div className="mt-4">
+							<InviteMemberDialog />
+						</div>
+					</CardContent>
+				</Card>
+			)}
+
+			{acceptedInvitations.length > 0 && (
+				<Card>
+					<CardHeader>
+						<CardTitle>Accepted Invitations</CardTitle>
+						<CardDescription>
+							These invitations have been accepted.
+						</CardDescription>
+					</CardHeader>
+					<CardContent className="p-0">
+						<div className="divide-y">
+							{acceptedInvitations.map((invitation) => (
+								<div
+									key={invitation.id}
+									className="flex items-center justify-between p-3"
+								>
+									<div className="flex items-center space-x-4">
+										<div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+											<Mail className="h-5 w-5 text-muted-foreground" />
+										</div>
+										<div>
+											<p className="font-normal">{invitation.email}</p>
+											<p className="text-xs text-muted-foreground">Accepted</p>
+										</div>
+									</div>
+									<div className="flex items-center space-x-4">
+										<Badge variant="outline">{invitation.role}</Badge>
+										<Badge
+											variant="default"
+											className="bg-green-100 text-green-800 flex items-center gap-1"
+										>
+											<CheckCircle className="h-3 w-3" /> Accepted
+										</Badge>
+									</div>
+								</div>
+							))}
+						</div>
+					</CardContent>
+				</Card>
+			)}
+		</>
+	);
 }

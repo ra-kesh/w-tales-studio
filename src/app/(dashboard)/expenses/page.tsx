@@ -17,7 +17,7 @@ export default async function ExpensesPage() {
 		queryFn: () => getExpenses(session?.session.activeOrganizationId as string),
 	});
 	return (
-		<div className="h-full flex-1 flex flex-col p-8">
+		<div className="h-full flex-1 flex flex-col p-6">
 			<Suspense fallback={<div>Loadding...</div>}>
 				<HydrationBoundary state={dehydrate(queryClient)}>
 					<Expenses />

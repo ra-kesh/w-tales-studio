@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { Configuration, NewConfiguration } from "@/lib/db/schema";
 import { toast } from "sonner";
+import { useSession } from "@/lib/auth/auth-client";
 
 export async function fetchConfigs(type: string): Promise<Configuration[]> {
 	const response = await fetch(`/api/configurations?type=${type}`);
@@ -69,10 +70,13 @@ interface PackageMetadata {
 }
 
 export function usePackageTypes() {
+	const { data: session } = useSession();
+
 	return useQuery({
 		queryKey: ["configurations", "package_type"],
 		queryFn: () => fetchConfigs("package_type"),
 		staleTime: 5 * 60 * 1000,
+		enabled: Boolean(session?.session.activeOrganizationId),
 		select: (data) =>
 			data.map((config) => ({
 				id: config.id,
@@ -138,7 +142,13 @@ export function useCreatePackageMutation() {
 			queryClient.invalidateQueries({
 				queryKey: ["configurations", "package_type"],
 			});
+			queryClient.invalidateQueries({
+				queryKey: ["onboarding"],
+			});
 			toast.success("Package created successfully");
+			queryClient.refetchQueries({
+				queryKey: ["onboarding"],
+			});
 		},
 		onError: (error) => {
 			toast.error(error.message || "Failed to create package");

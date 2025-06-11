@@ -29,7 +29,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 			</SidebarHeader>
 			<SidebarContent>
 				<NavMain items={sidebarData.navMain} />
-				<NavProjects projects={sidebarData.bookings} />
+				{/* <NavProjects projects={sidebarData.bookings} /> */}
 				<NavSecondary items={sidebarData.navSecondary} className="mt-auto" />
 			</SidebarContent>
 			{/* <SidebarFooter>

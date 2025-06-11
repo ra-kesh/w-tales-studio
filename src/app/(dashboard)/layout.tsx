@@ -4,13 +4,35 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { SiteHeader } from "@/components/site-header";
 import { GlobalSheets } from "./global-sheet";
 import { Suspense } from "react";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 
-const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
+const DashboardLayout = async ({ children }: { children: React.ReactNode }) => {
+	const [session, activeSessions, deviceSessions, organization] =
+		await Promise.all([
+			auth.api.getSession({
+				headers: await headers(),
+			}),
+			auth.api.listSessions({
+				headers: await headers(),
+			}),
+			auth.api.listDeviceSessions({
+				headers: await headers(),
+			}),
+			auth.api.getFullOrganization({
+				headers: await headers(),
+			}),
+		]).catch((e) => {
+			console.log(e);
+			throw redirect("/sign-in");
+		});
+
 	return (
 		<SidebarProvider>
 			<AppSidebar />
 			<SidebarInset>
-				<SiteHeader />
+				<SiteHeader sessions={JSON.parse(JSON.stringify(deviceSessions))} />
 				<div className="flex flex-1 flex-col">
 					<div className="@container/main flex flex-1 flex-col gap-2">
 						{children}

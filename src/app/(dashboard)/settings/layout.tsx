@@ -15,14 +15,12 @@ const SettingsLayout = ({ children }: SettingsLayoutProps) => {
 
 	const tabs = [
 		{ path: "/settings/organization", label: "Organization" },
-		{ path: "/settings/team", label: "Team & Invites" },
-		{ path: "/settings/branding", label: "Branding" },
-		{ path: "/settings/security", label: "Security" },
-		{ path: "/settings/billing", label: "Billing" },
+		{ path: "/settings/invites", label: "Invites" },
+		{ path: "/settings/profile", label: "Profile" },
 	];
 
 	return (
-		<div className="hidden h-full flex-1 flex-col space-y-8 p-8 pt-0 md:flex">
+		<div className="hidden h-full flex-1 flex-col space-y-8 p-6 pt-0 md:flex">
 			<div className="flex flex-col space-y-8">
 				<SimpleTabsList className="w-full justify-start gap-6">
 					{tabs.map((tab) => (
