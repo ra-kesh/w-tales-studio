@@ -1,11 +1,9 @@
+// src/components/AppSidebar.tsx
+
 "use client";
 
-import type * as React from "react";
-
 import { NavMain } from "@/components/nav-main";
-import { NavProjects } from "@/components/nav-projects";
-import { NavUser } from "@/components/nav-user";
-import { TeamSwitcher } from "@/components/team-switcher";
+import { OrganisationSwitcher } from "@/components/organisation-switcher";
 import {
 	Sidebar,
 	SidebarContent,
@@ -15,26 +13,31 @@ import {
 } from "@/components/ui/sidebar";
 
 import { sidebarData } from "@/data/sidebar-data";
-import { useSession } from "@/lib/auth/auth-client";
-import type { User } from "better-auth";
 import { NavSecondary } from "./nav-secondary";
+import type { ActiveOrganization, Session } from "@/types/auth";
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-	const { data } = useSession();
-
+export function AppSidebar({
+	session,
+	activeOrganization,
+}: {
+	session: Session | null;
+	activeOrganization: ActiveOrganization | null;
+}) {
 	return (
-		<Sidebar variant="inset" collapsible="icon" {...props}>
+		<Sidebar variant="inset" collapsible="icon">
 			<SidebarHeader>
-				<TeamSwitcher teams={sidebarData.teams} />
+				<div className="grid flex-1 text-left text-md leading-tight pl-2">
+					<span className="truncate font-bold">Studio Plus</span>
+				</div>
 			</SidebarHeader>
 			<SidebarContent>
 				<NavMain items={sidebarData.navMain} />
-				{/* <NavProjects projects={sidebarData.bookings} /> */}
 				<NavSecondary items={sidebarData.navSecondary} className="mt-auto" />
 			</SidebarContent>
-			{/* <SidebarFooter>
-				<NavUser user={data?.user as User} />
-			</SidebarFooter> */}
+
+			<SidebarFooter>
+				<OrganisationSwitcher activeOrganization={activeOrganization} />
+			</SidebarFooter>
 			<SidebarRail />
 		</Sidebar>
 	);
