@@ -24,16 +24,18 @@ import {
 	useSidebar,
 } from "@/components/ui/sidebar";
 import type { Organization } from "@/lib/db/schema";
-import type { ActiveOrganization } from "@/types/auth";
+import type { ActiveOrganization, Session } from "@/types/auth";
 import { organization, useListOrganizations } from "@/lib/auth/auth-client";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 interface OrganisationSwitcherProps {
+	session: Session | null;
 	activeOrganization: ActiveOrganization | null;
 }
 
 export function OrganisationSwitcher({
+	session,
 	activeOrganization,
 }: OrganisationSwitcherProps) {
 	const { isMobile } = useSidebar();
@@ -45,7 +47,6 @@ export function OrganisationSwitcher({
 		error,
 	} = useListOrganizations();
 
-	// 1. The state now holds the simpler `Organization` type. This is the key change.
 	const [displayOrg, setDisplayOrg] = React.useState<Organization | null>(null);
 
 	const [isSwitching, setIsSwitching] = React.useState(false);
@@ -93,7 +94,6 @@ export function OrganisationSwitcher({
 
 	const isLoading = isLoadingList || isSwitching;
 
-	// The JSX remains the same, but is now backed by cleaner logic.
 	return (
 		<SidebarMenu>
 			<SidebarMenuItem>
@@ -110,7 +110,7 @@ export function OrganisationSwitcher({
 								<span className="truncate font-medium">
 									{displayOrg?.name || "Personal"}
 								</span>
-								<span className="truncate text-xs">studio</span>
+								<span className="truncate text-xs">{session?.roles[0]}</span>
 							</div>
 							{isLoading ? (
 								<Loader2 className="ml-auto size-4 animate-spin" />

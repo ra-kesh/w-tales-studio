@@ -1,5 +1,3 @@
-// src/components/AppSidebar.tsx
-
 "use client";
 
 import { NavMain } from "@/components/nav-main";
@@ -36,7 +34,10 @@ export function AppSidebar({
 			</SidebarContent>
 
 			<SidebarFooter>
-				<OrganisationSwitcher activeOrganization={activeOrganization} />
+				<OrganisationSwitcher
+					session={session}
+					activeOrganization={activeOrganization}
+				/>
 			</SidebarFooter>
 			<SidebarRail />
 		</Sidebar>
