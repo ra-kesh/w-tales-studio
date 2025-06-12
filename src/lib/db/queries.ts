@@ -1,6 +1,7 @@
 import {
 	and,
 	asc,
+	count,
 	desc,
 	eq,
 	gte,
@@ -8,6 +9,7 @@ import {
 	inArray,
 	lte,
 	or,
+	type SQL,
 	sql,
 } from "drizzle-orm";
 import { client, db } from "./drizzle";
@@ -25,6 +27,10 @@ import {
 	type Shoot,
 	crews,
 	invitations,
+	shootsAssignments,
+	tasksAssignments,
+	expensesAssignments,
+	deliverablesAssignments,
 } from "./schema";
 import { alias } from "drizzle-orm/pg-core";
 import type { BookingDetail } from "@/types/booking";
@@ -893,5 +899,245 @@ export async function getOnboardingStatus(userOrganizationId: string): Promise<{
 		packageCreated: packagesCount > 0,
 		bookingCreated: bookingsCount > 0,
 		membersInvited: invitationsCount > 0,
+	};
+}
+
+// (You can add this to your existing queries.ts file)
+
+interface GetUserAssignmentsParams {
+	organizationId: string;
+	userId: string;
+	types?: string[];
+	status?: string;
+	startDate?: string;
+	endDate?: string;
+	page: number;
+	pageSize: number;
+}
+
+export async function getUserAssignments(params: GetUserAssignmentsParams) {
+	const {
+		organizationId,
+		userId,
+		types = [],
+		status,
+		startDate,
+		endDate,
+		page,
+		pageSize,
+	} = params;
+
+	console.log(userId, organizationId, types, status, startDate, endDate);
+
+	const crewMember = await db
+		.select({ id: crews.id })
+		.from(crews)
+		.innerJoin(members, eq(crews.memberId, members.id))
+		.where(
+			and(
+				eq(members.userId, userId),
+				eq(members.organizationId, organizationId),
+			),
+		)
+		.limit(1);
+
+	if (crewMember.length === 0) {
+		return null;
+	}
+
+	const crewId = crewMember[0].id;
+	const offset = (page - 1) * pageSize;
+
+	const results: Record<string, any> = {};
+	const pagination: Record<string, any> = {};
+
+	const shouldFetch = (type: string) =>
+		types.length === 0 || types.includes(type);
+
+	// Step 2: Fetch each assignment type conditionally
+	const fetchPromises = [];
+
+	// --- Fetch Shoots ---
+	if (shouldFetch("shoot")) {
+		const shootConditions = [
+			eq(shootsAssignments.crewId, crewId),
+			eq(shootsAssignments.organizationId, organizationId),
+			startDate ? gte(shoots.date, startDate) : undefined,
+			endDate ? lte(shoots.date, endDate) : undefined,
+		].filter((c): c is SQL => c !== undefined);
+
+		fetchPromises.push(
+			db.query.shootsAssignments
+				.findMany({
+					where: and(...shootConditions),
+					with: {
+						shoot: { with: { booking: { columns: { id: true, name: true } } } },
+					},
+					limit: pageSize,
+					offset,
+					orderBy: (t, { desc }) => [desc(t.assignedAt)],
+				})
+				.then((data) => {
+					results.shoots = data;
+					return data;
+				}),
+			db
+				.select({ value: count() })
+				.from(shootsAssignments)
+				.leftJoin(shoots, eq(shootsAssignments.shootId, shoots.id))
+				.where(and(...shootConditions))
+				.then((total) => {
+					pagination.shoots = {
+						total: total[0].value,
+						page,
+						pageSize,
+					};
+				}),
+		);
+	}
+
+	// --- Fetch Tasks ---
+	if (shouldFetch("task")) {
+		const taskConditions = [
+			eq(tasksAssignments.crewId, crewId),
+			eq(tasksAssignments.organizationId, organizationId),
+			status ? eq(tasks.status, status) : undefined,
+			startDate ? gte(tasks.dueDate, startDate) : undefined,
+			endDate ? lte(tasks.dueDate, endDate) : undefined,
+		].filter((c): c is SQL => c !== undefined);
+
+		fetchPromises.push(
+			db.query.tasksAssignments
+				.findMany({
+					where: and(...taskConditions),
+					with: {
+						task: {
+							with: {
+								booking: { columns: { id: true, name: true } },
+								deliverable: { columns: { id: true, title: true } },
+							},
+						},
+					},
+					limit: pageSize,
+					offset,
+					orderBy: (t, { desc }) => [desc(t.assignedAt)],
+				})
+				.then((data) => {
+					results.tasks = data;
+					return data;
+				}),
+			db
+				.select({ value: count() })
+				.from(tasksAssignments)
+				.leftJoin(tasks, eq(tasksAssignments.taskId, tasks.id))
+				.where(and(...taskConditions))
+				.then((total) => {
+					pagination.tasks = { total: total[0].value, page, pageSize };
+				}),
+		);
+	}
+
+	// --- Fetch Deliverables ---
+	if (shouldFetch("deliverable")) {
+		const deliverableConditions = [
+			eq(deliverablesAssignments.crewId, crewId),
+			eq(deliverablesAssignments.organizationId, organizationId),
+			status
+				? eq(
+						deliverables.status,
+						status as
+							| "completed"
+							| "cancelled"
+							| "pending"
+							| "in_progress"
+							| "in_revision"
+							| "delivered",
+					)
+				: undefined,
+			startDate ? gte(deliverables.dueDate, startDate) : undefined,
+			endDate ? lte(deliverables.dueDate, endDate) : undefined,
+		].filter((c): c is SQL => c !== undefined);
+
+		fetchPromises.push(
+			db.query.deliverablesAssignments
+				.findMany({
+					where: and(...deliverableConditions),
+					with: {
+						deliverable: {
+							with: { booking: { columns: { id: true, name: true } } },
+						},
+					},
+					limit: pageSize,
+					offset,
+					orderBy: (t, { desc }) => [desc(t.assignedAt)],
+				})
+				.then((data) => {
+					results.deliverables = data;
+					return data;
+				}),
+			db
+				.select({ value: count() })
+				.from(deliverablesAssignments)
+				.leftJoin(
+					deliverables,
+					eq(deliverablesAssignments.deliverableId, deliverables.id),
+				)
+				.where(and(...deliverableConditions))
+				.then((total) => {
+					pagination.deliverables = {
+						total: total[0].value,
+						page,
+						pageSize,
+					};
+				}),
+		);
+	}
+
+	// --- Fetch Expenses ---
+	if (shouldFetch("expense")) {
+		const expenseConditions = [
+			eq(expensesAssignments.crewId, crewId),
+			eq(expensesAssignments.organizationId, organizationId),
+			startDate ? gte(expenses.date, startDate) : undefined,
+			endDate ? lte(expenses.date, endDate) : undefined,
+		].filter((c): c is SQL => c !== undefined);
+
+		fetchPromises.push(
+			db.query.expensesAssignments
+				.findMany({
+					where: and(...expenseConditions),
+					with: {
+						expense: {
+							with: { booking: { columns: { id: true, name: true } } },
+						},
+					},
+					limit: pageSize,
+					offset,
+					orderBy: (t, { desc }) => [desc(t.assignedAt)],
+				})
+				.then((data) => {
+					results.expenses = data;
+					return data;
+				}),
+			db
+				.select({ value: count() })
+				.from(expensesAssignments)
+				.leftJoin(expenses, eq(expensesAssignments.expenseId, expenses.id))
+				.where(and(...expenseConditions))
+				.then((total) => {
+					pagination.expenses = {
+						total: total[0].value,
+						page,
+						pageSize,
+					};
+				}),
+		);
+	}
+
+	await Promise.all(fetchPromises);
+
+	return {
+		data: results,
+		pagination,
 	};
 }

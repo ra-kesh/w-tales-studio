@@ -25,6 +25,7 @@ const DashboardLayout = async ({ children }: { children: React.ReactNode }) => {
 	});
 
 	console.log("deviceSessions", deviceSessions);
+	console.log("session", session);
 
 	return (
 		<SidebarProvider>
