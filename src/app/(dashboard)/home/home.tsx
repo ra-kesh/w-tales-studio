@@ -4,12 +4,12 @@ import { useQueryState } from "nuqs";
 import { useOnboarding } from "@/hooks/use-onboarding";
 import { SimpleTabsList, SimpleTabsTrigger } from "@/components/ui/tabs";
 import { GettingStarted } from "./_components/getting-started";
-import { DashboardOverview } from "./_components/dashboard-overview";
 import { Announcements } from "./_components/announcements";
 import { RecentUpdates } from "./_components/recent-updates";
 import { useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { useSession } from "@/lib/auth/auth-client";
+import { DashboardOverview } from "./_components/dashboard-overview";
 
 type TabValue = "home" | "getting-started" | "announcements" | "recent-updates";
 
@@ -96,7 +96,7 @@ const HomeContent = () => {
 	};
 
 	return (
-		<div className="flex flex-col space-y-8">
+		<div className="flex flex-col space-y-6">
 			<SimpleTabsList className="w-full justify-start gap-6">
 				{!onboardingLoading &&
 					tabs.map((tab) => (
