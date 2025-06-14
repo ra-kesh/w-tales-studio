@@ -15,7 +15,6 @@ type TabValue = "home" | "getting-started" | "announcements" | "recent-updates";
 
 const HomeContent = () => {
 	const { data: session } = useSession();
-	console.log("Session data:", session);
 	const { data: onboarding, isLoading: onboardingLoading } = useOnboarding();
 	const [activeTab, setActiveTab] = useQueryState<TabValue>("tab", {
 		defaultValue: "home",
@@ -70,26 +69,26 @@ const HomeContent = () => {
 			show: showGettingStarted,
 			highlight: true,
 		},
-		// {
-		// 	value: "announcements" as const,
-		// 	label: "Announcements",
-		// 	show: true,
-		// },
-		// {
-		// 	value: "recent-updates" as const,
-		// 	label: "Recent Updates",
-		// 	show: true,
-		// },
+		{
+			value: "announcements" as const,
+			label: "Announcements",
+			show: true,
+		},
+		{
+			value: "recent-updates" as const,
+			label: "Recent Updates",
+			show: true,
+		},
 	].filter((tab) => tab.show);
 
 	const renderTabContent = () => {
 		switch (activeTab) {
 			case "getting-started":
 				return <GettingStarted />;
-			// case "announcements":
-			// 	return <Announcements />;
-			// case "recent-updates":
-			// 	return <RecentUpdates />;
+			case "announcements":
+				return <Announcements />;
+			case "recent-updates":
+				return <RecentUpdates />;
 			default:
 				return <DashboardOverview />;
 		}

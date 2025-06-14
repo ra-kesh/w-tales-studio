@@ -112,11 +112,7 @@ export function OrganisationSwitcher({
 								</span>
 								<span className="truncate text-xs">{session?.roles[0]}</span>
 							</div>
-							{isLoading ? (
-								<Loader2 className="ml-auto size-4 animate-spin" />
-							) : (
-								<ChevronsUpDown className="ml-auto size-4" />
-							)}
+							<ChevronsUpDown className="ml-auto size-4" />
 						</SidebarMenuButton>
 					</DropdownMenuTrigger>
 					<DropdownMenuContent

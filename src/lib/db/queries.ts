@@ -1001,7 +1001,17 @@ export async function getUserAssignments(params: GetUserAssignmentsParams) {
 		const taskConditions = [
 			eq(tasksAssignments.crewId, crewId),
 			eq(tasksAssignments.organizationId, organizationId),
-			status ? eq(tasks.status, status) : undefined,
+			status
+				? eq(
+						tasks.status,
+						status as
+							| "completed"
+							| "in_progress"
+							| "in_revision"
+							| "todo"
+							| "in_review",
+					)
+				: undefined,
 			startDate ? gte(tasks.dueDate, startDate) : undefined,
 			endDate ? lte(tasks.dueDate, endDate) : undefined,
 		].filter((c): c is SQL => c !== undefined);
