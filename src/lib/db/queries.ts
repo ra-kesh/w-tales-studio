@@ -8,6 +8,7 @@ import {
 	ilike,
 	inArray,
 	lte,
+	notInArray,
 	or,
 	type SQL,
 	sql,
@@ -31,9 +32,11 @@ import {
 	tasksAssignments,
 	expensesAssignments,
 	deliverablesAssignments,
+	taskStatusEnum,
 } from "./schema";
 import { alias } from "drizzle-orm/pg-core";
 import type { BookingDetail } from "@/types/booking";
+import { formatISO, subDays } from "date-fns";
 
 export async function getActiveOrganization(userId: string) {
 	const result = await db
@@ -929,6 +932,14 @@ export async function getUserAssignments(params: GetUserAssignmentsParams) {
 
 	console.log(userId, organizationId, types, status, startDate, endDate);
 
+	const inactiveTaskStatuses = ["completed"];
+
+	const inactiveDeliverableStatuses = ["delivered", "cancelled"];
+
+	const defaultShootStartDate = formatISO(subDays(new Date(), 7), {
+		representation: "date",
+	});
+
 	const crewMember = await db
 		.select({ id: crews.id })
 		.from(crews)
@@ -966,21 +977,48 @@ export async function getUserAssignments(params: GetUserAssignmentsParams) {
 			endDate ? lte(shoots.date, endDate) : undefined,
 		].filter((c): c is SQL => c !== undefined);
 
+		if (!startDate && !endDate) {
+			shootConditions.push(gte(shoots.date, defaultShootStartDate));
+		}
+
 		fetchPromises.push(
-			db.query.shootsAssignments
-				.findMany({
-					where: and(...shootConditions),
-					with: {
-						shoot: { with: { booking: { columns: { id: true, name: true } } } },
-					},
-					limit: pageSize,
-					offset,
-					orderBy: (t, { desc }) => [desc(t.assignedAt)],
+			db
+				.select({
+					assignment: shootsAssignments,
+					shoot: shoots,
+					booking: { id: bookings.id, name: bookings.name },
 				})
-				.then((data) => {
-					results.shoots = data;
-					return data;
+				.from(shootsAssignments)
+				.leftJoin(shoots, eq(shootsAssignments.shootId, shoots.id))
+				.leftJoin(bookings, eq(shoots.bookingId, bookings.id))
+				.where(and(...shootConditions))
+				.orderBy(desc(shootsAssignments.assignedAt))
+				.limit(pageSize)
+				.offset(offset)
+				.then((flatData) => {
+					const nestedData = flatData.map((row) => ({
+						...row.assignment,
+						shoot: {
+							...row.shoot,
+							booking: row.booking,
+						},
+					}));
+					results.shoots = nestedData;
 				}),
+			// db.query.shootsAssignments
+			// 	.findMany({
+			// 		where: and(...shootConditions),
+			// 		with: {
+			// 			shoot: { with: { booking: { columns: { id: true, name: true } } } },
+			// 		},
+			// 		limit: pageSize,
+			// 		offset,
+			// 		orderBy: (t, { desc }) => [desc(t.assignedAt)],
+			// 	})
+			// 	.then((data) => {
+			// 		results.shoots = data;
+			// 		return data;
+			// 	}),
 			db
 				.select({ value: count() })
 				.from(shootsAssignments)
@@ -1016,26 +1054,66 @@ export async function getUserAssignments(params: GetUserAssignmentsParams) {
 			endDate ? lte(tasks.dueDate, endDate) : undefined,
 		].filter((c): c is SQL => c !== undefined);
 
+		if (!status) {
+			taskConditions.push(
+				notInArray(
+					tasks.status,
+					inactiveTaskStatuses as (
+						| "completed"
+						| "in_progress"
+						| "in_revision"
+						| "todo"
+						| "in_review"
+					)[],
+				),
+			);
+		}
+
 		fetchPromises.push(
-			db.query.tasksAssignments
-				.findMany({
-					where: and(...taskConditions),
-					with: {
-						task: {
-							with: {
-								booking: { columns: { id: true, name: true } },
-								deliverable: { columns: { id: true, title: true } },
-							},
-						},
-					},
-					limit: pageSize,
-					offset,
-					orderBy: (t, { desc }) => [desc(t.assignedAt)],
+			db
+				.select({
+					assignment: tasksAssignments,
+					task: tasks,
+					booking: { id: bookings.id, name: bookings.name },
+					deliverable: { id: deliverables.id, title: deliverables.title },
 				})
-				.then((data) => {
-					results.tasks = data;
-					return data;
+				.from(tasksAssignments)
+				.leftJoin(tasks, eq(tasksAssignments.taskId, tasks.id))
+				.leftJoin(bookings, eq(tasks.bookingId, bookings.id))
+				.leftJoin(deliverables, eq(tasks.deliverableId, deliverables.id))
+				.where(and(...taskConditions))
+				.orderBy(desc(tasksAssignments.assignedAt))
+				.limit(pageSize)
+				.offset(offset)
+				.then((flatData) => {
+					results.tasks = flatData.map((row) => ({
+						...row.assignment,
+						task: {
+							...row.task,
+							booking: row.booking,
+							deliverable: row.deliverable,
+						},
+					}));
 				}),
+			// db.query.tasksAssignments
+			// 	.findMany({
+			// 		where: and(...taskConditions),
+			// 		with: {
+			// 			task: {
+			// 				with: {
+			// 					booking: { columns: { id: true, name: true } },
+			// 					deliverable: { columns: { id: true, title: true } },
+			// 				},
+			// 			},
+			// 		},
+			// 		limit: pageSize,
+			// 		offset,
+			// 		orderBy: (t, { desc }) => [desc(t.assignedAt)],
+			// 	})
+			// 	.then((data) => {
+			// 		results.tasks = data;
+			// 		return data;
+			// 	}),
 			db
 				.select({ value: count() })
 				.from(tasksAssignments)
@@ -1068,23 +1146,64 @@ export async function getUserAssignments(params: GetUserAssignmentsParams) {
 			endDate ? lte(deliverables.dueDate, endDate) : undefined,
 		].filter((c): c is SQL => c !== undefined);
 
+		if (!status) {
+			deliverableConditions.push(
+				notInArray(
+					deliverables.status,
+					inactiveDeliverableStatuses as (
+						| "completed"
+						| "cancelled"
+						| "pending"
+						| "in_progress"
+						| "in_revision"
+						| "delivered"
+					)[],
+				),
+			);
+		}
+
 		fetchPromises.push(
-			db.query.deliverablesAssignments
-				.findMany({
-					where: and(...deliverableConditions),
-					with: {
-						deliverable: {
-							with: { booking: { columns: { id: true, name: true } } },
-						},
-					},
-					limit: pageSize,
-					offset,
-					orderBy: (t, { desc }) => [desc(t.assignedAt)],
+			db
+				.select({
+					assignment: deliverablesAssignments,
+					deliverable: deliverables,
+					booking: { id: bookings.id, name: bookings.name },
 				})
-				.then((data) => {
-					results.deliverables = data;
-					return data;
+				.from(deliverablesAssignments)
+				.leftJoin(
+					deliverables,
+					eq(deliverablesAssignments.deliverableId, deliverables.id),
+				)
+				.leftJoin(bookings, eq(deliverables.bookingId, bookings.id))
+				.where(and(...deliverableConditions))
+				.orderBy(desc(deliverablesAssignments.assignedAt))
+				.limit(pageSize)
+				.offset(offset)
+				.then((flatData) => {
+					results.deliverables = flatData.map((row) => ({
+						...row.assignment,
+						deliverable: {
+							...row.deliverable,
+							booking: row.booking,
+						},
+					}));
 				}),
+			// db.query.deliverablesAssignments
+			// 	.findMany({
+			// 		where: and(...deliverableConditions),
+			// 		with: {
+			// 			deliverable: {
+			// 				with: { booking: { columns: { id: true, name: true } } },
+			// 			},
+			// 		},
+			// 		limit: pageSize,
+			// 		offset,
+			// 		orderBy: (t, { desc }) => [desc(t.assignedAt)],
+			// 	})
+			// 	.then((data) => {
+			// 		results.deliverables = data;
+			// 		return data;
+			// 	}),
 			db
 				.select({ value: count() })
 				.from(deliverablesAssignments)
@@ -1103,46 +1222,46 @@ export async function getUserAssignments(params: GetUserAssignmentsParams) {
 		);
 	}
 
-	// --- Fetch Expenses ---
-	if (shouldFetch("expense")) {
-		const expenseConditions = [
-			eq(expensesAssignments.crewId, crewId),
-			eq(expensesAssignments.organizationId, organizationId),
-			startDate ? gte(expenses.date, startDate) : undefined,
-			endDate ? lte(expenses.date, endDate) : undefined,
-		].filter((c): c is SQL => c !== undefined);
+	// // --- Fetch Expenses ---
+	// if (shouldFetch("expense")) {
+	// 	const expenseConditions = [
+	// 		eq(expensesAssignments.crewId, crewId),
+	// 		eq(expensesAssignments.organizationId, organizationId),
+	// 		startDate ? gte(expenses.date, startDate) : undefined,
+	// 		endDate ? lte(expenses.date, endDate) : undefined,
+	// 	].filter((c): c is SQL => c !== undefined);
 
-		fetchPromises.push(
-			db.query.expensesAssignments
-				.findMany({
-					where: and(...expenseConditions),
-					with: {
-						expense: {
-							with: { booking: { columns: { id: true, name: true } } },
-						},
-					},
-					limit: pageSize,
-					offset,
-					orderBy: (t, { desc }) => [desc(t.assignedAt)],
-				})
-				.then((data) => {
-					results.expenses = data;
-					return data;
-				}),
-			db
-				.select({ value: count() })
-				.from(expensesAssignments)
-				.leftJoin(expenses, eq(expensesAssignments.expenseId, expenses.id))
-				.where(and(...expenseConditions))
-				.then((total) => {
-					pagination.expenses = {
-						total: total[0].value,
-						page,
-						pageSize,
-					};
-				}),
-		);
-	}
+	// 	fetchPromises.push(
+	// 		db.query.expensesAssignments
+	// 			.findMany({
+	// 				where: and(...expenseConditions),
+	// 				with: {
+	// 					expense: {
+	// 						with: { booking: { columns: { id: true, name: true } } },
+	// 					},
+	// 				},
+	// 				limit: pageSize,
+	// 				offset,
+	// 				orderBy: (t, { desc }) => [desc(t.assignedAt)],
+	// 			})
+	// 			.then((data) => {
+	// 				results.expenses = data;
+	// 				return data;
+	// 			}),
+	// 		db
+	// 			.select({ value: count() })
+	// 			.from(expensesAssignments)
+	// 			.leftJoin(expenses, eq(expensesAssignments.expenseId, expenses.id))
+	// 			.where(and(...expenseConditions))
+	// 			.then((total) => {
+	// 				pagination.expenses = {
+	// 					total: total[0].value,
+	// 					page,
+	// 					pageSize,
+	// 				};
+	// 			}),
+	// 	);
+	// }
 
 	await Promise.all(fetchPromises);
 
