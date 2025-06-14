@@ -1270,3 +1270,79 @@ export async function getUserAssignments(params: GetUserAssignmentsParams) {
 		pagination,
 	};
 }
+
+interface GetAllUserAssignmentsParams {
+	userId: string;
+	organizationId: string;
+	page: number;
+	pageSize: number;
+}
+
+export async function getAllUserShootAssignments(
+	params: GetAllUserAssignmentsParams,
+) {
+	const { userId, organizationId, page, pageSize } = params;
+
+	const crewMember = await db
+		.select({ id: crews.id })
+		.from(crews)
+		.innerJoin(members, eq(crews.memberId, members.id))
+		.where(
+			and(
+				eq(members.userId, userId),
+				eq(members.organizationId, organizationId),
+			),
+		)
+		.limit(1);
+
+	if (crewMember.length === 0) {
+		return { data: [], pagination: { total: 0, page, pageSize } };
+	}
+
+	const crewId = crewMember[0].id;
+	const offset = (page - 1) * pageSize;
+
+	const conditions = [
+		eq(shootsAssignments.crewId, crewId),
+		eq(shootsAssignments.organizationId, organizationId),
+	];
+
+	// Fetch data and total count in parallel
+	const [data, total] = await Promise.all([
+		db
+			.select({
+				assignment: shootsAssignments,
+				shoot: shoots,
+				booking: { id: bookings.id, name: bookings.name },
+			})
+			.from(shootsAssignments)
+			.leftJoin(shoots, eq(shootsAssignments.shootId, shoots.id))
+			.leftJoin(bookings, eq(shoots.bookingId, bookings.id))
+			.where(and(...conditions))
+			.orderBy(desc(shoots.date))
+			.limit(pageSize)
+			.offset(offset),
+		db
+			.select({ value: count() })
+			.from(shootsAssignments)
+			.where(and(...conditions)),
+	]);
+
+	// Reconstruct the nested object shape
+	const nestedData = data.map((row) => ({
+		...row.assignment,
+		shoot: {
+			...row.shoot,
+			booking: row.booking,
+		},
+	}));
+
+	return {
+		data: nestedData,
+		pagination: {
+			total: total[0].value,
+			page,
+			pageSize,
+		},
+	};
+}
