@@ -1346,3 +1346,143 @@ export async function getAllUserShootAssignments(
 		},
 	};
 }
+
+export async function getAllUserTaskAssignments(
+	params: GetAllUserAssignmentsParams,
+) {
+	const { userId, organizationId, page, pageSize } = params;
+
+	const crewMember = await db
+		.select({ id: crews.id })
+		.from(crews)
+		.innerJoin(members, eq(crews.memberId, members.id))
+		.where(
+			and(
+				eq(members.userId, userId),
+				eq(members.organizationId, organizationId),
+			),
+		)
+		.limit(1);
+
+	if (crewMember.length === 0) {
+		return { data: [], pagination: { total: 0, page, pageSize } };
+	}
+
+	const crewId = crewMember[0].id;
+	const offset = (page - 1) * pageSize;
+
+	const conditions = [
+		eq(tasksAssignments.crewId, crewId),
+		eq(tasksAssignments.organizationId, organizationId),
+	];
+
+	const [data, total] = await Promise.all([
+		db
+			.select({
+				assignment: tasksAssignments,
+				task: tasks,
+				booking: { id: bookings.id, name: bookings.name },
+				deliverable: { id: deliverables.id, title: deliverables.title },
+			})
+			.from(tasksAssignments)
+			.leftJoin(tasks, eq(tasksAssignments.taskId, tasks.id))
+			.leftJoin(bookings, eq(tasks.bookingId, bookings.id))
+			.leftJoin(deliverables, eq(tasks.deliverableId, deliverables.id))
+			.where(and(...conditions))
+			.orderBy(desc(tasks.dueDate)) // Order by due date for history
+			.limit(pageSize)
+			.offset(offset),
+		db
+			.select({ value: count() })
+			.from(tasksAssignments)
+			.where(and(...conditions)),
+	]);
+
+	const nestedData = data.map((row) => ({
+		...row.assignment,
+		task: {
+			...row.task,
+			booking: row.booking,
+			deliverable: row.deliverable,
+		},
+	}));
+
+	return {
+		data: nestedData,
+		pagination: {
+			total: total[0].value,
+			page,
+			pageSize,
+		},
+	};
+}
+
+export async function getAllUserDeliverableAssignments(
+	params: GetAllUserAssignmentsParams,
+) {
+	const { userId, organizationId, page, pageSize } = params;
+
+	const crewMember = await db
+		.select({ id: crews.id })
+		.from(crews)
+		.innerJoin(members, eq(crews.memberId, members.id))
+		.where(
+			and(
+				eq(members.userId, userId),
+				eq(members.organizationId, organizationId),
+			),
+		)
+		.limit(1);
+
+	if (crewMember.length === 0) {
+		return { data: [], pagination: { total: 0, page, pageSize } };
+	}
+
+	const crewId = crewMember[0].id;
+	const offset = (page - 1) * pageSize;
+
+	const conditions = [
+		eq(deliverablesAssignments.crewId, crewId),
+		eq(deliverablesAssignments.organizationId, organizationId),
+	];
+
+	const [data, total] = await Promise.all([
+		db
+			.select({
+				assignment: deliverablesAssignments,
+				deliverable: deliverables,
+				booking: { id: bookings.id, name: bookings.name },
+			})
+			.from(deliverablesAssignments)
+			.leftJoin(
+				deliverables,
+				eq(deliverablesAssignments.deliverableId, deliverables.id),
+			)
+			.leftJoin(bookings, eq(deliverables.bookingId, bookings.id))
+			.where(and(...conditions))
+			.orderBy(desc(deliverables.dueDate)) // Order by due date for history
+			.limit(pageSize)
+			.offset(offset),
+		db
+			.select({ value: count() })
+			.from(deliverablesAssignments)
+			.where(and(...conditions)),
+	]);
+
+	const nestedData = data.map((row) => ({
+		...row.assignment,
+		deliverable: {
+			...row.deliverable,
+			booking: row.booking,
+		},
+	}));
+
+	return {
+		data: nestedData,
+		pagination: {
+			total: total[0].value,
+			page,
+			pageSize,
+		},
+	};
+}
