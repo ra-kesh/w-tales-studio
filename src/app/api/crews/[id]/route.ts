@@ -4,20 +4,24 @@ import { crews } from "@/lib/db/schema";
 import { and, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 
-export async function GET({ params }: { params: { id: string } }) {
+export async function GET(
+	request: Request,
+	{ params }: { params: { id: string } },
+) {
+	const { session } = await getServerSession();
+	const userOrganizationId = session?.session.activeOrganizationId;
+
+	if (!userOrganizationId) {
+		return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+	}
+
 	try {
-		const { session } = await getServerSession();
-		const userOrganizationId = session?.session.activeOrganizationId;
-
-		if (!userOrganizationId) {
-			return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-		}
-
-		const paramsId = await Number.parseInt(params.id, 10);
+		const { id } = await params;
+		const crewId = Number.parseInt(id, 10);
 
 		const crew = await db.query.crews.findFirst({
 			where: and(
-				eq(crews.id, paramsId),
+				eq(crews.id, crewId),
 				eq(crews.organizationId, userOrganizationId),
 			),
 			with: {
@@ -70,6 +74,10 @@ export async function PUT(
 			return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 		}
 
+		const { id } = await params;
+
+		const crewId = Number.parseInt(id, 10);
+
 		const json = await request.json();
 
 		const [updated] = await db
@@ -79,10 +87,7 @@ export async function PUT(
 				updatedAt: new Date(),
 			})
 			.where(
-				and(
-					eq(crews.id, Number.parseInt(params.id)),
-					eq(crews.organizationId, userOrganizationId),
-				),
+				and(eq(crews.id, crewId), eq(crews.organizationId, userOrganizationId)),
 			)
 			.returning();
 
