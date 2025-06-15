@@ -21,6 +21,8 @@ export function CrewEditSheet() {
 
 	const { data: crew, refetch, isLoading } = useCrewDetail(crewId as string);
 
+	console.log("crew", crew);
+
 	const isOpen = Boolean(crewId);
 
 	const handleSubmit = async (data: CrewFormValues) => {

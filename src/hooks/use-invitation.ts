@@ -40,7 +40,7 @@ async function acceptAndCreateCrew(invitationId: string) {
 	fetch("/api/crews/from-member", { method: "POST" }).catch((err) => {
 		console.error("Silent error: Failed to auto-create crew member.", err);
 		toast.warning(
-			"Welcome! There was an issue adding you to the crew list automatically.",
+			"Welcome! There was an issue adding you to the crew list automatically. you may need to add them manually.",
 		);
 	});
 
