@@ -52,7 +52,15 @@ export function OrganisationSwitcher({
 	const [isSwitching, setIsSwitching] = React.useState(false);
 
 	React.useEffect(() => {
-		setDisplayOrg(activeOrganization);
+		setDisplayOrg(
+			activeOrganization
+				? {
+						...activeOrganization,
+						logo: activeOrganization.logo ?? null,
+						metadata: activeOrganization.metadata ?? null,
+					}
+				: null,
+		);
 	}, [activeOrganization]);
 
 	const handleSwitchOrganization = async (targetOrg: Organization) => {
@@ -65,7 +73,7 @@ export function OrganisationSwitcher({
 
 		try {
 			await organization.setActive({ organizationId: targetOrg.id });
-			router.refresh();
+			window.location.reload();
 		} catch (err) {
 			console.error("Failed to switch organization:", err);
 			setDisplayOrg(previousOrg);
@@ -83,7 +91,7 @@ export function OrganisationSwitcher({
 
 		try {
 			await organization.setActive({ organizationId: null });
-			router.refresh();
+			window.location.reload();
 		} catch (err) {
 			console.error("Failed to switch to personal account:", err);
 			setDisplayOrg(previousOrg);
@@ -149,7 +157,13 @@ export function OrganisationSwitcher({
 									<DropdownMenuItem
 										className="py-1"
 										key={org.id}
-										onClick={() => handleSwitchOrganization(org)}
+										onClick={() =>
+											handleSwitchOrganization({
+												...org,
+												logo: org.logo ?? null,
+												metadata: org.metadata ?? null,
+											})
+										}
 										disabled={isSwitching}
 									>
 										<p
