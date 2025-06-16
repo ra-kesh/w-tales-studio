@@ -1,7 +1,6 @@
 "use client";
 
 import { NavMain } from "@/components/nav-main";
-import { OrganisationSwitcher } from "@/components/organisation-switcher";
 import {
 	Sidebar,
 	SidebarContent,
@@ -13,6 +12,27 @@ import {
 import { sidebarData } from "@/data/sidebar-data";
 import { NavSecondary } from "./nav-secondary";
 import type { ActiveOrganization, Session } from "@/types/auth";
+import dynamic from "next/dynamic";
+import { Loader2 } from "lucide-react";
+
+const OrganisationSwitcher = dynamic(
+	() =>
+		import("@/components/organisation-switcher").then(
+			(mod) => mod.OrganisationSwitcher,
+		),
+	{
+		ssr: false,
+		loading: () => (
+			<div className="flex items-center p-2">
+				<div className="bg-muted flex aspect-square size-8 items-center justify-center rounded-lg" />
+				<div className="ml-2 flex-1 space-y-1">
+					<div className="h-4 w-24 bg-muted rounded" />
+				</div>
+				<Loader2 className="ml-auto size-4 animate-spin text-muted-foreground" />
+			</div>
+		),
+	},
+);
 
 export function AppSidebar({
 	session,

@@ -26,7 +26,6 @@ import {
 import type { Organization } from "@/lib/db/schema";
 import type { ActiveOrganization, Session } from "@/types/auth";
 import { organization, useListOrganizations } from "@/lib/auth/auth-client";
-import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 interface OrganisationSwitcherProps {
@@ -39,7 +38,6 @@ export function OrganisationSwitcher({
 	activeOrganization,
 }: OrganisationSwitcherProps) {
 	const { isMobile } = useSidebar();
-	const router = useRouter();
 
 	const {
 		data: organizations,
