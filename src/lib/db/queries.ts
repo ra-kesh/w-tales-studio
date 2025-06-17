@@ -7,11 +7,13 @@ import {
 	gte,
 	ilike,
 	inArray,
+	isNull,
 	lte,
 	notInArray,
 	or,
 	type SQL,
 	sql,
+	sum,
 } from "drizzle-orm";
 import { client, db } from "./drizzle";
 import {
@@ -33,10 +35,11 @@ import {
 	expensesAssignments,
 	deliverablesAssignments,
 	taskStatusEnum,
+	receivedAmounts,
 } from "./schema";
 import { alias } from "drizzle-orm/pg-core";
 import type { BookingDetail } from "@/types/booking";
-import { formatISO, subDays } from "date-fns";
+import { addDays, formatISO, startOfDay, subDays } from "date-fns";
 
 export async function getActiveOrganization(userId: string) {
 	const result = await db
@@ -1484,5 +1487,355 @@ export async function getAllUserDeliverableAssignments(
 			page,
 			pageSize,
 		},
+	};
+}
+
+function getDateRangeFromInterval(interval: string): {
+	startDate: Date;
+	endDate: Date;
+} {
+	const now = new Date();
+	const endDate = startOfDay(now); // Use start of today for consistency
+	let startDate: Date;
+
+	switch (interval) {
+		case "7d":
+			startDate = subDays(endDate, 7);
+			break;
+		case "90d":
+			startDate = subDays(endDate, 90);
+			break;
+		case "1y":
+			startDate = subDays(endDate, 365);
+			break;
+
+		default:
+			startDate = subDays(endDate, 30);
+			break;
+	}
+	return { startDate, endDate };
+}
+
+async function getBookingAnalytics(organizationId: string, interval: string) {
+	const dateRange =
+		interval === "all" ? null : getDateRangeFromInterval(interval);
+
+	const buildConditions = (): SQL[] => {
+		const conditions: SQL[] = [eq(bookings.organizationId, organizationId)];
+		if (dateRange) {
+			conditions.push(gte(bookings.createdAt, dateRange.startDate));
+			conditions.push(lte(bookings.createdAt, dateRange.endDate));
+		}
+		return conditions;
+	};
+	const conditions = buildConditions();
+
+	const [
+		bookingCounts,
+		bookingTypeDistribution,
+		packageTypeDistribution,
+		bookingsOverTime,
+	] = await Promise.all([
+		db
+			.select({
+				total: count(),
+				active: count(
+					sql`CASE WHEN ${bookings.status} NOT IN ('completed', 'cancelled') THEN 1 END`,
+				),
+				cancelled: count(
+					sql`CASE WHEN ${bookings.status} = 'cancelled' THEN 1 END`,
+				),
+			})
+			.from(bookings)
+			.where(and(...conditions)),
+		db
+			.select({
+				type: bookings.bookingType,
+				count: count(),
+				totalRevenue: sum(bookings.packageCost),
+			})
+			.from(bookings)
+			.where(and(...conditions, notInArray(bookings.status, ["cancelled"])))
+			.groupBy(bookings.bookingType)
+			.orderBy(desc(count())),
+		db
+			.select({
+				type: bookings.packageType,
+				count: count(),
+				totalRevenue: sum(bookings.packageCost),
+			})
+			.from(bookings)
+			.where(and(...conditions, notInArray(bookings.status, ["cancelled"])))
+			.groupBy(bookings.packageType)
+			.orderBy(desc(count())),
+		db
+			.select({
+				date: sql<string>`DATE_TRUNC('day', ${bookings.createdAt})`,
+				count: count(),
+			})
+			.from(bookings)
+			.where(and(...conditions))
+			.groupBy(sql`DATE_TRUNC('day', ${bookings.createdAt})`)
+			.orderBy(sql`DATE_TRUNC('day', ${bookings.createdAt})`),
+	]);
+
+	const totalBookingsForRate =
+		(bookingCounts[0]?.total || 0) + (bookingCounts[0]?.cancelled || 0);
+
+	const cancellationRate =
+		totalBookingsForRate > 0
+			? (bookingCounts[0]?.cancelled || 0) / totalBookingsForRate
+			: 0;
+
+	return {
+		summary: {
+			totalBookings: bookingCounts[0]?.total || 0,
+			activeBookings: bookingCounts[0]?.active || 0,
+			cancellationRate,
+		},
+		bookingTypeDistribution: bookingTypeDistribution.map((item) => ({
+			...item,
+			totalRevenue: item.totalRevenue || "0.00",
+		})),
+		packageTypeDistribution: packageTypeDistribution.map((item) => ({
+			...item,
+			totalRevenue: item.totalRevenue || "0.00",
+		})),
+		bookingsOverTime,
+	};
+}
+
+async function getFinancialsKpis(organizationId: string, interval: string) {
+	const dateRange =
+		interval === "all" ? null : getDateRangeFromInterval(interval);
+
+	const [revenueResult, cashResult, expenseResult] = await Promise.all([
+		db
+			.select({ value: sum(bookings.packageCost) })
+			.from(bookings)
+			.where(
+				and(
+					eq(bookings.organizationId, organizationId),
+					notInArray(bookings.status, ["cancelled"]),
+					dateRange ? gte(bookings.createdAt, dateRange.startDate) : undefined,
+					dateRange ? lte(bookings.createdAt, dateRange.endDate) : undefined,
+				),
+			),
+		db
+			.select({ value: sum(receivedAmounts.amount) })
+			.from(receivedAmounts)
+			.leftJoin(bookings, eq(receivedAmounts.bookingId, bookings.id))
+			.where(
+				and(
+					eq(bookings.organizationId, organizationId),
+					dateRange
+						? gte(
+								receivedAmounts.paidOn,
+								formatISO(dateRange.startDate, { representation: "date" }),
+							)
+						: undefined,
+					dateRange
+						? lte(
+								receivedAmounts.paidOn,
+								formatISO(dateRange.endDate, { representation: "date" }),
+							)
+						: undefined,
+				),
+			),
+		db
+			.select({ value: sum(expenses.amount) })
+			.from(expenses)
+			.where(
+				and(
+					eq(expenses.organizationId, organizationId),
+					dateRange
+						? gte(
+								expenses.date,
+								formatISO(dateRange.startDate, { representation: "date" }),
+							)
+						: undefined,
+					dateRange
+						? lte(
+								expenses.date,
+								formatISO(dateRange.endDate, { representation: "date" }),
+							)
+						: undefined,
+				),
+			),
+	]);
+
+	return {
+		projectedRevenue: revenueResult[0]?.value || "0.00",
+		collectedCash: cashResult[0]?.value || "0.00",
+		totalExpenses: expenseResult[0]?.value || "0.00",
+	};
+}
+
+async function getActionItems(organizationId: string) {
+	const today = startOfDay(new Date());
+	const nextWeek = addDays(today, 7);
+
+	const [overdueTasks, overdueDeliverables, unstaffedShoots] =
+		await Promise.all([
+			db
+				.select({
+					id: tasks.id,
+					description: tasks.description,
+					bookingName: bookings.name,
+					dueDate: tasks.dueDate,
+				})
+				.from(tasks)
+				.leftJoin(bookings, eq(tasks.bookingId, bookings.id))
+				.where(
+					and(
+						eq(tasks.organizationId, organizationId),
+						lte(tasks.dueDate, formatISO(today, { representation: "date" })),
+						notInArray(tasks.status, [taskStatusEnum.enumValues[4]]),
+					),
+				)
+				.limit(5),
+			db
+				.select({
+					id: deliverables.id,
+					title: deliverables.title,
+					bookingName: bookings.name,
+					dueDate: deliverables.dueDate,
+				})
+				.from(deliverables)
+				.leftJoin(bookings, eq(deliverables.bookingId, bookings.id))
+				.where(
+					and(
+						eq(deliverables.organizationId, organizationId),
+						lte(
+							deliverables.dueDate,
+							formatISO(today, { representation: "date" }),
+						),
+						notInArray(deliverables.status, ["cancelled"]),
+					),
+				)
+				.limit(5),
+			db
+				.select({
+					id: shoots.id,
+					title: shoots.title,
+					bookingName: bookings.name,
+					shootDate: shoots.date,
+				})
+				.from(shoots)
+				.leftJoin(shootsAssignments, eq(shoots.id, shootsAssignments.shootId))
+				.leftJoin(bookings, eq(shoots.bookingId, bookings.id))
+				.where(
+					and(
+						eq(shoots.organizationId, organizationId),
+						gte(shoots.date, formatISO(today, { representation: "date" })),
+						lte(shoots.date, formatISO(nextWeek, { representation: "date" })),
+						isNull(shootsAssignments.id),
+					),
+				)
+				.groupBy(shoots.id, bookings.name)
+				.limit(5),
+		]);
+
+	return { overdueTasks, overdueDeliverables, unstaffedShoots };
+}
+
+async function getOperationsData(organizationId: string, interval: string) {
+	const today = startOfDay(new Date());
+
+	let futureEndDate: Date;
+
+	switch (interval) {
+		case "7d":
+			futureEndDate = addDays(today, 7);
+			break;
+		case "90d":
+			futureEndDate = addDays(today, 90);
+			break;
+		case "1y":
+			futureEndDate = addDays(today, 365);
+			break;
+
+		default:
+			futureEndDate = addDays(today, 30);
+			break;
+	}
+
+	const todayISO = formatISO(today, { representation: "date" });
+	const futureEndDateISO = formatISO(futureEndDate, { representation: "date" });
+
+	const [upcomingShoots, upcomingTasks, upcomingDeliverables] =
+		await Promise.all([
+			db
+				.select()
+				.from(shoots)
+				.where(
+					and(
+						eq(shoots.organizationId, organizationId),
+						gte(shoots.date, todayISO),
+						lte(shoots.date, futureEndDateISO),
+					),
+				)
+				.orderBy(asc(shoots.date))
+				.limit(10),
+
+			db
+				.select()
+				.from(tasks)
+				.where(
+					and(
+						eq(tasks.organizationId, organizationId),
+						gte(tasks.dueDate, todayISO),
+						lte(tasks.dueDate, futureEndDateISO),
+						// notInArray(tasks.status, ["cancelled"]),
+					),
+				)
+				.orderBy(asc(tasks.dueDate))
+				.limit(10),
+
+			db
+				.select()
+				.from(deliverables)
+				.where(
+					and(
+						eq(deliverables.organizationId, organizationId),
+						gte(deliverables.dueDate, todayISO),
+						lte(deliverables.dueDate, futureEndDateISO),
+						notInArray(deliverables.status, ["cancelled"]),
+					),
+				)
+				.orderBy(asc(deliverables.dueDate))
+				.limit(10),
+		]);
+
+	return { upcomingShoots, upcomingTasks, upcomingDeliverables };
+}
+
+interface DashboardParams {
+	organizationId: string;
+	financialsInterval: string;
+	bookingsInterval: string;
+	operationsInterval: string;
+}
+
+export async function getDashboardData(params: DashboardParams) {
+	const {
+		organizationId,
+		financialsInterval,
+		bookingsInterval,
+		operationsInterval,
+	} = params;
+
+	const [kpis, bookingAnalytics, actionItems, operations] = await Promise.all([
+		getFinancialsKpis(organizationId, financialsInterval),
+		getBookingAnalytics(organizationId, bookingsInterval),
+		getActionItems(organizationId),
+		getOperationsData(organizationId, operationsInterval),
+	]);
+
+	return {
+		kpis,
+		bookingAnalytics,
+		actionItems,
+		operations,
 	};
 }
