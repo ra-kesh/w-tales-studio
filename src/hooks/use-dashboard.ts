@@ -1,18 +1,14 @@
-// lib/hooks/use-dashboard.ts (New File)
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { useSession } from "@/lib/auth/auth-client"; // Your session hook
+import { useSession } from "@/lib/auth/auth-client";
 
-// Define the shape of the filters for type safety
+// MODIFIED: Simplified filters interface
 export interface DashboardFilters {
-	financialsInterval: string;
-	bookingsInterval: string;
-	operationsInterval: string;
+	interval: string;
 }
 
-// Define the expected shape of the API response
-// (You can generate these types from your schema or define them manually)
+// MODIFIED: Updated data shape to match the new API response
 export interface DashboardData {
 	kpis: {
 		projectedRevenue: string;
@@ -25,7 +21,14 @@ export interface DashboardData {
 			activeBookings: number;
 			cancellationRate: number;
 		};
-		bookingTypeDistribution: any[];
+		// CHANGED: Replaced bookingTypeDistribution with recentNewBookings
+		recentNewBookings: {
+			id: number;
+			name: string;
+			clientName: string | null;
+			packageType: string;
+			createdAt: string;
+		}[];
 		packageTypeDistribution: any[];
 		bookingsOverTime: any[];
 	};
@@ -47,16 +50,16 @@ export interface DashboardData {
 async function fetchDashboardData(
 	filters: DashboardFilters,
 ): Promise<DashboardData> {
+	// MODIFIED: Use a single 'interval' parameter
 	const params = new URLSearchParams({
-		financialsInterval: filters.financialsInterval,
-		bookingsInterval: filters.bookingsInterval,
-		operationsInterval: filters.operationsInterval,
+		interval: filters.interval,
 	});
 
 	const response = await fetch(`/api/dashboard?${params.toString()}`);
 
 	if (!response.ok) {
-		throw new Error("Failed to fetch dashboard data");
+		const errorData = await response.json();
+		throw new Error(errorData.message || "Failed to fetch dashboard data");
 	}
 
 	return response.json();
@@ -71,20 +74,11 @@ export function useDashboardData(filters: DashboardFilters) {
 	const activeOrganizationId = session?.session.activeOrganizationId;
 
 	return useQuery<DashboardData, Error>({
-		// The query key uniquely identifies this data based on the filters.
-		// When filters change, the key changes, and the data is refetched.
+		// MODIFIED: The query key now uses the single interval
 		queryKey: ["dashboard", { orgId: activeOrganizationId, ...filters }],
-
-		// The function that will be called to fetch the data.
 		queryFn: () => fetchDashboardData(filters),
-
-		// Only run this query if there is an active organization.
 		enabled: !!activeOrganizationId,
-
-		// For a better UX, keep showing the old data while new data is being fetched.
 		placeholderData: (previousData) => previousData,
-
-		// Consider data fresh for 5 minutes to avoid excessive refetching.
-		staleTime: 1000 * 60 * 5,
+		staleTime: 1000 * 60 * 5, // 5 minutes
 	});
 }

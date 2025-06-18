@@ -1,4 +1,4 @@
-// app/api/dashboard/v1/route.ts (Corrected)
+// app/api/dashboard/v1/route.ts (Corrected and Simplified)
 
 import { NextResponse } from "next/server";
 import { getServerSession } from "@/lib/dal";
@@ -18,15 +18,12 @@ export async function GET(request: Request) {
 	try {
 		const { searchParams } = new URL(request.url);
 
-		const financialsInterval = searchParams.get("financialsInterval") || "all";
-		const bookingsInterval = searchParams.get("bookingsInterval") || "all";
-		const operationsInterval = searchParams.get("operationsInterval") || "30d";
+		// CHANGED: Use a single, central interval filter. Default to '30d'.
+		const interval = searchParams.get("interval") || "30d";
 
 		const dashboardData = await getDashboardData({
 			organizationId: userOrganizationId,
-			financialsInterval,
-			bookingsInterval,
-			operationsInterval,
+			interval: interval, // Pass the single interval
 		});
 
 		return NextResponse.json(dashboardData);

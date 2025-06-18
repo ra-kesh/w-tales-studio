@@ -8,6 +8,7 @@ import {
 import { getServerSession } from "@/lib/dal";
 import { getDashboardData } from "@/lib/db/queries";
 import StudioDashboardClient from "./studio-dashbord-client";
+import Example from "./dashboard";
 
 export const dynamic = "force-dynamic";
 
@@ -48,7 +49,8 @@ export default async function DashboardPage({
 
 	return (
 		<HydrationBoundary state={dehydrate(queryClient)}>
-			<StudioDashboardClient />
+			{/* <StudioDashboardClient /> */}
+			<Example />
 		</HydrationBoundary>
 	);
 }
