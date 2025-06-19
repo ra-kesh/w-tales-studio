@@ -55,6 +55,7 @@ export function RecentBookingDashboard({
 						Some of the most recent bookings made in the system.
 					</p>
 				</div>
+				{/* change this to ghost button */}
 				<Button
 					onClick={() => router.push("/bookings")}
 					className=" bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500"

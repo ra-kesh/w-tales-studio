@@ -18,9 +18,9 @@ import { cn } from "@/lib/utils";
 import { parseAsString, useQueryState } from "nuqs";
 import { UpcomingWork } from "./upcmingwork";
 import { OverdueWork } from "./overduework";
-import { RecentBookings } from "./_components/recent-bookings";
 import { RecentBookingDashboard } from "./recent-booking";
 import { ExpenseBreakdown } from "./_components/expense-breakdown";
+import { PayementsAndClients } from "./payment-activity";
 
 export default function Example() {
 	const [interval, setInterval] = useQueryState(
@@ -56,6 +56,8 @@ export default function Example() {
 		bookingAnalytics: {
 			summary: { totalBookings: 0, activeBookings: 0, newBookings: 0 },
 			recentNewBookings: [],
+			recentClients: [],
+			recentPayments: [],
 			packageTypeDistribution: [],
 			bookingsOverTime: [],
 		},
@@ -106,11 +108,9 @@ export default function Example() {
 									className="size-16 flex-none rounded-full ring-1 ring-gray-900/10"
 								/>
 								<h1>
-									<div className="text-sm/6 text-gray-500">
-										Invoice <span className="text-gray-700">#00011</span>
-									</div>
+									<div className="text-sm/6 text-gray-500">Studio</div>
 									<div className="mt-1 text-base font-semibold text-gray-900">
-										Tuple, Inc
+										WeddingTales Photography
 									</div>
 								</h1>
 							</div>
@@ -119,19 +119,19 @@ export default function Example() {
 									type="button"
 									className="hidden text-sm/6 font-semibold text-gray-900 sm:block"
 								>
-									Copy URL
+									Back
 								</button>
-								<a
+								{/* <a
 									href="/"
 									className="hidden text-sm/6 font-semibold text-gray-900 sm:block"
 								>
 									Edit
-								</a>
+								</a> */}
 								<a
 									href="/"
 									className="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
 								>
-									Send
+									Add Booking
 								</a>
 							</div>
 						</div>
@@ -188,14 +188,11 @@ export default function Example() {
 									<CustomTabsTrigger value="upcoming">
 										Upcoming Work
 									</CustomTabsTrigger>
-									{/* <CustomTabsTrigger value="bookings">
-										New Bookings
-									</CustomTabsTrigger>
-									<CustomTabsTrigger value="account">
-										Recent Payments
-									</CustomTabsTrigger> */}
 									<CustomTabsTrigger value="overdue">
 										Overdue Work
+									</CustomTabsTrigger>
+									<CustomTabsTrigger value="payments">
+										Payments & Clients
 									</CustomTabsTrigger>
 								</CustomTabsList>
 								<CustomTabsContent value="booking" className="space-y-6">
@@ -214,6 +211,9 @@ export default function Example() {
 									<OverdueStats actionItems={actionItems} />
 									<div className="border border-dashed border-gray-900/5" />
 									<OverdueWork actionItems={actionItems} />
+								</CustomTabsContent>
+								<CustomTabsContent value="payments" className="space-y-6">
+									<PayementsAndClients bookingAnalytics={bookingAnalytics} />
 								</CustomTabsContent>
 							</Tabs>
 						</div>

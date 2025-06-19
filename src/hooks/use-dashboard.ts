@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useSession } from "@/lib/auth/auth-client";
 import type { Deliverable, Shoot, Task } from "@/lib/db/schema";
+import { NumberDomain } from "recharts/types/util/types";
 
 // MODIFIED: Simplified filters interface
 export interface DashboardFilters {
@@ -32,6 +33,24 @@ export interface DashboardData {
 			packageType: string;
 			createdAt: string;
 		}[];
+		recentPayments: {
+			id: number;
+			amount: number;
+			paidOn: string;
+			bookingName: string;
+		}[];
+		recentClients: {
+			id: number;
+			organizationId: string;
+			name: string;
+			brideName: string;
+			groomName: string;
+			phoneNumber: string;
+			email: string;
+			address: string;
+			createdAt: string;
+		}[];
+
 		packageTypeDistribution: any[];
 		bookingsOverTime: any[];
 	};

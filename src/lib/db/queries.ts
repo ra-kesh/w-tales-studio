@@ -1574,7 +1574,7 @@ async function getBookingAnalytics(organizationId: string, interval: string) {
 			.from(clients)
 			.where(eq(clients.organizationId, organizationId))
 			.orderBy(desc(clients.createdAt))
-			.limit(10),
+			.limit(3),
 		db
 			.select({
 				id: receivedAmounts.id,
@@ -1586,7 +1586,7 @@ async function getBookingAnalytics(organizationId: string, interval: string) {
 			.leftJoin(bookings, eq(receivedAmounts.bookingId, bookings.id))
 			.where(eq(bookings.organizationId, organizationId))
 			.orderBy(desc(receivedAmounts.paidOn))
-			.limit(10),
+			.limit(5),
 		db
 			.select({
 				type: bookings.bookingType,
