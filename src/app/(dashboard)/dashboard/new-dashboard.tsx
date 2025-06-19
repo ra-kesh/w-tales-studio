@@ -18,6 +18,8 @@ import { cn } from "@/lib/utils";
 import { parseAsString, useQueryState } from "nuqs";
 import { UpcomingWork } from "./upcmingwork";
 import { OverdueWork } from "./overduework";
+import { RecentBookings } from "./_components/recent-bookings";
+import { RecentBookingDashboard } from "./recent-booking";
 
 export default function Example() {
 	const [interval, setInterval] = useQueryState(
@@ -56,6 +58,9 @@ export default function Example() {
 			packageTypeDistribution: [],
 			bookingsOverTime: [],
 		},
+
+		expenseAnalytics: [],
+
 		actionItems: {
 			overdueTasks: [],
 			overdueDeliverables: [],
@@ -157,7 +162,7 @@ export default function Example() {
 							</div>
 							<KpiStats kpis={kpis} />
 						</div>
-
+						{/* 
 						<div className="lg:col-start-3">
 							<div className="flex items-end justify-between mb-4">
 								<div>
@@ -170,11 +175,14 @@ export default function Example() {
 								</div>
 							</div>
 							<BookingStats bookingAnalytics={bookingAnalytics} />
-						</div>
+						</div> */}
 
 						<div className="-mx-4  sm:px-8 sm:pb-14 lg:col-span-2 lg:row-span-2 lg:row-end-2">
-							<Tabs defaultValue="upcoming">
+							<Tabs defaultValue="booking">
 								<CustomTabsList>
+									<CustomTabsTrigger value="booking">
+										Booking Activity
+									</CustomTabsTrigger>
 									<CustomTabsTrigger value="upcoming">
 										Upcoming Work
 									</CustomTabsTrigger>
@@ -188,6 +196,13 @@ export default function Example() {
 										Overdue Work
 									</CustomTabsTrigger>
 								</CustomTabsList>
+								<CustomTabsContent value="booking" className="space-y-6">
+									<BookingStats bookingAnalytics={bookingAnalytics} />
+									<div className="border border-dashed border-gray-900/5" />
+									<RecentBookingDashboard
+										recentBookings={bookingAnalytics.recentNewBookings}
+									/>
+								</CustomTabsContent>
 								<CustomTabsContent value="upcoming" className="space-y-6">
 									<UpcomingStats operations={operations} />
 									<div className="border border-dashed border-gray-900/5" />
@@ -239,38 +254,38 @@ const KpiStats = ({ kpis }: { kpis: DashboardData["kpis"] }) => {
 		</div>
 	);
 };
-const BookingStats = ({
-	bookingAnalytics,
-}: { bookingAnalytics: DashboardData["bookingAnalytics"] }) => {
-	const stats = [
-		{ name: "Total", value: bookingAnalytics.summary.totalBookings },
-		{ name: "Active", value: bookingAnalytics.summary.activeBookings },
-		{ name: "New", value: bookingAnalytics.summary.newBookings },
-	];
+// const BookingStats = ({
+// 	bookingAnalytics,
+// }: { bookingAnalytics: DashboardData["bookingAnalytics"] }) => {
+// 	const stats = [
+// 		{ name: "Total", value: bookingAnalytics.summary.totalBookings },
+// 		{ name: "Active", value: bookingAnalytics.summary.activeBookings },
+// 		{ name: "New", value: bookingAnalytics.summary.newBookings },
+// 	];
 
-	return (
-		<div className="rounded-lg ring-1 shadow-xs ring-gray-900/5">
-			<dl className="grid grid-cols-3">
-				{stats.map((stat, statIdx) => (
-					<div
-						key={stat.name}
-						className={cn(
-							"flex flex-col px-4 py-6 sm:px-6 xl:px-8 xl:py-8 relative",
-						)}
-					>
-						{statIdx < stats.length - 1 && (
-							<div className="absolute right-0 top-1/2 -translate-y-1/2 w-px h-[50%] bg-gray-900/5" />
-						)}
-						<dt className="text-xs font-medium text-gray-500">{stat.name}</dt>
-						<dd className="mt-1 text-lg font-medium tracking-tight text-gray-900">
-							{stat.value}
-						</dd>
-					</div>
-				))}
-			</dl>
-		</div>
-	);
-};
+// 	return (
+// 		<div className="rounded-lg ring-1 shadow-xs ring-gray-900/5">
+// 			<dl className="grid grid-cols-3">
+// 				{stats.map((stat, statIdx) => (
+// 					<div
+// 						key={stat.name}
+// 						className={cn(
+// 							"flex flex-col px-4 py-6 sm:px-6 xl:px-8 xl:py-8 relative",
+// 						)}
+// 					>
+// 						{statIdx < stats.length - 1 && (
+// 							<div className="absolute right-0 top-1/2 -translate-y-1/2 w-px h-[50%] bg-gray-900/5" />
+// 						)}
+// 						<dt className="text-xs font-medium text-gray-500">{stat.name}</dt>
+// 						<dd className="mt-1 text-lg font-medium tracking-tight text-gray-900">
+// 							{stat.value}
+// 						</dd>
+// 					</div>
+// 				))}
+// 			</dl>
+// 		</div>
+// 	);
+// };
 
 const formatCurrency = (value: string | number) => {
 	return new Intl.NumberFormat("en-IN", {
@@ -327,6 +342,40 @@ const OverdueStats = ({
 			value: actionItems.overdueDeliverables.length,
 		},
 		{ name: "Unstaffed Shoots", value: actionItems.unstaffedShoots.length },
+	];
+
+	return (
+		<div className=" rounded-lg ring-1 shadow-xs ring-gray-900/5">
+			<dl className="mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 lg:px-2 xl:px-0">
+				{stats.map((stat, statIdx) => (
+					<div
+						key={stat.name}
+						className={cn(
+							statIdx % 2 === 1
+								? "sm:border-l"
+								: statIdx === 2
+									? "lg:border-l"
+									: "",
+							"flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2  px-4 py-6 sm:px-6 ",
+						)}
+					>
+						<dt className="text-xs font-medium text-gray-500">{stat.name}</dt>
+						<dd className="w-full flex-none text-2xl font-medium tracking-tight text-gray-900">
+							{stat.value}
+						</dd>
+					</div>
+				))}
+			</dl>
+		</div>
+	);
+};
+const BookingStats = ({
+	bookingAnalytics,
+}: { bookingAnalytics: DashboardData["bookingAnalytics"] }) => {
+	const stats = [
+		{ name: "Total", value: bookingAnalytics.summary.totalBookings },
+		{ name: "Active", value: bookingAnalytics.summary.activeBookings },
+		{ name: "New", value: bookingAnalytics.summary.newBookings },
 	];
 
 	return (

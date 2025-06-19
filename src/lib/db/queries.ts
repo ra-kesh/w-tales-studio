@@ -1536,7 +1536,9 @@ async function getBookingAnalytics(organizationId: string, interval: string) {
 	const [
 		bookingCounts,
 		recentNewBookings,
-		// bookingTypeDistribution,
+		recentClients,
+		recentPayments,
+		bookingTypeDistribution,
 		packageTypeDistribution,
 		bookingsOverTime,
 	] = await Promise.all([
@@ -1555,7 +1557,6 @@ async function getBookingAnalytics(organizationId: string, interval: string) {
 				id: bookings.id,
 				name: bookings.name,
 				clientName: clients.name,
-				packageType: bookings.packageType,
 				createdAt: bookings.createdAt,
 			})
 			.from(bookings)
@@ -1567,17 +1568,35 @@ async function getBookingAnalytics(organizationId: string, interval: string) {
 				),
 			)
 			.orderBy(desc(bookings.createdAt))
-			.limit(5),
-		// db
-		// 	.select({
-		// 		type: bookings.bookingType,
-		// 		count: count(),
-		// 		totalRevenue: sum(bookings.packageCost),
-		// 	})
-		// 	.from(bookings)
-		// 	.where(and(...conditions, notInArray(bookings.status, ["cancelled"])))
-		// 	.groupBy(bookings.bookingType)
-		// 	.orderBy(desc(count())),
+			.limit(10),
+		db
+			.select()
+			.from(clients)
+			.where(eq(clients.organizationId, organizationId))
+			.orderBy(desc(clients.createdAt))
+			.limit(10),
+		db
+			.select({
+				id: receivedAmounts.id,
+				amount: receivedAmounts.amount,
+				paidOn: receivedAmounts.paidOn,
+				bookingName: bookings.name,
+			})
+			.from(receivedAmounts)
+			.leftJoin(bookings, eq(receivedAmounts.bookingId, bookings.id))
+			.where(eq(bookings.organizationId, organizationId))
+			.orderBy(desc(receivedAmounts.paidOn))
+			.limit(10),
+		db
+			.select({
+				type: bookings.bookingType,
+				count: count(),
+				totalRevenue: sum(bookings.packageCost),
+			})
+			.from(bookings)
+			.where(and(...conditions, notInArray(bookings.status, ["cancelled"])))
+			.groupBy(bookings.bookingType)
+			.orderBy(desc(count())),
 		db
 			.select({
 				type: bookings.packageType,
@@ -1614,10 +1633,13 @@ async function getBookingAnalytics(organizationId: string, interval: string) {
 			newBookings: bookingCounts[0]?.new || 0,
 		},
 		recentNewBookings,
-		// bookingTypeDistribution: bookingTypeDistribution.map((item) => ({
-		// 	...item,
-		// 	totalRevenue: item.totalRevenue || "0.00",
-		// })),
+		recentClients,
+		recentPayments,
+
+		bookingTypeDistribution: bookingTypeDistribution.map((item) => ({
+			...item,
+			totalRevenue: item.totalRevenue || "0.00",
+		})),
 		packageTypeDistribution: packageTypeDistribution.map((item) => ({
 			...item,
 			totalRevenue: item.totalRevenue || "0.00",
@@ -1809,7 +1831,6 @@ async function getOperationsData(organizationId: string, interval: string) {
 		tasksList,
 		tasksCount,
 	] = await Promise.all([
-		// Get a FILTERED LIST of upcoming shoots
 		db
 			.select({
 				id: shoots.id,
@@ -1827,7 +1848,6 @@ async function getOperationsData(organizationId: string, interval: string) {
 				),
 			)
 			.orderBy(asc(shoots.date)),
-		// Get the TOTAL UNFILTERED COUNT of all upcoming shoots
 		db
 			.select({ count: count() })
 			.from(shoots)
@@ -1838,7 +1858,6 @@ async function getOperationsData(organizationId: string, interval: string) {
 				),
 			),
 
-		// Get a FILTERED LIST of upcoming deliverables
 		db
 			.select({
 				id: deliverables.id,
@@ -1919,6 +1938,39 @@ async function getOperationsData(organizationId: string, interval: string) {
 	};
 }
 
+async function getExpenseAnalytics(organizationId: string, interval: string) {
+	const dateRange =
+		interval === "all" ? null : getDateRangeFromInterval(interval);
+
+	const expensesByCategory = await db
+		.select({
+			category: expenses.category,
+			total: sum(expenses.amount).mapWith(Number),
+		})
+		.from(expenses)
+		.where(
+			and(
+				eq(expenses.organizationId, organizationId),
+				dateRange
+					? gte(
+							expenses.date,
+							formatISO(dateRange.startDate, { representation: "date" }),
+						)
+					: undefined,
+				dateRange
+					? lte(
+							expenses.date,
+							formatISO(dateRange.endDate, { representation: "date" }),
+						)
+					: undefined,
+			),
+		)
+		.groupBy(expenses.category)
+		.orderBy(desc(sum(expenses.amount)));
+
+	return expensesByCategory;
+}
+
 interface DashboardParams {
 	organizationId: string;
 	interval: string;
@@ -1933,20 +1985,20 @@ export async function getDashboardData(params: DashboardParams) {
 
 	console.log({ organizationId, interval });
 
-	const [kpis, bookingAnalytics, actionItems, operations] = await Promise.all([
-		// The central interval affects financials
-		getFinancialsKpis(organizationId, interval),
-		// Booking analytics is NOT affected by the central filter, defaults to "all"
-		getBookingAnalytics(organizationId, "all"),
-		// Action items are not time-based, so no interval is needed
-		getActionItems(organizationId),
-		// The central interval affects operations
-		getOperationsData(organizationId, operationsInterval),
-	]);
+	const [kpis, bookingAnalytics, expenseAnalytics, actionItems, operations] =
+		await Promise.all([
+			getFinancialsKpis(organizationId, interval),
+			getBookingAnalytics(organizationId, "all"),
+			// getBookingAnalytics(organizationId),
+			getExpenseAnalytics(organizationId, interval),
+			getActionItems(organizationId),
+			getOperationsData(organizationId, operationsInterval),
+		]);
 
 	return {
 		kpis,
 		bookingAnalytics,
+		expenseAnalytics,
 		actionItems,
 		operations,
 	};

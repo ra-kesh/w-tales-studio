@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useSession } from "@/lib/auth/auth-client";
-import { Deliverable, Shoot, Task } from "@/lib/db/schema";
+import type { Deliverable, Shoot, Task } from "@/lib/db/schema";
 
 // MODIFIED: Simplified filters interface
 export interface DashboardFilters {
@@ -35,6 +35,10 @@ export interface DashboardData {
 		packageTypeDistribution: any[];
 		bookingsOverTime: any[];
 	};
+	expenseAnalytics: {
+		category: string;
+		total: number;
+	}[];
 	actionItems: {
 		overdueTasks: any[];
 		overdueDeliverables: any[];
