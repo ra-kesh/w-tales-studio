@@ -14,12 +14,13 @@ export interface DashboardData {
 		projectedRevenue: string;
 		collectedCash: string;
 		totalExpenses: string;
+		overdueInvoicesValue: string;
 	};
 	bookingAnalytics: {
 		summary: {
 			totalBookings: number;
 			activeBookings: number;
-			cancellationRate: number;
+			newBookings: number;
 		};
 		// CHANGED: Replaced bookingTypeDistribution with recentNewBookings
 		recentNewBookings: {
@@ -50,7 +51,6 @@ export interface DashboardData {
 async function fetchDashboardData(
 	filters: DashboardFilters,
 ): Promise<DashboardData> {
-	// MODIFIED: Use a single 'interval' parameter
 	const params = new URLSearchParams({
 		interval: filters.interval,
 	});

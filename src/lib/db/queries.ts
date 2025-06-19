@@ -42,6 +42,7 @@ import {
 import { alias } from "drizzle-orm/pg-core";
 import type { BookingDetail } from "@/types/booking";
 import { addDays, formatISO, startOfDay, subDays } from "date-fns";
+import { date } from "drizzle-orm/mysql-core";
 
 export async function getActiveOrganization(userId: string) {
 	const result = await db
@@ -1545,9 +1546,7 @@ async function getBookingAnalytics(organizationId: string, interval: string) {
 				active: count(
 					sql`CASE WHEN ${bookings.status} NOT IN ('completed', 'cancelled') THEN 1 END`,
 				),
-				cancelled: count(
-					sql`CASE WHEN ${bookings.status} = 'cancelled' THEN 1 END`,
-				),
+				new: count(sql`CASE WHEN ${bookings.status} = 'new' THEN 1 END`),
 			})
 			.from(bookings)
 			.where(and(...conditions)),
@@ -1600,19 +1599,19 @@ async function getBookingAnalytics(organizationId: string, interval: string) {
 			.orderBy(sql`DATE_TRUNC('day', ${bookings.createdAt})`),
 	]);
 
-	const totalBookingsForRate =
-		(bookingCounts[0]?.total || 0) + (bookingCounts[0]?.cancelled || 0);
+	// const totalBookingsForRate =
+	// 	(bookingCounts[0]?.total || 0) + (bookingCounts[0]?.cancelled || 0);
 
-	const cancellationRate =
-		totalBookingsForRate > 0
-			? (bookingCounts[0]?.cancelled || 0) / totalBookingsForRate
-			: 0;
+	// const cancellationRate =
+	// 	totalBookingsForRate > 0
+	// 		? (bookingCounts[0]?.cancelled || 0) / totalBookingsForRate
+	// 		: 0;
 
 	return {
 		summary: {
 			totalBookings: bookingCounts[0]?.total || 0,
 			activeBookings: bookingCounts[0]?.active || 0,
-			cancellationRate,
+			newBookings: bookingCounts[0]?.new || 0,
 		},
 		recentNewBookings,
 		// bookingTypeDistribution: bookingTypeDistribution.map((item) => ({
@@ -1630,6 +1629,8 @@ async function getBookingAnalytics(organizationId: string, interval: string) {
 async function getFinancialsKpis(organizationId: string, interval: string) {
 	const dateRange =
 		interval === "all" ? null : getDateRangeFromInterval(interval);
+
+	// console.log("dateRange", dateRange);
 
 	const todayISO = formatISO(new Date(), { representation: "date" });
 
@@ -1650,8 +1651,8 @@ async function getFinancialsKpis(organizationId: string, interval: string) {
 				),
 			db
 				.select({ value: sum(receivedAmounts.amount) })
-				.from(receivedAmounts)
-				.leftJoin(bookings, eq(receivedAmounts.bookingId, bookings.id))
+				.from(bookings)
+				.innerJoin(receivedAmounts, eq(bookings.id, receivedAmounts.bookingId))
 				.where(
 					and(
 						eq(bookings.organizationId, organizationId),

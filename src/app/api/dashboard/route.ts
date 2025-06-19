@@ -18,8 +18,7 @@ export async function GET(request: Request) {
 	try {
 		const { searchParams } = new URL(request.url);
 
-		// CHANGED: Use a single, central interval filter. Default to '30d'.
-		const interval = searchParams.get("interval") || "30d";
+		const interval = searchParams.get("interval") || "all";
 
 		const dashboardData = await getDashboardData({
 			organizationId: userOrganizationId,
