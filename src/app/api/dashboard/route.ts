@@ -20,9 +20,12 @@ export async function GET(request: Request) {
 
 		const interval = searchParams.get("interval") || "all";
 
+		const operationsInterval = searchParams.get("operationsInterval") || "7d";
+
 		const dashboardData = await getDashboardData({
 			organizationId: userOrganizationId,
-			interval: interval, // Pass the single interval
+			interval: interval,
+			operationsInterval: operationsInterval,
 		});
 
 		return NextResponse.json(dashboardData);

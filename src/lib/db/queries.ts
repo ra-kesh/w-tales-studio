@@ -1781,83 +1781,157 @@ async function getActionItems(organizationId: string) {
 
 async function getOperationsData(organizationId: string, interval: string) {
 	const today = startOfDay(new Date());
+	const todayISO = formatISO(today, { representation: "date" });
 
+	// Calculate the end date for the list filter based on the interval
 	let futureEndDate: Date;
-
 	switch (interval) {
-		case "7d":
-			futureEndDate = addDays(today, 7);
+		case "30d":
+			futureEndDate = addDays(today, 30);
 			break;
 		case "90d":
 			futureEndDate = addDays(today, 90);
 			break;
-		case "1y":
-			futureEndDate = addDays(today, 365);
-			break;
 
-		default:
-			futureEndDate = addDays(today, 30);
+		default: // Default to "7d"
+			futureEndDate = addDays(today, 7);
 			break;
 	}
+	const futureEndDateISO = formatISO(futureEndDate, {
+		representation: "date",
+	});
 
-	const todayISO = formatISO(today, { representation: "date" });
-	const futureEndDateISO = formatISO(futureEndDate, { representation: "date" });
+	const [
+		shootsList,
+		shootsCount,
+		deliverablesList,
+		deliverablesCount,
+		tasksList,
+		tasksCount,
+	] = await Promise.all([
+		// Get a FILTERED LIST of upcoming shoots
+		db
+			.select({
+				id: shoots.id,
+				title: shoots.title,
+				date: shoots.date,
+				bookingName: bookings.name,
+			})
+			.from(shoots)
+			.leftJoin(bookings, eq(shoots.bookingId, bookings.id))
+			.where(
+				and(
+					eq(shoots.organizationId, organizationId),
+					gte(shoots.date, todayISO),
+					lte(shoots.date, futureEndDateISO), // Apply the interval filter here
+				),
+			)
+			.orderBy(asc(shoots.date)),
+		// Get the TOTAL UNFILTERED COUNT of all upcoming shoots
+		db
+			.select({ count: count() })
+			.from(shoots)
+			.where(
+				and(
+					eq(shoots.organizationId, organizationId),
+					gte(shoots.date, todayISO),
+				),
+			),
 
-	const [upcomingShoots, upcomingTasks, upcomingDeliverables] =
-		await Promise.all([
-			db
-				.select()
-				.from(shoots)
-				.where(
-					and(
-						eq(shoots.organizationId, organizationId),
-						gte(shoots.date, todayISO),
-						lte(shoots.date, futureEndDateISO),
-					),
-				)
-				.orderBy(asc(shoots.date))
-				.limit(10),
+		// Get a FILTERED LIST of upcoming deliverables
+		db
+			.select({
+				id: deliverables.id,
+				title: deliverables.title,
+				dueDate: deliverables.dueDate,
+				bookingName: bookings.name,
+			})
+			.from(deliverables)
+			.leftJoin(bookings, eq(deliverables.bookingId, bookings.id))
+			.where(
+				and(
+					eq(deliverables.organizationId, organizationId),
+					gte(deliverables.dueDate, todayISO),
+					lte(deliverables.dueDate, futureEndDateISO), // Apply filter
+					notInArray(deliverables.status, [
+						// "completed",
+						// "delivered",
+						"cancelled",
+					]),
+				),
+			)
+			.orderBy(asc(deliverables.dueDate)),
+		// Get the TOTAL UNFILTERED COUNT of all upcoming deliverables
+		db
+			.select({ count: count() })
+			.from(deliverables)
+			.where(
+				and(
+					eq(deliverables.organizationId, organizationId),
+					gte(deliverables.dueDate, todayISO),
+					notInArray(deliverables.status, [
+						// "completed",
+						// "delivered",
+						"cancelled",
+					]),
+				),
+			),
 
-			db
-				.select()
-				.from(tasks)
-				.where(
-					and(
-						eq(tasks.organizationId, organizationId),
-						gte(tasks.dueDate, todayISO),
-						lte(tasks.dueDate, futureEndDateISO),
-						// notInArray(tasks.status, ["cancelled"]),
-					),
-				)
-				.orderBy(asc(tasks.dueDate))
-				.limit(10),
+		// Get a FILTERED LIST of upcoming tasks
+		db
+			.select({
+				id: tasks.id,
+				description: tasks.description,
+				dueDate: tasks.dueDate,
+				bookingName: bookings.name,
+			})
+			.from(tasks)
+			.leftJoin(bookings, eq(tasks.bookingId, bookings.id))
+			.where(
+				and(
+					eq(tasks.organizationId, organizationId),
+					gte(tasks.dueDate, todayISO),
+					lte(tasks.dueDate, futureEndDateISO), // Apply filter
+					// notInArray(tasks.status, ["completed"]),
+				),
+			)
+			.orderBy(asc(tasks.dueDate)),
+		// Get the TOTAL UNFILTERED COUNT of all upcoming tasks
+		db
+			.select({ count: count() })
+			.from(tasks)
+			.where(
+				and(
+					eq(tasks.organizationId, organizationId),
+					gte(tasks.dueDate, todayISO),
+					// notInArray(tasks.status, ["completed"]),
+				),
+			),
+	]);
 
-			db
-				.select()
-				.from(deliverables)
-				.where(
-					and(
-						eq(deliverables.organizationId, organizationId),
-						gte(deliverables.dueDate, todayISO),
-						lte(deliverables.dueDate, futureEndDateISO),
-						notInArray(deliverables.status, ["cancelled"]),
-					),
-				)
-				.orderBy(asc(deliverables.dueDate))
-				.limit(10),
-		]);
-
-	return { upcomingShoots, upcomingTasks, upcomingDeliverables };
+	return {
+		upcomingShoots: { list: shootsList, total: shootsCount[0]?.count || 0 },
+		upcomingDeliverables: {
+			list: deliverablesList,
+			total: deliverablesCount[0]?.count || 0,
+		},
+		upcomingTasks: { list: tasksList, total: tasksCount[0]?.count || 0 },
+	};
 }
 
 interface DashboardParams {
 	organizationId: string;
 	interval: string;
+	operationsInterval: string;
 }
 
 // MODIFIED: getDashboardData now uses the central filter
 export async function getDashboardData(params: DashboardParams) {
-	const { organizationId, interval } = params;
+	const { organizationId, interval, operationsInterval } = params;
+
+	console.log({ operationsInterval });
+
+	console.log({ organizationId, interval });
 
 	const [kpis, bookingAnalytics, actionItems, operations] = await Promise.all([
 		// The central interval affects financials
@@ -1867,7 +1941,7 @@ export async function getDashboardData(params: DashboardParams) {
 		// Action items are not time-based, so no interval is needed
 		getActionItems(organizationId),
 		// The central interval affects operations
-		getOperationsData(organizationId, interval),
+		getOperationsData(organizationId, operationsInterval),
 	]);
 
 	return {

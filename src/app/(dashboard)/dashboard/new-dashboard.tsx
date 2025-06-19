@@ -16,6 +16,7 @@ import {
 import { type DashboardData, useDashboardData } from "@/hooks/use-dashboard";
 import { cn } from "@/lib/utils";
 import { parseAsString, useQueryState } from "nuqs";
+import { UpcomingWork } from "./upcmingwork";
 
 export default function Example() {
 	const [interval, setInterval] = useQueryState(
@@ -23,7 +24,15 @@ export default function Example() {
 		parseAsString.withDefault("all"),
 	);
 
-	const { data, isLoading, isError } = useDashboardData({ interval });
+	const [operationsInterval, setOperationsInterval] = useQueryState(
+		"operationsInterval",
+		parseAsString.withDefault("7d"), // Default to 7 days
+	);
+
+	const { data, isLoading, isError } = useDashboardData({
+		interval,
+		operationsInterval,
+	});
 
 	if (isLoading && !data) {
 		return <div>Loading dashboard...</div>; // Or a skeleton loader
@@ -52,14 +61,14 @@ export default function Example() {
 			unstaffedShoots: [],
 		},
 		operations: {
-			upcomingShoots: [],
-			upcomingTasks: [],
-			upcomingDeliverables: [],
+			upcomingShoots: { list: [], total: 0 },
+			upcomingTasks: { list: [], total: 0 },
+			upcomingDeliverables: { list: [], total: 0 },
 		},
 	};
 
 	// ADAPTED: Destructure the correct data object
-	const { kpis, actionItems, bookingAnalytics } = data || emptyData;
+	const { kpis, actionItems, bookingAnalytics, operations } = data || emptyData;
 	return (
 		<>
 			<main>
@@ -105,13 +114,13 @@ export default function Example() {
 									Copy URL
 								</button>
 								<a
-									href="#"
+									href="/"
 									className="hidden text-sm/6 font-semibold text-gray-900 sm:block"
 								>
 									Edit
 								</a>
 								<a
-									href="#"
+									href="/"
 									className="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
 								>
 									Send
@@ -176,8 +185,10 @@ export default function Example() {
 									</CustomTabsTrigger>
 									<CustomTabsTrigger value="overdue">Overdue</CustomTabsTrigger>
 								</CustomTabsList>
-								<CustomTabsContent value="upcoming">
-									<UpcomingStats kpis={kpis} />
+								<CustomTabsContent value="upcoming" className="space-y-6">
+									<UpcomingStats operations={operations} />
+									<div className="border border-dashed border-gray-900/5" />
+									<UpcomingWork operations={operations} />
 								</CustomTabsContent>
 								<CustomTabsContent value="password">password</CustomTabsContent>
 							</Tabs>
@@ -262,11 +273,16 @@ const formatCurrency = (value: string | number) => {
 	}).format(Number(value));
 };
 
-const UpcomingStats = ({ kpis }: { kpis: DashboardData["kpis"] }) => {
+const UpcomingStats = ({
+	operations,
+}: { operations: DashboardData["operations"] }) => {
 	const stats = [
-		{ name: "Revenue", value: kpis.projectedRevenue },
-		{ name: "Collected Cash", value: kpis.collectedCash },
-		{ name: "Expenses", value: kpis.totalExpenses },
+		{ name: "Total  Shoots", value: operations.upcomingShoots.total },
+		{ name: "Total  Tasks", value: operations.upcomingTasks.total },
+		{
+			name: "Total  Deliverables",
+			value: operations.upcomingDeliverables.total,
+		},
 	];
 
 	return (
@@ -286,7 +302,7 @@ const UpcomingStats = ({ kpis }: { kpis: DashboardData["kpis"] }) => {
 					>
 						<dt className="text-xs font-medium text-gray-500">{stat.name}</dt>
 						<dd className="w-full flex-none text-2xl font-medium tracking-tight text-gray-900">
-							{formatCurrency(stat.value)}
+							{stat.value}
 						</dd>
 					</div>
 				))}

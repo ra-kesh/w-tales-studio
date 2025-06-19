@@ -2,10 +2,12 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useSession } from "@/lib/auth/auth-client";
+import { Deliverable, Shoot, Task } from "@/lib/db/schema";
 
 // MODIFIED: Simplified filters interface
 export interface DashboardFilters {
 	interval: string;
+	operationsInterval: string;
 }
 
 // MODIFIED: Updated data shape to match the new API response
@@ -39,9 +41,18 @@ export interface DashboardData {
 		unstaffedShoots: any[];
 	};
 	operations: {
-		upcomingShoots: any[];
-		upcomingTasks: any[];
-		upcomingDeliverables: any[];
+		upcomingShoots: {
+			list: Shoot[];
+			total: number;
+		};
+		upcomingTasks: {
+			list: Task[];
+			total: number;
+		};
+		upcomingDeliverables: {
+			list: Deliverable[];
+			total: number;
+		};
 	};
 }
 
@@ -53,6 +64,7 @@ async function fetchDashboardData(
 ): Promise<DashboardData> {
 	const params = new URLSearchParams({
 		interval: filters.interval,
+		operationsInterval: filters.operationsInterval,
 	});
 
 	const response = await fetch(`/api/dashboard?${params.toString()}`);
