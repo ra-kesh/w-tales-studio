@@ -17,6 +17,7 @@ import { type DashboardData, useDashboardData } from "@/hooks/use-dashboard";
 import { cn } from "@/lib/utils";
 import { parseAsString, useQueryState } from "nuqs";
 import { UpcomingWork } from "./upcmingwork";
+import { OverdueWork } from "./overduework";
 
 export default function Example() {
 	const [interval, setInterval] = useQueryState(
@@ -175,22 +176,28 @@ export default function Example() {
 							<Tabs defaultValue="upcoming">
 								<CustomTabsList>
 									<CustomTabsTrigger value="upcoming">
-										Upcoming
+										Upcoming Work
 									</CustomTabsTrigger>
-									<CustomTabsTrigger value="bookings">
+									{/* <CustomTabsTrigger value="bookings">
 										New Bookings
 									</CustomTabsTrigger>
 									<CustomTabsTrigger value="account">
 										Recent Payments
+									</CustomTabsTrigger> */}
+									<CustomTabsTrigger value="overdue">
+										Overdue Work
 									</CustomTabsTrigger>
-									<CustomTabsTrigger value="overdue">Overdue</CustomTabsTrigger>
 								</CustomTabsList>
 								<CustomTabsContent value="upcoming" className="space-y-6">
 									<UpcomingStats operations={operations} />
 									<div className="border border-dashed border-gray-900/5" />
 									<UpcomingWork operations={operations} />
 								</CustomTabsContent>
-								<CustomTabsContent value="password">password</CustomTabsContent>
+								<CustomTabsContent value="overdue" className="space-y-6">
+									<OverdueStats actionItems={actionItems} />
+									<div className="border border-dashed border-gray-900/5" />
+									<OverdueWork actionItems={actionItems} />
+								</CustomTabsContent>
 							</Tabs>
 						</div>
 					</div>
@@ -283,6 +290,43 @@ const UpcomingStats = ({
 			name: "Total  Deliverables",
 			value: operations.upcomingDeliverables.total,
 		},
+	];
+
+	return (
+		<div className=" rounded-lg ring-1 shadow-xs ring-gray-900/5">
+			<dl className="mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 lg:px-2 xl:px-0">
+				{stats.map((stat, statIdx) => (
+					<div
+						key={stat.name}
+						className={cn(
+							statIdx % 2 === 1
+								? "sm:border-l"
+								: statIdx === 2
+									? "lg:border-l"
+									: "",
+							"flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2  px-4 py-6 sm:px-6 ",
+						)}
+					>
+						<dt className="text-xs font-medium text-gray-500">{stat.name}</dt>
+						<dd className="w-full flex-none text-2xl font-medium tracking-tight text-gray-900">
+							{stat.value}
+						</dd>
+					</div>
+				))}
+			</dl>
+		</div>
+	);
+};
+const OverdueStats = ({
+	actionItems,
+}: { actionItems: DashboardData["actionItems"] }) => {
+	const stats = [
+		{ name: "Overdue Tasks", value: actionItems.overdueTasks.length },
+		{
+			name: "Overdue  Deliverables",
+			value: actionItems.overdueDeliverables.length,
+		},
+		{ name: "Unstaffed Shoots", value: actionItems.unstaffedShoots.length },
 	];
 
 	return (

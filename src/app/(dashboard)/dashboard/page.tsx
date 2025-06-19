@@ -10,7 +10,6 @@ import DashboardClient from "./new-dashboard";
 
 export const dynamic = "force-dynamic";
 
-// REMOVED the incorrect type annotation for searchParams
 export default async function DashboardPage({
 	searchParams,
 }: {
