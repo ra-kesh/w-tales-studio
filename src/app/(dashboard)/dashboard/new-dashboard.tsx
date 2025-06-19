@@ -20,6 +20,7 @@ import { UpcomingWork } from "./upcmingwork";
 import { OverdueWork } from "./overduework";
 import { RecentBookings } from "./_components/recent-bookings";
 import { RecentBookingDashboard } from "./recent-booking";
+import { ExpenseBreakdown } from "./_components/expense-breakdown";
 
 export default function Example() {
 	const [interval, setInterval] = useQueryState(
@@ -74,7 +75,8 @@ export default function Example() {
 	};
 
 	// ADAPTED: Destructure the correct data object
-	const { kpis, actionItems, bookingAnalytics, operations } = data || emptyData;
+	const { kpis, actionItems, bookingAnalytics, operations, expenseAnalytics } =
+		data || emptyData;
 	return (
 		<>
 			<main>
@@ -162,20 +164,20 @@ export default function Example() {
 							</div>
 							<KpiStats kpis={kpis} />
 						</div>
-						{/* 
+
 						<div className="lg:col-start-3">
 							<div className="flex items-end justify-between mb-4">
 								<div>
 									<h2 className="text-base font-semibold leading-6 text-gray-900">
-										Booking Statistics
+										Expense Breakdown
 									</h2>
 									<p className=" text-sm text-gray-500">
-										Your booking performance at a glance.
+										Track expenses in across different categories
 									</p>
 								</div>
 							</div>
-							<BookingStats bookingAnalytics={bookingAnalytics} />
-						</div> */}
+							<ExpenseBreakdown data={expenseAnalytics} />
+						</div>
 
 						<div className="-mx-4  sm:px-8 sm:pb-14 lg:col-span-2 lg:row-span-2 lg:row-end-2">
 							<Tabs defaultValue="booking">
@@ -373,9 +375,9 @@ const BookingStats = ({
 	bookingAnalytics,
 }: { bookingAnalytics: DashboardData["bookingAnalytics"] }) => {
 	const stats = [
-		{ name: "Total", value: bookingAnalytics.summary.totalBookings },
-		{ name: "Active", value: bookingAnalytics.summary.activeBookings },
-		{ name: "New", value: bookingAnalytics.summary.newBookings },
+		{ name: "Total Bookings", value: bookingAnalytics.summary.totalBookings },
+		{ name: "Active Bookings", value: bookingAnalytics.summary.activeBookings },
+		{ name: "New Bookings", value: bookingAnalytics.summary.newBookings },
 	];
 
 	return (

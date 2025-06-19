@@ -1,144 +1,83 @@
 "use client";
 
-import { motion } from "framer-motion";
+import * as React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-	PieChart,
-	Pie,
-	Cell,
-	ResponsiveContainer,
-	Legend,
-	Tooltip,
-} from "recharts";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
+import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 
-const expenseData = [
-	{
-		name: "Equipment",
-		value: 85000,
-		color: "#2563eb",
-		spent: 85000,
-		budget: 100000,
-	},
-	{
-		name: "Marketing",
-		value: 45000,
-		color: "#16a34a",
-		spent: 45000,
-		budget: 50000,
-	},
-	{
-		name: "Studio Rent",
-		value: 35000,
-		color: "#9333ea",
-		spent: 35000,
-		budget: 40000,
-	},
-	{
-		name: "Travel",
-		value: 25000,
-		color: "#ea580c",
-		spent: 25000,
-		budget: 30000,
-	},
-	{
-		name: "Software",
-		value: 15000,
-		color: "#4f46e5",
-		spent: 15000,
-		budget: 20000,
-	},
+interface ExpenseData {
+	category: string;
+	total: number;
+}
+
+const COLORS = [
+	"#FF8042",
+	"#00C49F",
+	"#0088FE",
+	"#FFBB28",
+	"#9333ea",
+	"#e11d48",
 ];
 
-const totalSpent = expenseData.reduce((acc, curr) => acc + curr.spent, 0);
-const totalBudget = expenseData.reduce((acc, curr) => acc + curr.budget, 0);
+export function ExpenseBreakdown({ data }: { data: ExpenseData[] }) {
+	if (!data || data.length === 0) {
+		return (
+			<CardContent className="flex h-[180px] items-center justify-center rounded-lg ring-1 shadow-xs ring-gray-900/5">
+				<p className="text-sm text-muted-foreground">
+					No expense data available for this period.
+				</p>
+			</CardContent>
+		);
+	}
 
-export function ExpenseBreakdown() {
+	const totalExpenses = data.reduce((acc, curr) => acc + curr.total, 0);
+
+	const chartData = data.map((item, index) => ({
+		name: item.category,
+		value: item.total,
+		color: COLORS[index % COLORS.length],
+		percentage:
+			totalExpenses > 0 ? ((item.total / totalExpenses) * 100).toFixed(0) : 0,
+	}));
+
 	return (
-		<motion.div
-			initial={{ opacity: 0, y: 20 }}
-			animate={{ opacity: 1, y: 0 }}
-			transition={{ delay: 0.3 }}
-		>
-			<Card>
-				<CardHeader>
-					<CardTitle>Expense Analysis</CardTitle>
-				</CardHeader>
-				<CardContent className="space-y-6">
-					<div className="h-[250px]">
-						<ResponsiveContainer width="100%" height="100%">
-							<PieChart>
-								<Pie
-									data={expenseData}
-									cx="50%"
-									cy="50%"
-									innerRadius={60}
-									outerRadius={80}
-									paddingAngle={2}
-									dataKey="value"
-								>
-									{expenseData.map((entry, index) => (
-										<Cell key={`cell-${index}`} fill={entry.color} />
-									))}
-								</Pie>
-								<Tooltip
-									formatter={(value: number) => [
-										`₹${value.toLocaleString()}`,
-										"Spent",
-									]}
-								/>
-								<Legend />
-							</PieChart>
-						</ResponsiveContainer>
-					</div>
+		<div className="grid grid-cols-1 md:grid-cols-2 rounded-lg ring-1 shadow-xs ring-gray-900/5">
+			<div className="h-[180px] w-full">
+				<ResponsiveContainer width="100%" height="100%">
+					<PieChart>
+						<Pie
+							data={chartData}
+							cx="50%"
+							cy="50%"
+							innerRadius={38}
+							outerRadius={54}
+							paddingAngle={2}
+							dataKey="value"
+							nameKey="name"
+						>
+							{chartData.map((entry) => (
+								<Cell key={`cell-${entry.name}`} fill={entry.color} />
+							))}
+						</Pie>
+					</PieChart>
+				</ResponsiveContainer>
+			</div>
 
-					<div className="space-y-2">
-						<div className="flex items-center justify-between text-sm">
-							<span className="font-medium">Total Spent</span>
-							<span>
-								₹{totalSpent.toLocaleString()} / ₹{totalBudget.toLocaleString()}
+			<div className="flex flex-col justify-center space-y-4 sm:pr-6 xl:pr-8">
+				{chartData.map((entry) => (
+					<div key={entry.name} className="flex items-center justify-between">
+						<div className="flex items-center gap-3">
+							<div
+								className="h-2.5 w-2.5 rounded-full"
+								style={{ backgroundColor: entry.color }}
+							/>
+							<span className="text-sm text-muted-foreground">
+								{entry.name}
 							</span>
 						</div>
-						<Progress value={(totalSpent / totalBudget) * 100} />
+						<span className="text-sm font-semibold">{entry.percentage}%</span>
 					</div>
-
-					<div className="space-y-4">
-						{expenseData.map((expense, index) => (
-							<motion.div
-								key={expense.name}
-								initial={{ opacity: 0, x: -20 }}
-								animate={{ opacity: 1, x: 0 }}
-								transition={{ delay: 0.1 * index }}
-								className="flex items-center justify-between space-x-4"
-							>
-								<div className="flex items-center space-x-3">
-									<div
-										className="h-3 w-3 rounded-full"
-										style={{ backgroundColor: expense.color }}
-									/>
-									<span className="text-sm font-medium">{expense.name}</span>
-								</div>
-								<div className="flex items-center space-x-3">
-									<span className="text-sm">
-										₹{expense.spent.toLocaleString()}
-									</span>
-									<Badge
-										variant={
-											expense.spent <= expense.budget
-												? "default"
-												: "destructive"
-										}
-										className="text-xs"
-									>
-										{((expense.spent / expense.budget) * 100).toFixed(0)}%
-									</Badge>
-								</div>
-							</motion.div>
-						))}
-					</div>
-				</CardContent>
-			</Card>
-		</motion.div>
+				))}
+			</div>
+		</div>
 	);
 }
