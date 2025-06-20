@@ -6,7 +6,7 @@ import {
 import { getServerSession } from "@/lib/dal";
 import { getDashboardData } from "@/lib/db/queries";
 
-import DashboardClient from "./new-dashboard";
+import DashboardClient from "./dashboardclient";
 
 export const dynamic = "force-dynamic";
 

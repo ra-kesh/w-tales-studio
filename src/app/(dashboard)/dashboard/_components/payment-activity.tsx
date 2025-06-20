@@ -5,45 +5,8 @@ import { format, isToday, isYesterday } from "date-fns";
 
 import { cn } from "@/lib/utils";
 import { ArrowDownCircleIcon } from "lucide-react";
+import type { DashboardData } from "@/hooks/use-dashboard";
 
-interface RecentActivityProps {
-	bookingAnalytics: {
-		summary: {
-			totalBookings: number;
-			activeBookings: number;
-			newBookings: number;
-		};
-		recentNewBookings: {
-			id: number;
-			name: string;
-			clientName: string | null;
-			packageType: string;
-			createdAt: string;
-		}[];
-		recentPayments: {
-			id: number;
-			amount: number;
-			paidOn: string;
-			bookingName: string;
-		}[];
-		recentClients: {
-			id: number;
-			organizationId: string;
-			name: string;
-			brideName: string;
-			groomName: string;
-			phoneNumber: string;
-			email: string;
-			address: string;
-			createdAt: string;
-		}[];
-
-		packageTypeDistribution: any[];
-		bookingsOverTime: any[];
-	};
-}
-
-// --- Helper Functions ---
 const formatCurrency = (value: string | number) => {
 	return new Intl.NumberFormat("en-IN", {
 		style: "currency",
@@ -68,7 +31,11 @@ const formatDateHeader = (dateStr: string) => {
 };
 
 // --- Main Component ---
-export function PayementsAndClients({ bookingAnalytics }: RecentActivityProps) {
+export function PayementsAndClients({
+	bookingAnalytics,
+}: {
+	bookingAnalytics: DashboardData["bookingAnalytics"];
+}) {
 	const { recentClients, recentPayments } = bookingAnalytics;
 
 	const groupedPayments = useMemo(() => {
@@ -174,7 +141,7 @@ export function PayementsAndClients({ bookingAnalytics }: RecentActivityProps) {
 													colSpan={3}
 													className="relative isolate py-2 font-semibold"
 												>
-													<time dateTime={date}>{date}</time>
+													<time dateTime={date}>{formatDateHeader(date)}</time>
 													<div className="absolute inset-y-0 right-full -z-10 w-screen border-b border-gray-200 bg-gray-50" />
 													<div className="absolute inset-y-0 left-0 -z-10 w-screen border-b border-gray-200 bg-gray-50" />
 												</th>

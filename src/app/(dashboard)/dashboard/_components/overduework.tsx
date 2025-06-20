@@ -5,9 +5,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { format, formatDistanceToNowStrict } from "date-fns";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DataTable } from "@/components/data-table/data-table"; // Assuming this is in a shared location
-
-// --- Type Definitions for your ActionItems Data ---
+import { DataTable } from "@/components/data-table/data-table";
 
 interface OverdueTask {
 	id: number;
@@ -36,14 +34,11 @@ interface ActionItemsData {
 	unstaffedShoots: UnstaffedShoot[];
 }
 
-// --- Main OverdueWork Component ---
-
 export function OverdueWork({
 	actionItems,
 }: {
 	actionItems: ActionItemsData;
 }) {
-	// Define columns for each data type
 	const taskColumns: ColumnDef<OverdueTask>[] = [
 		{
 			accessorKey: "description",
@@ -115,10 +110,7 @@ export function OverdueWork({
 
 	return (
 		<Tabs defaultValue="tasks" className="w-full">
-			<div className="flex items-center justify-between">
-				{/* <h2 className="text-base/7 font-semibold text-gray-900">
-					Action Center
-				</h2> */}
+			<div className="flex items-center">
 				<TabsList className="bg-gray-100">
 					<TabsTrigger value="tasks">Overdue Tasks</TabsTrigger>
 					<TabsTrigger value="deliverables">Overdue Deliverables</TabsTrigger>

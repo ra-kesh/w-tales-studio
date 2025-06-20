@@ -18,21 +18,7 @@ import {
 import { parseAsString, useQueryState } from "nuqs";
 import type { Deliverable, Shoot, Task } from "@/lib/db/schema";
 import { DataTable } from "@/components/data-table/data-table";
-
-interface OperationsData {
-	upcomingShoots: {
-		list: Shoot[];
-		total: number;
-	};
-	upcomingDeliverables: {
-		list: Deliverable[];
-		total: number;
-	};
-	upcomingTasks: {
-		list: Task[];
-		total: number;
-	};
-}
+import type { DashboardData } from "@/hooks/use-dashboard";
 
 interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
@@ -42,9 +28,8 @@ interface DataTableProps<TData, TValue> {
 export function UpcomingWork({
 	operations,
 }: {
-	operations: OperationsData;
+	operations: DashboardData["operations"];
 }) {
-	// Define columns for each data type
 	const shootColumns: ColumnDef<Shoot>[] = [
 		{
 			accessorKey: "title",
@@ -120,7 +105,7 @@ export function UpcomingWork({
 
 	const [operationsInterval, setOperationsInterval] = useQueryState(
 		"operationsInterval",
-		parseAsString.withDefault("7d"), // Default to 7 days
+		parseAsString.withDefault("7d"),
 	);
 
 	return (

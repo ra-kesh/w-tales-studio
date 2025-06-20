@@ -16,13 +16,13 @@ import {
 import { type DashboardData, useDashboardData } from "@/hooks/use-dashboard";
 import { cn } from "@/lib/utils";
 import { parseAsString, useQueryState } from "nuqs";
-import { UpcomingWork } from "./upcmingwork";
-import { OverdueWork } from "./overduework";
-import { RecentBookingDashboard } from "./recent-booking";
+import { UpcomingWork } from "./_components/upcmingwork";
+import { OverdueWork } from "./_components/overduework";
+import { RecentBookingDashboard } from "./_components/recent-booking";
 import { ExpenseBreakdown } from "./_components/expense-breakdown";
-import { PayementsAndClients } from "./payment-activity";
+import { PayementsAndClients } from "./_components/payment-activity";
 
-export default function Example() {
+export default function DashboardClient() {
 	const [interval, setInterval] = useQueryState(
 		"interval",
 		parseAsString.withDefault("all"),
@@ -39,7 +39,7 @@ export default function Example() {
 	});
 
 	if (isLoading && !data) {
-		return <div>Loading dashboard...</div>; // Or a skeleton loader
+		return <div>Loading dashboard...</div>;
 	}
 
 	if (isError) {
@@ -121,12 +121,7 @@ export default function Example() {
 								>
 									Back
 								</button>
-								{/* <a
-									href="/"
-									className="hidden text-sm/6 font-semibold text-gray-900 sm:block"
-								>
-									Edit
-								</a> */}
+
 								<a
 									href="/"
 									className="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"

@@ -5,9 +5,8 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 
 import { DataTable } from "@/components/data-table/data-table";
-import { Button } from "@/components/ui/button";
-import { ArrowUpRight } from "lucide-react";
-import { useRouter } from "next/navigation";
+
+import Link from "next/link";
 
 interface RecentBooking {
 	id: number;
@@ -42,8 +41,6 @@ export function RecentBookingDashboard({
 		},
 	];
 
-	const router = useRouter();
-
 	return (
 		<div className="flex flex-col w-full space-y-6">
 			<div className="flex items-center justify-between">
@@ -55,14 +52,14 @@ export function RecentBookingDashboard({
 						Some of the most recent bookings made in the system.
 					</p>
 				</div>
-				{/* change this to ghost button */}
-				<Button
-					onClick={() => router.push("/bookings")}
-					className=" bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500"
+
+				<Link
+					prefetch={true}
+					href={"/bookings"}
+					className="text-sm/6 font-semibold text-indigo-600 hover:text-indigo-500"
 				>
-					View All
-					<ArrowUpRight size={4} />
-				</Button>
+					View all<span className="sr-only">, bookings</span>
+				</Link>
 			</div>
 
 			<DataTable columns={bookingColumns} data={recentBookings} />
