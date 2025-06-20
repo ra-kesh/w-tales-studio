@@ -29,6 +29,8 @@ import {
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+import { authClient } from "@/lib/auth/auth-client";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function DashboardClient() {
 	const [interval, setInterval] = useQueryState(
@@ -38,7 +40,7 @@ export default function DashboardClient() {
 
 	const [operationsInterval, setOperationsInterval] = useQueryState(
 		"operationsInterval",
-		parseAsString.withDefault("7d"), // Default to 7 days
+		parseAsString.withDefault("7d"),
 	);
 
 	const router = useRouter();
@@ -88,6 +90,9 @@ export default function DashboardClient() {
 
 	const { kpis, actionItems, bookingAnalytics, operations, expenseAnalytics } =
 		data || emptyData;
+
+	const { data: activeOrganization } = authClient.useActiveOrganization();
+
 	return (
 		<>
 			<main>
@@ -111,15 +116,24 @@ export default function DashboardClient() {
 					<div className="mx-auto  px-4 py-8 sm:px-6 lg:px-8">
 						<div className="mx-auto flex max-w-2xl items-center justify-between gap-x-8 lg:mx-0 lg:max-w-none">
 							<div className="flex items-center gap-x-6">
-								<img
-									alt=""
-									src="https://tailwindui.com/plus-assets/img/logos/48x48/tuple.svg"
-									className="size-16 flex-none rounded-full ring-1 ring-gray-900/10"
-								/>
+								<Avatar className="rounded-full size-16 ring-1 ring-gray-950/10 p-2">
+									<AvatarImage
+										className="object-cover w-full h-full rounded-full"
+										src={activeOrganization?.logo || undefined}
+									/>
+									<AvatarFallback className="rounded-full">
+										{activeOrganization?.name?.charAt(0) || undefined}
+									</AvatarFallback>
+								</Avatar>
+
 								<h1>
 									<div className="text-sm/6 text-gray-500">Studio</div>
 									<div className="mt-1 text-base font-semibold text-gray-900">
-										WeddingTales Photography
+										{activeOrganization ? (
+											<p>{activeOrganization.name}</p>
+										) : (
+											<p>Organisation Not Available </p>
+										)}
 									</div>
 								</h1>
 							</div>
@@ -180,20 +194,24 @@ export default function DashboardClient() {
 						</div>
 
 						<div className="lg:col-start-3">
-							<div className="flex items-end justify-between mb-4">
-								<div>
-									<h2 className="text-base font-semibold leading-6 text-gray-900">
+							<div className="relative mb-4">
+								<div
+									aria-hidden="true"
+									className="absolute inset-0 flex items-center"
+								>
+									<div className="w-full border border-gray-900/5 border-dashed" />
+								</div>
+								<div className="relative flex justify-start">
+									<span className="bg-white pr-3 text-base font-semibold leading-6 text-gray-900">
 										Expense Breakdown
-									</h2>
-									<p className=" text-sm text-gray-500">
-										Track expenses in across different categories
-									</p>
+									</span>
 								</div>
 							</div>
+
 							<ExpenseBreakdown data={expenseAnalytics} />
 						</div>
 
-						<div className="-mx-4  sm:px-8 sm:pb-14 lg:col-span-2 lg:row-span-2 lg:row-end-2">
+						<div className="-mx-4  sm:px-4 sm:pb-14 lg:col-span-2 lg:row-span-2 lg:row-end-2 lg:border-r-1 border-dashed border-gray-900/5">
 							<Tabs defaultValue="booking">
 								<CustomTabsList>
 									<CustomTabsTrigger value="booking">

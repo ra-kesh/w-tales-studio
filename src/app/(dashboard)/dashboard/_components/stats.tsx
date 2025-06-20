@@ -70,11 +70,20 @@ export const UpcomingStats = ({
 	operations,
 }: { operations: DashboardData["operations"] }) => {
 	const stats = [
-		{ name: "Total  Shoots", value: operations.upcomingShoots.total },
-		{ name: "Total  Tasks", value: operations.upcomingTasks.total },
 		{
-			name: "Total  Deliverables",
-			value: operations.upcomingDeliverables.total,
+			name: "Upcoming  Shoots",
+			value: operations.upcomingShoots.list.length,
+			total: operations.upcomingShoots.total,
+		},
+		{
+			name: "Upcoming  Tasks",
+			value: operations.upcomingTasks.list.length,
+			total: operations.upcomingTasks.total,
+		},
+		{
+			name: "Upcoming  Deliverables",
+			value: operations.upcomingDeliverables.list.length,
+			total: operations.upcomingDeliverables.total,
 		},
 	];
 
@@ -95,7 +104,7 @@ export const UpcomingStats = ({
 					>
 						<dt className="text-xs font-medium text-gray-500">{stat.name}</dt>
 						<dd className="w-full flex-none text-2xl font-medium tracking-tight text-gray-900">
-							{stat.value}
+							{stat.value} / {stat.total}
 						</dd>
 					</div>
 				))}

@@ -6,6 +6,7 @@ import { format, isToday, isYesterday } from "date-fns";
 import { cn } from "@/lib/utils";
 import { ArrowDownCircleIcon } from "lucide-react";
 import type { DashboardData } from "@/hooks/use-dashboard";
+import Link from "next/link";
 
 const formatCurrency = (value: string | number) => {
 	return new Intl.NumberFormat("en-IN", {
@@ -76,12 +77,13 @@ export function PayementsAndClients({
 						<h2 className="text-base/7 font-semibold text-gray-900">
 							Recent Clients
 						</h2>
-						<a
+						<Link
+							prefetch
 							href="/clients"
 							className="text-sm/6 font-semibold text-indigo-600 hover:text-indigo-500"
 						>
 							View all<span className="sr-only">, clients</span>
-						</a>
+						</Link>
 					</div>
 					<ul className="mt-6 grid grid-cols-1 gap-x-4 gap-y-8 lg:grid-cols-3 xl:gap-x-4">
 						{recentClients.map((client) => (
@@ -91,10 +93,10 @@ export function PayementsAndClients({
 							>
 								<div className="flex items-center gap-x-4 border-b border-gray-900/5 bg-gray-50 p-4">
 									<div className="flex h-12 w-12 flex-none items-center justify-center rounded-lg bg-white object-cover text-lg font-bold text-gray-700 ring-1 ring-gray-900/10">
-										{getInitials(client.name)}
+										{client.brideName?.charAt(0) + client.groomName?.charAt(0)}
 									</div>
 									<div className="text-sm/6 font-medium text-gray-900">
-										{client.brideName} {client.groomName}
+										{client.brideName} & {client.groomName}
 									</div>
 								</div>
 								<dl className="-my-3 divide-y divide-gray-100 px-6 py-4 text-sm/6">
@@ -108,17 +110,19 @@ export function PayementsAndClients({
 					</ul>
 				</div>
 			</div>
+			<div className="border border-dashed border-gray-900/5" />
 			<div className="space-y-6">
 				<div className="flex items-center justify-between">
 					<h2 className="text-base/7 font-semibold text-gray-900">
 						Recent Payments
 					</h2>
-					<a
+					<Link
+						prefetch
 						href="/payments"
 						className="text-sm/6 font-semibold text-indigo-600 hover:text-indigo-500"
 					>
 						View all<span className="sr-only">, clients</span>
-					</a>
+					</Link>
 				</div>
 				<div className=" overflow-hidden border-t border-gray-100">
 					<div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
