@@ -14,13 +14,21 @@ import {
 	Tabs,
 } from "@/components/ui/tabs";
 import { type DashboardData, useDashboardData } from "@/hooks/use-dashboard";
-import { cn } from "@/lib/utils";
 import { parseAsString, useQueryState } from "nuqs";
 import { UpcomingWork } from "./_components/upcmingwork";
 import { OverdueWork } from "./_components/overduework";
 import { RecentBookingDashboard } from "./_components/recent-booking";
 import { ExpenseBreakdown } from "./_components/expense-breakdown";
 import { PayementsAndClients } from "./_components/payment-activity";
+import {
+	BookingStats,
+	KpiStats,
+	OverdueStats,
+	UpcomingStats,
+} from "./_components/stats";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 
 export default function DashboardClient() {
 	const [interval, setInterval] = useQueryState(
@@ -32,6 +40,8 @@ export default function DashboardClient() {
 		"operationsInterval",
 		parseAsString.withDefault("7d"), // Default to 7 days
 	);
+
+	const router = useRouter();
 
 	const { data, isLoading, isError } = useDashboardData({
 		interval,
@@ -76,7 +86,6 @@ export default function DashboardClient() {
 		},
 	};
 
-	// ADAPTED: Destructure the correct data object
 	const { kpis, actionItems, bookingAnalytics, operations, expenseAnalytics } =
 		data || emptyData;
 	return (
@@ -114,20 +123,30 @@ export default function DashboardClient() {
 									</div>
 								</h1>
 							</div>
-							<div className="flex items-center gap-x-4 sm:gap-x-6">
-								<button
+							<div className="flex items-center gap-x-4">
+								<Button
+									variant={"ghost"}
 									type="button"
-									className="hidden text-sm/6 font-semibold text-gray-900 sm:block"
+									className="font-semibold cursor-pointer"
+									onClick={router.back}
 								>
 									Back
-								</button>
+								</Button>
 
-								<a
-									href="/"
-									className="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+								<Link
+									href={{
+										pathname: "/bookings/add",
+										query: { tab: "details" },
+									}}
+									prefetch={true}
 								>
-									Add Booking
-								</a>
+									<Button
+										size="sm"
+										className="bg-indigo-600  font-semibold text-white  hover:bg-indigo-500 cursor-pointer"
+									>
+										New Booking
+									</Button>
+								</Link>
 							</div>
 						</div>
 					</div>
@@ -218,185 +237,3 @@ export default function DashboardClient() {
 		</>
 	);
 }
-
-const KpiStats = ({ kpis }: { kpis: DashboardData["kpis"] }) => {
-	const stats = [
-		{ name: "Revenue", value: kpis.projectedRevenue },
-		{ name: "Received", value: kpis.collectedCash },
-		{ name: "Expenses", value: kpis.totalExpenses },
-		{ name: "Overdue", value: kpis.overdueInvoicesValue },
-	];
-
-	return (
-		<div className="rounded-lg ring-1 shadow-xs ring-gray-900/5">
-			<dl className="grid grid-cols-2">
-				{stats.map((stat, statIdx) => (
-					<div
-						key={stat.name}
-						className={cn(
-							"flex flex-col px-4 py-6 sm:px-6 xl:px-8 xl:py-8 relative",
-							statIdx < stats.length / 2 ? "border-b border-gray-900/5" : "",
-						)}
-					>
-						{statIdx % 2 === 0 && (
-							<div className="absolute right-0 top-1/2 -translate-y-1/2 w-px h-[50%] bg-gray-900/5" />
-						)}
-						<dt className="text-xs font-medium text-gray-500">{stat.name}</dt>
-						<dd className="mt-1 text-lg font-medium tracking-tight text-gray-900">
-							{formatCurrency(stat.value)}
-						</dd>
-					</div>
-				))}
-			</dl>
-		</div>
-	);
-};
-// const BookingStats = ({
-// 	bookingAnalytics,
-// }: { bookingAnalytics: DashboardData["bookingAnalytics"] }) => {
-// 	const stats = [
-// 		{ name: "Total", value: bookingAnalytics.summary.totalBookings },
-// 		{ name: "Active", value: bookingAnalytics.summary.activeBookings },
-// 		{ name: "New", value: bookingAnalytics.summary.newBookings },
-// 	];
-
-// 	return (
-// 		<div className="rounded-lg ring-1 shadow-xs ring-gray-900/5">
-// 			<dl className="grid grid-cols-3">
-// 				{stats.map((stat, statIdx) => (
-// 					<div
-// 						key={stat.name}
-// 						className={cn(
-// 							"flex flex-col px-4 py-6 sm:px-6 xl:px-8 xl:py-8 relative",
-// 						)}
-// 					>
-// 						{statIdx < stats.length - 1 && (
-// 							<div className="absolute right-0 top-1/2 -translate-y-1/2 w-px h-[50%] bg-gray-900/5" />
-// 						)}
-// 						<dt className="text-xs font-medium text-gray-500">{stat.name}</dt>
-// 						<dd className="mt-1 text-lg font-medium tracking-tight text-gray-900">
-// 							{stat.value}
-// 						</dd>
-// 					</div>
-// 				))}
-// 			</dl>
-// 		</div>
-// 	);
-// };
-
-const formatCurrency = (value: string | number) => {
-	return new Intl.NumberFormat("en-IN", {
-		style: "currency",
-		currency: "INR",
-		maximumFractionDigits: 0,
-	}).format(Number(value));
-};
-
-const UpcomingStats = ({
-	operations,
-}: { operations: DashboardData["operations"] }) => {
-	const stats = [
-		{ name: "Total  Shoots", value: operations.upcomingShoots.total },
-		{ name: "Total  Tasks", value: operations.upcomingTasks.total },
-		{
-			name: "Total  Deliverables",
-			value: operations.upcomingDeliverables.total,
-		},
-	];
-
-	return (
-		<div className=" rounded-lg ring-1 shadow-xs ring-gray-900/5">
-			<dl className="mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 lg:px-2 xl:px-0">
-				{stats.map((stat, statIdx) => (
-					<div
-						key={stat.name}
-						className={cn(
-							statIdx % 2 === 1
-								? "sm:border-l"
-								: statIdx === 2
-									? "lg:border-l"
-									: "",
-							"flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2  px-4 py-6 sm:px-6 ",
-						)}
-					>
-						<dt className="text-xs font-medium text-gray-500">{stat.name}</dt>
-						<dd className="w-full flex-none text-2xl font-medium tracking-tight text-gray-900">
-							{stat.value}
-						</dd>
-					</div>
-				))}
-			</dl>
-		</div>
-	);
-};
-const OverdueStats = ({
-	actionItems,
-}: { actionItems: DashboardData["actionItems"] }) => {
-	const stats = [
-		{ name: "Overdue Tasks", value: actionItems.overdueTasks.length },
-		{
-			name: "Overdue  Deliverables",
-			value: actionItems.overdueDeliverables.length,
-		},
-		{ name: "Unstaffed Shoots", value: actionItems.unstaffedShoots.length },
-	];
-
-	return (
-		<div className=" rounded-lg ring-1 shadow-xs ring-gray-900/5">
-			<dl className="mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 lg:px-2 xl:px-0">
-				{stats.map((stat, statIdx) => (
-					<div
-						key={stat.name}
-						className={cn(
-							statIdx % 2 === 1
-								? "sm:border-l"
-								: statIdx === 2
-									? "lg:border-l"
-									: "",
-							"flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2  px-4 py-6 sm:px-6 ",
-						)}
-					>
-						<dt className="text-xs font-medium text-gray-500">{stat.name}</dt>
-						<dd className="w-full flex-none text-2xl font-medium tracking-tight text-gray-900">
-							{stat.value}
-						</dd>
-					</div>
-				))}
-			</dl>
-		</div>
-	);
-};
-const BookingStats = ({
-	bookingAnalytics,
-}: { bookingAnalytics: DashboardData["bookingAnalytics"] }) => {
-	const stats = [
-		{ name: "Total Bookings", value: bookingAnalytics.summary.totalBookings },
-		{ name: "Active Bookings", value: bookingAnalytics.summary.activeBookings },
-		{ name: "New Bookings", value: bookingAnalytics.summary.newBookings },
-	];
-
-	return (
-		<div className=" rounded-lg ring-1 shadow-xs ring-gray-900/5">
-			<dl className="mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 lg:px-2 xl:px-0">
-				{stats.map((stat, statIdx) => (
-					<div
-						key={stat.name}
-						className={cn(
-							statIdx % 2 === 1
-								? "sm:border-l"
-								: statIdx === 2
-									? "lg:border-l"
-									: "",
-							"flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2  px-4 py-6 sm:px-6 ",
-						)}
-					>
-						<dt className="text-xs font-medium text-gray-500">{stat.name}</dt>
-						<dd className="w-full flex-none text-2xl font-medium tracking-tight text-gray-900">
-							{stat.value}
-						</dd>
-					</div>
-				))}
-			</dl>
-		</div>
-	);
-};
