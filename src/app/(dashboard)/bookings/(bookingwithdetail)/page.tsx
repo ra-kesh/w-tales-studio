@@ -16,54 +16,59 @@ type Params = Promise<{ slug: string }>;
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function Bookings(props: {
-  params: Params;
-  searchParams: SearchParams;
+	params: Params;
+	searchParams: SearchParams;
 }) {
-  const columns = useBookingColumns();
-  const { data, isLoading } = useBookings();
+	const columns = useBookingColumns();
+	const { data, isLoading } = useBookings();
 
-  const defaultData = React.useMemo(() => [], []);
+	const defaultData = React.useMemo(() => [], []);
 
-  const { table } = useBookingTable({
-    data: data?.data ?? defaultData,
-    pageCount: data?.pageCount ?? 0,
-    columns,
-    initialState: {
-      sorting: [{ id: "createdAt", desc: true }],
-      columnPinning: { right: ["actions"] },
-    },
-    getRowId: (originalRow) => originalRow.id.toString(),
-    shallow: false,
-    clearOnDefault: true,
-  });
+	const { table } = useBookingTable({
+		data: data?.data ?? defaultData,
+		pageCount: data?.pageCount ?? 0,
+		columns,
+		initialState: {
+			sorting: [{ id: "createdAt", desc: true }],
+			columnPinning: { right: ["actions"] },
+		},
+		getRowId: (originalRow) => originalRow.id.toString(),
+		shallow: false,
+		clearOnDefault: true,
+	});
 
-  return (
-    <div className="flex-1 min-w-0 border-t">
-      <DataTableToolbar table={table} className="my-2">
-        <Link
-          href={{
-            pathname: "/bookings/add",
-            query: { tab: "details" },
-          }}
-          prefetch={true}
-        >
-          <Button size="sm">New Booking</Button>
-        </Link>
-      </DataTableToolbar>
-      {isLoading ? (
-        <DataTableSkeleton
-          columnCount={7}
-          filterCount={0}
-          cellWidths={["20rem", "10rem", "10rem", "6rem", "6rem", "6rem"]}
-          shrinkZero
-        />
-      ) : (
-        <>
-          <BookingTable table={table} columns={columns}>
-            <BookingTablePagination table={table} />
-          </BookingTable>
-        </>
-      )}
-    </div>
-  );
+	return (
+		<div className="flex-1 min-w-0 py-6">
+			<DataTableToolbar table={table} className="my-2">
+				<Link
+					href={{
+						pathname: "/bookings/add",
+						query: { tab: "details" },
+					}}
+					prefetch={true}
+				>
+					<Button
+						size="sm"
+						className="bg-indigo-600  font-semibold text-white  hover:bg-indigo-500 cursor-pointer"
+					>
+						New Booking
+					</Button>
+				</Link>
+			</DataTableToolbar>
+			{isLoading ? (
+				<DataTableSkeleton
+					columnCount={7}
+					filterCount={0}
+					cellWidths={["20rem", "10rem", "10rem", "6rem", "6rem", "6rem"]}
+					shrinkZero
+				/>
+			) : (
+				<>
+					<BookingTable table={table} columns={columns}>
+						<BookingTablePagination table={table} />
+					</BookingTable>
+				</>
+			)}
+		</div>
+	);
 }
