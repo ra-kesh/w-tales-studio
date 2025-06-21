@@ -139,7 +139,7 @@ export default function DashboardClient() {
 							</div>
 							<div className="flex items-center gap-x-4">
 								<Button
-									variant={"ghost"}
+									variant={"link"}
 									type="button"
 									className="font-semibold cursor-pointer"
 									onClick={router.back}
