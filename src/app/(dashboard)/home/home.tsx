@@ -126,31 +126,33 @@ const HomeContent = () => {
 	};
 
 	return (
-		<div className="flex flex-col space-y-6">
-			<SimpleTabsList className="w-full justify-start gap-6">
-				{!onboardingLoading &&
-					tabs.map((tab) => (
-						<SimpleTabsTrigger
-							key={tab.value}
-							className={cn(
-								"p-2 border-b-2 border-transparent transition-colors",
-								activeTab === tab.value
-									? "border-primary text-primary font-medium"
-									: "hover:text-foreground",
-								tab.highlight && "relative",
-							)}
-							onClick={() => setActiveTab(tab.value)}
-						>
-							{tab.icon && <tab.icon className="h-4 w-4 mr-2" />}
-							{tab.label}
-							{tab.highlight && (
-								<div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full" />
-							)}
-						</SimpleTabsTrigger>
-					))}
-			</SimpleTabsList>
+		<div className="flex flex-col  mx-auto  px-4 py-8 sm:px-6 lg:px-8 lg:mx-0 lg:max-w-none">
+			<div className="mx-auto max-w-2xl space-y-6  lg:mx-0 lg:max-w-none ">
+				<SimpleTabsList className="w-full justify-start gap-6">
+					{!onboardingLoading &&
+						tabs.map((tab) => (
+							<SimpleTabsTrigger
+								key={tab.value}
+								className={cn(
+									"group flex items-center p-2 border-b-2 border-transparent transition-colors",
+									activeTab === tab.value
+										? "border-indigo-500 hover:border-indigo-500 text-indigo-600 hover:text-indigo-600 font-medium"
+										: "text-gray-500 hover:border-gray-300 hover:text-gray-700",
+									tab.highlight && "relative",
+								)}
+								onClick={() => setActiveTab(tab.value)}
+							>
+								{tab.icon && <tab.icon className="h-4 w-4 mr-2" />}
+								{tab.label}
+								{tab.highlight && (
+									<div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full" />
+								)}
+							</SimpleTabsTrigger>
+						))}
+				</SimpleTabsList>
 
-			<div className="min-h-[400px]">{renderTabContent()}</div>
+				<div className="min-h-[400px]">{renderTabContent()}</div>
+			</div>
 		</div>
 	);
 };
