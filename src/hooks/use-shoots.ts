@@ -23,7 +23,7 @@ export function useShoots() {
 	return useQuery({
 		queryKey: ["bookings", "shoot", "list", searchParams.toString()],
 		queryFn: () => fetchShoots(searchParams),
-		placeholderData: { data: [], total: 0 },
+		placeholderData: { data: [], total: 0, pageCount: 0, limit: 0 },
 	});
 }
 

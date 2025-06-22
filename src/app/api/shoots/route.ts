@@ -57,7 +57,7 @@ export async function GET(request: Request) {
 		const filters: ShootFilters = {
 			title: searchParams.get("title") || undefined,
 			date: searchParams.get("date") || undefined,
-			bookingName: searchParams.get("bookingName") || undefined,
+			bookingId: searchParams.get("bookingId") || undefined,
 			crew: searchParams.get("crew") || undefined, // This will be a string like "8,10"
 		};
 

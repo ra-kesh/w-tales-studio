@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import {
+	type Table as TanstackTable,
 	type ColumnDef,
 	type ColumnFiltersState,
 	type SortingState,
@@ -34,47 +35,12 @@ import type { ShootRowData } from "@/types/shoots";
 
 interface ShootTableProps {
 	columns: ColumnDef<ShootRowData>[];
-	data: ShootRowData[];
+	table: TanstackTable<ShootRowData>;
 }
 
-export function ShootTable({ columns, data }: ShootTableProps) {
-	const [rowSelection, setRowSelection] = React.useState({});
-	const [columnVisibility, setColumnVisibility] =
-		React.useState<VisibilityState>({});
-	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-		[],
-	);
-	const [sorting, setSorting] = React.useState<SortingState>([]);
-	const [expanded, setExpanded] = React.useState({});
-
-	const table = useReactTable({
-		data,
-		columns,
-		state: {
-			sorting,
-			columnVisibility,
-			rowSelection,
-			columnFilters,
-			expanded,
-		},
-		enableRowSelection: true,
-		enableExpanding: true,
-		onExpandedChange: setExpanded,
-		onRowSelectionChange: setRowSelection,
-		onSortingChange: setSorting,
-		onColumnFiltersChange: setColumnFilters,
-		onColumnVisibilityChange: setColumnVisibility,
-		getCoreRowModel: getCoreRowModel(),
-		getFilteredRowModel: getFilteredRowModel(),
-		getPaginationRowModel: getPaginationRowModel(),
-		getSortedRowModel: getSortedRowModel(),
-		getFacetedRowModel: getFacetedRowModel(),
-		getFacetedUniqueValues: getFacetedUniqueValues(),
-	});
-
+export function ShootTable({ columns, table }: ShootTableProps) {
 	return (
 		<div className="space-y-4">
-			<ShootsTableToolbar table={table} />
 			<div className="rounded-md border">
 				<Table>
 					<TableHeader>

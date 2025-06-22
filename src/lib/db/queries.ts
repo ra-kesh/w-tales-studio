@@ -446,7 +446,7 @@ export async function getExpenses(
 export type ShootFilters = {
 	title?: string;
 	date?: string; // Handles date ranges
-	bookingName?: string;
+	bookingId?: string;
 	crew?: string; // Will be a comma-separated string of crew IDs
 };
 
@@ -476,8 +476,11 @@ export async function getShoots(
 		whereConditions.push(ilike(shoots.title, searchTerm));
 	}
 
-	if (filters.bookingName) {
-		const searchTerm = `%${filters.bookingName}%`;
+	if (filters.bookingId) {
+		const bookingIds = filters.bookingId
+			.split(",")
+			.map((id) => Number.parseInt(id.trim(), 10))
+			.filter((id) => !Number.isNaN(id));
 
 		whereConditions.push(
 			exists(
@@ -487,7 +490,7 @@ export async function getShoots(
 					.where(
 						and(
 							eq(bookings.id, shoots.bookingId),
-							ilike(bookings.name, searchTerm),
+							inArray(bookings.id, bookingIds),
 						),
 					),
 			),
