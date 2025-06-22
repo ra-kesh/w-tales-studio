@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
-import { getShoots } from "@/lib/db/queries";
+import {
+	type AllowedShootSortFields,
+	getShoots,
+	type ShootFilters,
+	type ShootSortOption,
+} from "@/lib/db/queries";
 import { getServerSession } from "@/lib/dal";
 import { db } from "@/lib/db/drizzle";
 import { shoots, bookings, crews, shootsAssignments } from "@/lib/db/schema";
@@ -28,7 +33,41 @@ export async function GET(request: Request) {
 		const { searchParams } = new URL(request.url);
 		const page = Number.parseInt(searchParams.get("page") || "1", 10);
 		const limit = Number.parseInt(searchParams.get("limit") || "10", 10);
-		const result = await getShoots(userOrganizationId, page, limit);
+
+		const sortParam = searchParams.get("sort");
+		let sortOptions: ShootSortOption[] | undefined = undefined;
+		if (sortParam) {
+			try {
+				const parsedSortOptions = JSON.parse(sortParam);
+				const allowedFields: AllowedShootSortFields[] = [
+					"title",
+					"date",
+					"createdAt",
+					"updatedAt",
+				];
+				sortOptions = parsedSortOptions.filter(
+					(option: { id: AllowedShootSortFields; desc: boolean }) =>
+						allowedFields.includes(option.id),
+				);
+			} catch (error) {
+				console.error("Error parsing sort parameter:", error);
+			}
+		}
+
+		const filters: ShootFilters = {
+			title: searchParams.get("title") || undefined,
+			date: searchParams.get("date") || undefined,
+			bookingName: searchParams.get("bookingName") || undefined,
+			crew: searchParams.get("crew") || undefined, // This will be a string like "8,10"
+		};
+
+		const result = await getShoots(
+			userOrganizationId,
+			page,
+			limit,
+			sortOptions,
+			filters,
+		);
 		return NextResponse.json(result, { status: 200 });
 	} catch (error: unknown) {
 		console.error("Error fetching shoots:", error);

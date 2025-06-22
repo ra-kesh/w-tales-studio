@@ -5,6 +5,7 @@ import {
 	countDistinct,
 	desc,
 	eq,
+	exists,
 	gte,
 	ilike,
 	inArray,
@@ -442,15 +443,120 @@ export async function getExpenses(
 	};
 }
 
+export type ShootFilters = {
+	title?: string;
+	date?: string; // Handles date ranges
+	bookingName?: string;
+	crew?: string; // Will be a comma-separated string of crew IDs
+};
+
+// Note: Sorting by bookingName or crew would require a JOIN, which complicates
+// the query. We'll stick to sorting by fields on the 'shoots' table for now.
+export type AllowedShootSortFields =
+	| "title"
+	| "date"
+	| "createdAt"
+	| "updatedAt";
+export type ShootSortOption = { id: AllowedShootSortFields; desc: boolean };
+
 export async function getShoots(
 	userOrganizationId: string,
 	page = 1,
 	limit = 10,
+	sortOptions: ShootSortOption[] | undefined = undefined,
+	filters: ShootFilters = {},
 ) {
 	const offset = (page - 1) * limit;
 
+	const whereConditions = [eq(shoots.organizationId, userOrganizationId)];
+
+	if (filters.title) {
+		// Filter by Shoot Title
+		const searchTerm = `%${filters.title}%`;
+		whereConditions.push(ilike(shoots.title, searchTerm));
+	}
+
+	if (filters.bookingName) {
+		const searchTerm = `%${filters.bookingName}%`;
+
+		whereConditions.push(
+			exists(
+				db
+					.select({ id: bookings.id })
+					.from(bookings)
+					.where(
+						and(
+							eq(bookings.id, shoots.bookingId),
+							ilike(bookings.name, searchTerm),
+						),
+					),
+			),
+		);
+	}
+
+	if (filters.crew) {
+		const crewIds = filters.crew
+			.split(",")
+			.map((id) => Number.parseInt(id.trim(), 10))
+			.filter((id) => !Number.isNaN(id));
+
+		if (crewIds.length > 0) {
+			whereConditions.push(
+				exists(
+					db
+						.select({ id: shootsAssignments.id })
+						.from(shootsAssignments)
+						.where(
+							and(
+								eq(shootsAssignments.shootId, shoots.id),
+								inArray(shootsAssignments.crewId, crewIds),
+							),
+						),
+				),
+			);
+		}
+	}
+
+	if (filters.date) {
+		// Filter by Shoot Date
+		const dates = filters.date
+			.split(",")
+			.map((date) => date.trim())
+			.filter((date) => date);
+
+		if (dates.length === 1) {
+			const date = new Date(dates[0]);
+			date.setUTCHours(0, 0, 0, 0);
+			const endDate = new Date(date);
+			endDate.setUTCHours(23, 59, 59, 999);
+			whereConditions.push(gte(shoots.date, date.toISOString().slice(0, 10)));
+			whereConditions.push(
+				lte(shoots.date, endDate.toISOString().slice(0, 10)),
+			);
+		} else if (dates.length === 2) {
+			const startDate = new Date(dates[0]);
+			startDate.setUTCHours(0, 0, 0, 0);
+			const endDate = new Date(dates[1]);
+			endDate.setUTCHours(23, 59, 59, 999);
+			whereConditions.push(
+				gte(shoots.date, startDate.toISOString().slice(0, 10)),
+			);
+			whereConditions.push(
+				lte(shoots.date, endDate.toISOString().slice(0, 10)),
+			);
+		}
+	}
+
+	// --- Build Dynamic Order By Clause ---
+	const orderBy =
+		sortOptions && sortOptions.length > 0
+			? sortOptions.map((item) =>
+					item.desc ? desc(shoots[item.id]) : asc(shoots[item.id]),
+				)
+			: [desc(shoots.date), desc(shoots.createdAt)]; // Default sort
+
 	const shootsData = await db.query.shoots.findMany({
-		where: eq(shoots.organizationId, userOrganizationId),
+		where: and(...whereConditions),
 		with: {
 			booking: {
 				columns: {
@@ -458,12 +564,6 @@ export async function getShoots(
 				},
 			},
 			shootsAssignments: {
-				columns: {
-					id: true,
-					crewId: true,
-					isLead: true,
-					assignedAt: true,
-				},
 				with: {
 					crew: {
 						columns: {
@@ -479,8 +579,6 @@ export async function getShoots(
 									user: {
 										columns: {
 											name: true,
-											email: true,
-											image: true,
 										},
 									},
 								},
@@ -490,24 +588,22 @@ export async function getShoots(
 				},
 			},
 		},
-		orderBy: (shoots, { desc }) => [
-			desc(shoots.updatedAt),
-			desc(shoots.createdAt),
-		],
-		// limit,
-		// offset,
+		orderBy,
+		limit,
+		offset,
 	});
 
-	const total = await db.$count(
-		shoots,
-		eq(shoots.organizationId, userOrganizationId),
-	);
+	const total = await db
+		.select({ count: count() })
+		.from(shoots)
+		.where(and(...whereConditions));
 
 	return {
 		data: shootsData,
-		total,
-		// page,
-		// limit,
+		total: total[0].count,
+		page,
+		pageCount: Math.ceil(total[0].count / limit),
+		limit,
 	};
 }
 
