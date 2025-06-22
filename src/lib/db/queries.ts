@@ -2,6 +2,7 @@ import {
 	and,
 	asc,
 	count,
+	countDistinct,
 	desc,
 	eq,
 	gte,
@@ -825,54 +826,63 @@ export async function getCrews(organizationId: string) {
 	});
 }
 
-export type BookingStats = {
+// Add this type definition for your new stats object
+export interface BookingStats {
 	totalBookings: number;
 	activeBookings: number;
-	totalExpenses: number;
-	totalRevenue: number;
-};
+	newBookings: number;
+	overdueBookings: number;
+}
 
+// Refactored function to get the new stats
 export async function getBookingsStats(
 	userOrganizationId: string,
 ): Promise<BookingStats> {
-	// 1. Total Bookings and Active Bookings
-	const bookingsStats = await db
-		.select({
-			total: sql<number>`COUNT(*)`,
-			active: sql<number>`SUM(CASE WHEN ${bookings.status} NOT IN ('completed', 'cancelled') THEN 1 ELSE 0 END)`,
-		})
-		.from(bookings)
-		.where(eq(bookings.organizationId, userOrganizationId));
+	const todayISO = formatISO(startOfDay(new Date()), {
+		representation: "date",
+	});
 
-	const totalBookings = bookingsStats[0]?.total || 0;
-	const activeBookings = bookingsStats[0]?.active || 0;
+	// Use Promise.all to run queries concurrently
+	const [bookingCounts, overdueResult] = await Promise.all([
+		// Query 1: Get total, active, and new counts from the bookings table
+		db
+			.select({
+				total: sql<number>`count(*)`.mapWith(Number),
+				active:
+					sql<number>`sum(case when ${bookings.status} not in ('completed', 'cancelled') then 1 else 0 end)`.mapWith(
+						Number,
+					),
+				new: sql<number>`sum(case when ${bookings.status} = 'new' then 1 else 0 end)`.mapWith(
+					Number,
+				),
+			})
+			.from(bookings)
+			.where(eq(bookings.organizationId, userOrganizationId)),
 
-	// 2. Total Expenses (across all bookings)
-	const expensesStats = await db
-		.select({
-			totalExpenses: sql<number>`SUM(${expenses.amount})`,
-		})
-		.from(expenses)
-		.innerJoin(bookings, eq(expenses.bookingId, bookings.id))
-		.where(eq(bookings.organizationId, userOrganizationId));
-
-	const totalExpenses = expensesStats[0]?.totalExpenses || 0;
-
-	// 3. Total Revenue (across all bookings)
-	const revenueStats = await db
-		.select({
-			totalRevenue: sql<number>`SUM(${bookings.packageCost})`,
-		})
-		.from(bookings)
-		.where(eq(bookings.organizationId, userOrganizationId));
-
-	const totalRevenue = revenueStats[0]?.totalRevenue || 0;
+		// Query 2: Get the count of unique bookings that have at least one overdue deliverable
+		db
+			.select({
+				count: countDistinct(deliverables.bookingId),
+			})
+			.from(deliverables)
+			.where(
+				and(
+					eq(deliverables.organizationId, userOrganizationId),
+					lt(deliverables.dueDate, todayISO),
+					notInArray(deliverables.status, [
+						"completed",
+						"delivered",
+						"cancelled",
+					]),
+				),
+			),
+	]);
 
 	return {
-		totalBookings,
-		activeBookings,
-		totalExpenses,
-		totalRevenue,
+		totalBookings: bookingCounts[0]?.total || 0,
+		activeBookings: bookingCounts[0]?.active || 0,
+		newBookings: bookingCounts[0]?.new || 0,
+		overdueBookings: overdueResult[0]?.count || 0,
 	};
 }
 

@@ -11,24 +11,18 @@ export function BookingStats({ stats }: { stats: BookingStatsType }) {
 		{
 			title: "Total Bookings",
 			value: stats?.totalBookings || 0,
-			icon: BookOpen,
 		},
 		{
 			title: "Active Bookings",
 			value: stats?.activeBookings || 0,
-			icon: Calendar,
 		},
 		{
-			title: "Total Expenses",
-			value: stats?.totalExpenses || 0,
-			icon: Wallet,
-			prefix: "₹",
+			title: "New Bookings",
+			value: stats?.newBookings || 0,
 		},
 		{
-			title: "Total Revenue",
-			value: stats?.totalRevenue || 0,
-			icon: DollarSign,
-			prefix: "₹",
+			title: "Overdue Bookings",
+			value: stats?.overdueBookings || 0,
 		},
 	];
 
@@ -59,16 +53,10 @@ export function BookingStats({ stats }: { stats: BookingStatsType }) {
 							{/* <dd>3</dd> */}
 
 							<dd className="w-full flex-none text-3xl/10 font-medium tracking-tight text-gray-900">
-								{metric.prefix || ""}
 								{!stats ? (
 									<span className="text-muted-foreground">...</span>
 								) : (
-									<CountUp
-										end={metric.value}
-										separator=","
-										duration={2}
-										decimals={metric.prefix ? 2 : 0}
-									/>
+									<CountUp end={metric.value} separator="," duration={2} />
 								)}
 							</dd>
 						</motion.div>

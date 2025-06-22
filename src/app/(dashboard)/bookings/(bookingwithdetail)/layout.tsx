@@ -27,8 +27,8 @@ const BookingLayout = async ({ children }: { children: React.ReactNode }) => {
 		bookingsStats = {
 			totalBookings: 0,
 			activeBookings: 0,
-			totalExpenses: 0,
-			totalRevenue: 0,
+			newBookings: 0,
+			overdueBookings: 0,
 		};
 
 		console.warn(
