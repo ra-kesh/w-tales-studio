@@ -11,6 +11,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { DataTableSkeleton } from "@/components/data-table/data-table-skeleton";
 import { BookingTablePagination } from "../_components/booking-table/booking-table-pagination";
+import { usePackageTypes } from "@/hooks/use-configs";
 
 type Params = Promise<{ slug: string }>;
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
@@ -19,7 +20,11 @@ export default function Bookings(props: {
 	params: Params;
 	searchParams: SearchParams;
 }) {
-	const columns = useBookingColumns();
+	const { data: packageTypes, isLoading: isPackageTypesLoading } =
+		usePackageTypes();
+
+	const columns = useBookingColumns({ packageTypes, isPackageTypesLoading });
+
 	const { data, isLoading } = useBookings();
 
 	const defaultData = React.useMemo(() => [], []);
