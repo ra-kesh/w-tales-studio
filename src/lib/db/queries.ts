@@ -59,15 +59,115 @@ export async function getActiveOrganization(userId: string) {
 	return result[0];
 }
 
+export type DeliverableFilters = {
+	title?: string;
+	status?: string; // Will be a comma-separated string of statuses
+	bookingId?: string; // Will be a comma-separated string of booking IDs
+	crewId?: string; // Will be a comma-separated string of crew IDs
+	dueDate?: string; // Will handle date ranges
+};
+
+export type AllowedDeliverableSortFields =
+	| "title"
+	| "status"
+	| "dueDate"
+	| "createdAt"
+	| "updatedAt";
+export type DeliverableSortOption = {
+	id: AllowedDeliverableSortFields;
+	desc: boolean;
+};
+
 export async function getDeliverables(
 	userOrganizationId: string,
 	page = 1,
 	limit = 10,
+	sortOptions: DeliverableSortOption[] | undefined = undefined,
+	filters: DeliverableFilters = {},
 ) {
 	const offset = (page - 1) * limit;
 
+	const whereConditions = [eq(deliverables.organizationId, userOrganizationId)];
+
+	// Filter by Title
+	if (filters.title) {
+		whereConditions.push(ilike(deliverables.title, `%${filters.title}%`));
+	}
+
+	// Filter by Status (multi-select)
+	if (filters.status) {
+		const statuses = filters.status.split(",").map((s) => s.trim());
+		if (statuses.length > 0) {
+			whereConditions.push(
+				inArray(
+					deliverables.status,
+					statuses as typeof deliverables.status.enumValues,
+				),
+			);
+		}
+	}
+
+	// Filter by Booking ID (multi-select)
+	if (filters.bookingId) {
+		const bookingIds = filters.bookingId
+			.split(",")
+			.map((id) => Number.parseInt(id.trim(), 10))
+			.filter((id) => !Number.isNaN(id));
+		if (bookingIds.length > 0) {
+			whereConditions.push(inArray(deliverables.bookingId, bookingIds));
+		}
+	}
+
+	// Filter by Assigned Crew (using a subquery for related table)
+	if (filters.crewId) {
+		const crewIds = filters.crewId
+			.split(",")
+			.map((id) => Number.parseInt(id.trim(), 10))
+			.filter((id) => !Number.isNaN(id));
+		if (crewIds.length > 0) {
+			whereConditions.push(
+				exists(
+					db
+						.select({ id: deliverablesAssignments.id })
+						.from(deliverablesAssignments)
+						.where(
+							and(
+								eq(deliverablesAssignments.deliverableId, deliverables.id),
+								inArray(deliverablesAssignments.crewId, crewIds),
+							),
+						),
+				),
+			);
+		}
+	}
+
+	if (filters.dueDate) {
+		const dates = filters.dueDate
+			.split(",")
+			.map((date) => date.trim())
+			.filter(Boolean);
+		if (dates.length === 2) {
+			const startDate = new Date(dates[0]);
+			const endDate = new Date(dates[1]);
+			whereConditions.push(
+				gte(deliverables.dueDate, startDate.toISOString().slice(0, 10)),
+			);
+			whereConditions.push(
+				lte(deliverables.dueDate, endDate.toISOString().slice(0, 10)),
+			);
+		}
+	}
+
+	// --- Build Dynamic Order By Clause ---
+	const orderBy =
+		sortOptions && sortOptions.length > 0
+			? sortOptions.map((item) =>
+					item.desc ? desc(deliverables[item.id]) : asc(deliverables[item.id]),
+				)
+			: [desc(deliverables.updatedAt), desc(deliverables.createdAt)];
+
 	const deliverableData = await db.query.deliverables.findMany({
-		where: and(eq(deliverables.organizationId, userOrganizationId)),
+		where: and(...whereConditions),
 		with: {
 			booking: {
 				columns: {
@@ -107,23 +207,22 @@ export async function getDeliverables(
 				},
 			},
 		},
-		orderBy: (deliverables, { desc }) => [
-			desc(deliverables.updatedAt),
-			desc(deliverables.createdAt),
-		],
+		orderBy,
 		limit,
 		offset,
 	});
 
-	const total = await db.$count(
-		deliverables,
-		eq(deliverables.organizationId, userOrganizationId),
-	);
+	const totalResult = await db
+		.select({ count: count() })
+		.from(deliverables)
+		.where(and(...whereConditions));
+	const total = totalResult[0]?.count ?? 0;
 
 	return {
 		data: deliverableData,
 		total,
 		page,
+		pageCount: Math.ceil(total / limit),
 		limit,
 	};
 }

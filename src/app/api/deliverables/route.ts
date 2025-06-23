@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
-import { getDeliverables } from "@/lib/db/queries";
+import {
+	type AllowedDeliverableSortFields,
+	type DeliverableFilters,
+	type DeliverableSortOption,
+	getDeliverables,
+} from "@/lib/db/queries";
 import { getServerSession } from "@/lib/dal";
 
 import { db } from "@/lib/db/drizzle";
@@ -35,8 +40,42 @@ export async function GET(request: Request) {
 		const page = Number.parseInt(searchParams.get("page") || "1", 10);
 		const limit = Number.parseInt(searchParams.get("limit") || "10", 10);
 
-		const result = await getDeliverables(userOrganizationId, page, limit);
+		const sortParam = searchParams.get("sort");
+		let sortOptions: DeliverableSortOption[] | undefined = undefined;
+		if (sortParam) {
+			try {
+				const parsedSort = JSON.parse(sortParam);
+				const allowedFields: AllowedDeliverableSortFields[] = [
+					"title",
+					"status",
+					"dueDate",
+					"createdAt",
+					"updatedAt",
+				];
+				sortOptions = parsedSort.filter((option: DeliverableSortOption) =>
+					allowedFields.includes(option.id),
+				);
+			} catch (e) {
+				console.error("Failed to parse sort parameter:", e);
+			}
+		}
 
+		// 2. Construct Filters Object from URL Search Params
+		const filters: DeliverableFilters = {
+			title: searchParams.get("title") || undefined,
+			status: searchParams.get("status") || undefined,
+			bookingId: searchParams.get("bookingId") || undefined,
+			crewId: searchParams.get("crewId") || undefined,
+			dueDate: searchParams.get("dueDate") || undefined,
+		};
+
+		const result = await getDeliverables(
+			userOrganizationId,
+			page,
+			limit,
+			sortOptions,
+			filters,
+		);
 		const transformedData = result.data.map((deliverable) => ({
 			...deliverable,
 			deliverablesAssignments: deliverable.deliverablesAssignments?.map(

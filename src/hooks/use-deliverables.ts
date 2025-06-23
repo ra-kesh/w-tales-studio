@@ -1,9 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import type { DeliverablesResponse } from "@/types/deliverables";
-import { deliverables, type Deliverable } from "@/lib/db/schema";
+import { useSearchParams } from "next/navigation";
 
-export async function fetchDeliverables(): Promise<DeliverablesResponse> {
-	const response = await fetch("/api/deliverables", {
+export async function fetchDeliverables(
+	searchParams: URLSearchParams,
+): Promise<DeliverablesResponse> {
+	const response = await fetch(`/api/deliverables?${searchParams.toString()}`, {
 		headers: {
 			"Content-Type": "application/json",
 		},
@@ -15,9 +17,11 @@ export async function fetchDeliverables(): Promise<DeliverablesResponse> {
 }
 
 export function useDeliverables() {
+	const searchParams = useSearchParams();
+
 	return useQuery({
-		queryKey: ["bookings", "deliverable", "list"],
-		queryFn: fetchDeliverables,
+		queryKey: ["bookings", "deliverable", "list", searchParams.toString()],
+		queryFn: () => fetchDeliverables(searchParams),
 		// placeholderData: { data: [], total: 0 },
 	});
 }

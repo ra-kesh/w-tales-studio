@@ -12,12 +12,14 @@ import {
 	CalendarIcon,
 	CameraIcon,
 	ChevronRight,
+	CircleDashed,
 	Package2,
 	TextIcon,
 	Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DataTableColumnHeader } from "../../tasks/_components/task-table-column-header";
+import { deliverables, Task, tasks } from "@/lib/db/schema";
 
 export const useDeliverableColumns = ({
 	minimalBookings,
@@ -47,6 +49,7 @@ export const useDeliverableColumns = ({
 			enableHiding: false,
 		},
 		{
+			id: "title",
 			accessorKey: "title",
 			header: "Deliverable",
 			cell: ({ row }) => (
@@ -128,8 +131,11 @@ export const useDeliverableColumns = ({
 			),
 		},
 		{
+			id: "status",
 			accessorKey: "status",
-			header: "Status",
+			header: ({ column }) => (
+				<DataTableColumnHeader column={column} title="Status" />
+			),
 			cell: ({ row }) => {
 				const status = row.getValue("status") as string;
 				const variant =
@@ -143,7 +149,20 @@ export const useDeliverableColumns = ({
 
 				return <Badge variant={variant}>{status?.replace("_", " ")}</Badge>;
 			},
+			meta: {
+				label: "Status",
+				variant: "multiSelect",
+				options: deliverables.status.enumValues.map((status) => ({
+					label: status.replace("_", " "),
+					value: status,
+					// count: statusCounts[status],
+					// icon: getStatusIcon(status),
+				})),
+				icon: CircleDashed,
+			},
+			enableColumnFilter: true,
 		},
+
 		{
 			id: "dueDate",
 			accessorKey: "dueDate",
