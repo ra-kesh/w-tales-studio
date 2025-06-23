@@ -1042,6 +1042,59 @@ export async function getShootsStats(
 	};
 }
 
+// 1. Define the new interface for DeliverableStats
+export interface DeliverableStats {
+	totalDeliverables: number;
+	activeDeliverables: number;
+	pendingDeliverables: number;
+	overdueDeliverables: number;
+}
+
+// 2. Create the equivalent function for deliverables
+export async function getDeliverablesStats(
+	userOrganizationId: string,
+): Promise<DeliverableStats> {
+	const todayISO = formatISO(startOfDay(new Date()), {
+		representation: "date",
+	});
+
+	// All stats can be calculated in a single, efficient query from the deliverables table
+	const deliverableCounts = await db
+		.select({
+			// Total count of all deliverables
+			total: sql<number>`count(*)`.mapWith(Number),
+
+			// Count of deliverables that are not in a final state
+			active:
+				sql<number>`sum(case when ${deliverables.status} not in ('completed', 'delivered', 'cancelled') then 1 else 0 end)`.mapWith(
+					Number,
+				),
+
+			// Count of deliverables that are new and waiting to be started
+			pending:
+				sql<number>`sum(case when ${deliverables.status} = 'pending' then 1 else 0 end)`.mapWith(
+					Number,
+				),
+
+			// Count of active deliverables that are past their due date
+			overdue:
+				sql<number>`sum(case when ${deliverables.dueDate} < ${todayISO} and ${deliverables.status} not in ('completed', 'delivered', 'cancelled') then 1 else 0 end)`.mapWith(
+					Number,
+				),
+		})
+		.from(deliverables)
+		.where(eq(deliverables.organizationId, userOrganizationId));
+
+	const stats = deliverableCounts[0];
+
+	return {
+		totalDeliverables: stats?.total || 0,
+		activeDeliverables: stats?.active || 0,
+		pendingDeliverables: stats?.pending || 0,
+		overdueDeliverables: stats?.overdue || 0,
+	};
+}
+
 export async function getOnboardingStatus(userOrganizationId: string): Promise<{
 	onboarded: boolean;
 	organizationCreated: boolean;

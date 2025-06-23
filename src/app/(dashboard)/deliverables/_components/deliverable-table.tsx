@@ -3,18 +3,9 @@
 import * as React from "react";
 
 import {
-	useReactTable,
+	type Table as TanstackTable,
 	type ColumnDef,
-	type ColumnFiltersState,
-	type SortingState,
-	type VisibilityState,
 	flexRender,
-	getCoreRowModel,
-	getFacetedRowModel,
-	getFacetedUniqueValues,
-	getFilteredRowModel,
-	getPaginationRowModel,
-	getSortedRowModel,
 } from "@tanstack/react-table";
 
 import {
@@ -26,57 +17,24 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 
-import { DeliverableTablePagination } from "./deliverable-table-pagination";
-import { DeliverableTableToolbar } from "./deliverable-table-toolbar";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Crown, Users } from "lucide-react";
-import { cn } from "@/lib/utils";
 import type { DeliverableRowData } from "@/types/deliverables";
 
 interface DeliverableTableProps {
 	columns: ColumnDef<DeliverableRowData>[];
-	data: DeliverableRowData[];
+	table: TanstackTable<DeliverableRowData>;
+	children: React.ReactNode;
 }
 
-export function DeliverableTable({ columns, data }: DeliverableTableProps) {
-	const [rowSelection, setRowSelection] = React.useState({});
-	const [columnVisibility, setColumnVisibility] =
-		React.useState<VisibilityState>({});
-	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-		[],
-	);
-	const [sorting, setSorting] = React.useState<SortingState>([]);
-	const [expanded, setExpanded] = React.useState({});
-
-	const table = useReactTable({
-		data,
-		columns,
-		state: {
-			sorting,
-			columnVisibility,
-			rowSelection,
-			columnFilters,
-			expanded,
-		},
-		enableRowSelection: true,
-		enableExpanding: true,
-		onExpandedChange: setExpanded,
-		onRowSelectionChange: setRowSelection,
-		onSortingChange: setSorting,
-		onColumnFiltersChange: setColumnFilters,
-		onColumnVisibilityChange: setColumnVisibility,
-		getCoreRowModel: getCoreRowModel(),
-		getFilteredRowModel: getFilteredRowModel(),
-		getPaginationRowModel: getPaginationRowModel(),
-		getSortedRowModel: getSortedRowModel(),
-		getFacetedRowModel: getFacetedRowModel(),
-		getFacetedUniqueValues: getFacetedUniqueValues(),
-	});
-
+export function DeliverableTable({
+	columns,
+	table,
+	children,
+}: DeliverableTableProps) {
 	return (
 		<div className="space-y-4">
-			<DeliverableTableToolbar table={table} />
 			<div className="rounded-md border">
 				<Table>
 					<TableHeader>
@@ -216,7 +174,7 @@ export function DeliverableTable({ columns, data }: DeliverableTableProps) {
 					</TableBody>
 				</Table>
 			</div>
-			<DeliverableTablePagination table={table} />
+			{children}
 		</div>
 	);
 }

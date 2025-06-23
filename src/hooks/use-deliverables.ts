@@ -18,7 +18,7 @@ export function useDeliverables() {
 	return useQuery({
 		queryKey: ["bookings", "deliverable", "list"],
 		queryFn: fetchDeliverables,
-		placeholderData: { data: [], total: 0 },
+		// placeholderData: { data: [], total: 0 },
 	});
 }
 
