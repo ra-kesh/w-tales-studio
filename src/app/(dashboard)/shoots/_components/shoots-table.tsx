@@ -4,17 +4,7 @@ import * as React from "react";
 import {
 	type Table as TanstackTable,
 	type ColumnDef,
-	type ColumnFiltersState,
-	type SortingState,
-	type VisibilityState,
 	flexRender,
-	getCoreRowModel,
-	getFacetedRowModel,
-	getFacetedUniqueValues,
-	getFilteredRowModel,
-	getPaginationRowModel,
-	getSortedRowModel,
-	useReactTable,
 } from "@tanstack/react-table";
 
 import {
@@ -26,8 +16,6 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 
-import { ShootsTablePagination } from "./shoots-table-pagination";
-import { ShootsTableToolbar } from "./shoots-table-toolbar";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Crown, Users } from "lucide-react";
@@ -36,9 +24,10 @@ import type { ShootRowData } from "@/types/shoots";
 interface ShootTableProps {
 	columns: ColumnDef<ShootRowData>[];
 	table: TanstackTable<ShootRowData>;
+	children: React.ReactNode;
 }
 
-export function ShootTable({ columns, table }: ShootTableProps) {
+export function ShootTable({ columns, table, children }: ShootTableProps) {
 	return (
 		<div className="space-y-4">
 			<div className="rounded-md border">
@@ -179,7 +168,7 @@ export function ShootTable({ columns, table }: ShootTableProps) {
 					</TableBody>
 				</Table>
 			</div>
-			<ShootsTablePagination table={table} />
+			{children}
 		</div>
 	);
 }

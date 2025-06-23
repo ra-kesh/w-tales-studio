@@ -12,7 +12,6 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 
-import { BookingTablePagination } from "./booking-table-pagination";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import type { Booking, Shoot } from "@/lib/db/schema";
 import { format } from "date-fns";
@@ -44,11 +43,6 @@ export function BookingTable({
 			? router.push(`/bookings/${id}?${searchParams.toString()}`)
 			: router.push(`/bookings/${id}`);
 	};
-
-	// const handleRowClick = async (id: number) => {
-	// 	await router.prefetch(`/bookings/${id}`);
-	// 	router.push(`/bookings/${id}`);
-	// };
 
 	return (
 		<div className="space-y-4 " {...props}>

@@ -985,6 +985,63 @@ export async function getBookingsStats(
 	};
 }
 
+// 1. Define the new interface for ShootStats
+export interface ShootStats {
+	totalShoots: number;
+	upcomingShoots: number;
+	pastShoots: number;
+	unstaffedUpcomingShoots: number;
+}
+
+// 2. Create the equivalent function for shoots
+export async function getShootsStats(
+	userOrganizationId: string,
+): Promise<ShootStats> {
+	const todayISO = formatISO(startOfDay(new Date()), {
+		representation: "date",
+	});
+
+	// Use Promise.all to run the main stats query and the unstaffed query concurrently
+	const [shootCounts, unstaffedResult] = await Promise.all([
+		// Query 1: Get total, upcoming, and past counts in a single efficient query
+		db
+			.select({
+				total: sql<number>`count(*)`.mapWith(Number),
+				upcoming:
+					sql<number>`sum(case when ${shoots.date} >= ${todayISO} then 1 else 0 end)`.mapWith(
+						Number,
+					),
+				past: sql<number>`sum(case when ${shoots.date} < ${todayISO} then 1 else 0 end)`.mapWith(
+					Number,
+				),
+			})
+			.from(shoots)
+			.where(eq(shoots.organizationId, userOrganizationId)),
+
+		// Query 2: Get the count of unique upcoming shoots that have no crew assigned
+		db
+			.select({
+				count: countDistinct(shoots.id),
+			})
+			.from(shoots)
+			.leftJoin(shootsAssignments, eq(shoots.id, shootsAssignments.shootId))
+			.where(
+				and(
+					eq(shoots.organizationId, userOrganizationId),
+					gte(shoots.date, todayISO), // Only consider upcoming shoots
+					isNull(shootsAssignments.id), // The key condition: find shoots with no assignment
+				),
+			),
+	]);
+
+	return {
+		totalShoots: shootCounts[0]?.total || 0,
+		upcomingShoots: shootCounts[0]?.upcoming || 0,
+		pastShoots: shootCounts[0]?.past || 0,
+		unstaffedUpcomingShoots: unstaffedResult[0]?.count || 0,
+	};
+}
+
 export async function getOnboardingStatus(userOrganizationId: string): Promise<{
 	onboarded: boolean;
 	organizationCreated: boolean;

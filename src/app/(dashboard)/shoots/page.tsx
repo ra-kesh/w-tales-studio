@@ -1,43 +1,67 @@
-import {
-	dehydrate,
-	HydrationBoundary,
-	MutationCache,
-	QueryClient,
-} from "@tanstack/react-query";
-import { Shoots } from "./shoots";
-import { getCrews, getMinimalBookings, getShoots } from "@/lib/db/queries";
-import { getServerSession } from "@/lib/dal";
-import { Suspense } from "react";
+"use client";
 
-export default async function ShootsPage() {
-	const { session } = await getServerSession();
+import { useShootColumns } from "./_components/shoots-table-columns";
+import React from "react";
+import { ShootTable } from "./_components/shoots-table";
+import { useShoots } from "@/hooks/use-shoots";
+import { useBookingTable } from "@/hooks/use-booking-table";
+import { useMinimalBookings } from "@/hooks/use-bookings";
+import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
 
-	const queryClient = new QueryClient({
-		mutationCache: new MutationCache({
-			onSuccess: () => {
-				queryClient.invalidateQueries();
-			},
-		}),
+import { OpenShootsSheet } from "./_components/open-shoots-sheet";
+import { DataTableSkeleton } from "@/components/data-table/data-table-skeleton";
+import { ShootsTablePagination } from "./_components/shoots-table-pagination";
+
+export default function Shoots() {
+	const { data, isLoading } = useShoots();
+
+	const {
+		data: minimalBookingsResponse,
+		isLoading: isMininmalBookingLoading,
+		isFetched: isMinimalBookingFetched,
+	} = useMinimalBookings();
+
+	const minimalBookings = minimalBookingsResponse?.data;
+
+	const columns = useShootColumns({
+		minimalBookings: minimalBookings ?? [],
+		isMininmalBookingLoading,
 	});
 
-	await queryClient.prefetchQuery({
-		queryKey: ["bookings", "shoot", "list"],
-		queryFn: () => getShoots(session?.session.activeOrganizationId as string),
-	});
+	const defaultData = React.useMemo(() => [], []);
 
-	await queryClient.prefetchQuery({
-		queryKey: ["bookings", "list", "minimal"],
-		queryFn: () =>
-			getMinimalBookings(session?.session.activeOrganizationId as string),
+	const { table } = useBookingTable({
+		data: data?.data ?? defaultData,
+		pageCount: data?.pageCount ?? 0,
+		columns,
+		initialState: {
+			sorting: [{ id: "createdAt", desc: true }],
+			columnPinning: { right: ["actions"] },
+		},
+		getRowId: (originalRow) => originalRow.id.toString(),
+		shallow: false,
+		clearOnDefault: true,
 	});
 
 	return (
-		<div className="h-full flex-1 flex flex-col p-6">
-			<Suspense fallback={<div>Loading...</div>}>
-				<HydrationBoundary state={dehydrate(queryClient)}>
-					<Shoots />
-				</HydrationBoundary>
-			</Suspense>
+		<div className="flex-1 min-w-0 py-6">
+			{!isMininmalBookingLoading && isMinimalBookingFetched && (
+				<DataTableToolbar table={table} className="my-2">
+					<OpenShootsSheet />
+				</DataTableToolbar>
+			)}
+			{isLoading ? (
+				<DataTableSkeleton
+					columnCount={4}
+					filterCount={0}
+					cellWidths={["20rem", "10rem", "10rem", "6rem", "6rem", "6rem"]}
+					shrinkZero
+				/>
+			) : (
+				<ShootTable table={table} columns={columns}>
+					<ShootsTablePagination table={table} />
+				</ShootTable>
+			)}
 		</div>
 	);
 }
