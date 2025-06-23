@@ -227,6 +227,58 @@ export async function getDeliverables(
 	};
 }
 
+// 1. Define the new interface for TaskStats
+export interface TaskStats {
+	totalTasks: number;
+	inProgressTasks: number;
+	todoTasks: number;
+	overdueTasks: number;
+}
+
+// 2. Create the equivalent function for tasks
+export async function getTasksStats(
+	userOrganizationId: string,
+): Promise<TaskStats> {
+	const todayISO = formatISO(startOfDay(new Date()), {
+		representation: "date",
+	});
+
+	// All stats can be calculated in a single, efficient query from the tasks table
+	const taskCounts = await db
+		.select({
+			// Total count of all tasks
+			total: sql<number>`count(*)`.mapWith(Number),
+
+			// Count of tasks currently in progress (excluding 'todo' and 'completed')
+			inProgress:
+				sql<number>`sum(case when ${tasks.status} in ('in_progress', 'in_review', 'in_revision') then 1 else 0 end)`.mapWith(
+					Number,
+				),
+
+			// Count of tasks in 'todo' status
+			todo: sql<number>`sum(case when ${tasks.status} = 'todo' then 1 else 0 end)`.mapWith(
+				Number,
+			),
+
+			// Count of tasks that are past their due date and not completed
+			overdue:
+				sql<number>`sum(case when ${tasks.dueDate} < ${todayISO} and ${tasks.status} != 'completed' then 1 else 0 end)`.mapWith(
+					Number,
+				),
+		})
+		.from(tasks)
+		.where(eq(tasks.organizationId, userOrganizationId));
+
+	const stats = taskCounts[0];
+
+	return {
+		totalTasks: stats?.total || 0,
+		inProgressTasks: stats?.inProgress || 0,
+		todoTasks: stats?.todo || 0,
+		overdueTasks: stats?.overdue || 0,
+	};
+}
+
 const packageConfigs = alias(configurations, "package_configs");
 const bookingConfigs = alias(configurations, "booking_configs");
 type AllowedSortFields =
@@ -709,15 +761,116 @@ export async function getShoots(
 	};
 }
 
+export type TaskFilters = {
+	description?: string;
+	status?: string;
+	priority?: string; // The new priority filter
+	bookingId?: string;
+	crewId?: string;
+	dueDate?: string;
+};
+
+export type AllowedTaskSortFields =
+	| "description"
+	| "status"
+	| "priority"
+	| "dueDate"
+	| "createdAt"
+	| "updatedAt";
+export type TaskSortOption = { id: AllowedTaskSortFields; desc: boolean };
+
 export async function getTasks(
 	userOrganizationId: string,
 	page = 1,
 	limit = 10,
+	sortOptions: TaskSortOption[] | undefined = undefined,
+	filters: TaskFilters = {},
 ) {
 	const offset = (page - 1) * limit;
 
+	// --- Build Dynamic Where Clause ---
+	const whereConditions = [eq(tasks.organizationId, userOrganizationId)];
+
+	if (filters.description) {
+		whereConditions.push(ilike(tasks.description, `%${filters.description}%`));
+	}
+
+	if (filters.status) {
+		// Filter by Status and Priority (multi-select)
+		const statuses = filters.status.split(",").map((s) => s.trim());
+		if (statuses.length > 0) {
+			whereConditions.push(
+				inArray(tasks.status, statuses as typeof tasks.status.enumValues),
+			);
+		}
+	}
+	if (filters.priority) {
+		const priorities = filters.priority.split(",").map((p) => p.trim());
+		if (priorities.length > 0) {
+			whereConditions.push(
+				inArray(tasks.priority, priorities as typeof tasks.priority.enumValues),
+			);
+		}
+	}
+
+	if (filters.bookingId) {
+		// Filter by Booking ID (direct relation, so inArray is efficient)
+		const bookingIds = filters.bookingId
+			.split(",")
+			.map((id) => Number.parseInt(id.trim(), 10))
+			.filter((id) => !Number.isNaN(id));
+		if (bookingIds.length > 0) {
+			whereConditions.push(inArray(tasks.bookingId, bookingIds));
+		}
+	}
+
+	if (filters.crewId) {
+		const crewIds = filters.crewId
+			.split(",")
+			.map((id) => Number.parseInt(id.trim(), 10))
+			.filter((id) => !Number.isNaN(id));
+		if (crewIds.length > 0) {
+			whereConditions.push(
+				exists(
+					db
+						.select({ id: tasksAssignments.id })
+						.from(tasksAssignments)
+						.where(
+							and(
+								eq(tasksAssignments.taskId, tasks.id),
+								inArray(tasksAssignments.crewId, crewIds),
+							),
+						),
+				),
+			);
+		}
+	}
+
+	if (filters.dueDate) {
+		// Filter by Due Date
+		const dates = filters.dueDate
+			.split(",")
+			.map((date) => date.trim())
+			.filter(Boolean);
+		if (dates.length === 2) {
+			whereConditions.push(
+				gte(tasks.dueDate, new Date(dates[0]).toISOString().slice(0, 10)),
+			);
+			whereConditions.push(
+				lte(tasks.dueDate, new Date(dates[1]).toISOString().slice(0, 10)),
+			);
+		}
+	}
+
+	const orderBy =
+		sortOptions && sortOptions.length > 0
+			? sortOptions.map((item) =>
+					item.desc ? desc(tasks[item.id]) : asc(tasks[item.id]),
+				)
+			: [desc(tasks.updatedAt), desc(tasks.createdAt)];
+
 	const tasksData = await db.query.tasks.findMany({
-		where: eq(tasks.organizationId, userOrganizationId),
+		where: and(...whereConditions),
 		with: {
 			booking: {
 				columns: {
@@ -756,10 +909,9 @@ export async function getTasks(
 				},
 			},
 		},
-		orderBy: (tasks, { desc }) => [
-			desc(tasks.updatedAt),
-			desc(tasks.createdAt),
-		],
+		orderBy,
+		limit,
+		offset,
 	});
 
 	const transformedData = tasksData.map((task) => ({
@@ -769,14 +921,19 @@ export async function getTasks(
 		),
 	}));
 
-	const total = await db.$count(
-		tasks,
-		eq(tasks.organizationId, userOrganizationId),
-	);
+	const totalResult = await db
+		.select({ count: count() })
+		.from(tasks)
+		.where(and(...whereConditions));
+
+	const total = totalResult[0]?.count ?? 0;
 
 	return {
 		data: transformedData,
 		total,
+		page,
+		pageCount: Math.ceil(total / limit),
+		limit,
 	};
 }
 

@@ -8,7 +8,13 @@ export function OpenTaskSheet() {
 
 	return (
 		<div>
-			<Button onClick={() => setParams({ createTask: true })}>Add Task</Button>
+			<Button
+				size="sm"
+				className="bg-indigo-600  font-semibold text-white  hover:bg-indigo-500 cursor-pointer"
+				onClick={() => setParams({ createTask: true })}
+			>
+				Add Task
+			</Button>
 		</div>
 	);
 }

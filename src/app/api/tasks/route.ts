@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
-import { getTasks } from "@/lib/db/queries";
+import {
+	type AllowedTaskSortFields,
+	getTasks,
+	type TaskFilters,
+	type TaskSortOption,
+} from "@/lib/db/queries";
 import { getServerSession } from "@/lib/dal";
 import { TaskSchema } from "@/app/(dashboard)/tasks/task-form-schema";
 import { db } from "@/lib/db/drizzle";
@@ -23,9 +28,51 @@ export async function GET(request: Request) {
 
 	try {
 		const { searchParams } = new URL(request.url);
+
+		console.log({ searchParams });
+
 		const page = Number.parseInt(searchParams.get("page") || "1", 10);
 		const limit = Number.parseInt(searchParams.get("limit") || "10", 10);
-		const result = await getTasks(userOrganizationId, page, limit);
+
+		const sortParam = searchParams.get("sort");
+		let sortOptions: TaskSortOption[] | undefined = undefined;
+		if (sortParam) {
+			try {
+				const parsedSort = JSON.parse(sortParam);
+				const allowedFields: AllowedTaskSortFields[] = [
+					"description",
+					"status",
+					"priority",
+					"dueDate",
+					"createdAt",
+					"updatedAt",
+				];
+				sortOptions = parsedSort.filter((option: TaskSortOption) =>
+					allowedFields.includes(option.id),
+				);
+			} catch (e) {
+				console.error("Failed to parse sort parameter:", e);
+			}
+		}
+
+		// Construct Filters Object
+		const filters: TaskFilters = {
+			description: searchParams.get("description") || undefined,
+			status: searchParams.get("status") || undefined,
+			priority: searchParams.get("priority") || undefined,
+			bookingId: searchParams.get("bookingId") || undefined,
+			crewId: searchParams.get("crewId") || undefined,
+			dueDate: searchParams.get("dueDate") || undefined,
+		};
+
+		const result = await getTasks(
+			userOrganizationId,
+			page,
+			limit,
+			sortOptions,
+			filters,
+		);
+
 		return NextResponse.json(result, { status: 200 });
 	} catch (error: unknown) {
 		console.error("Error fetching tasks:", error);
