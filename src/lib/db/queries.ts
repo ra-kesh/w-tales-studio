@@ -40,6 +40,7 @@ import {
 	taskStatusEnum,
 	receivedAmounts,
 	paymentSchedules,
+	bookingParticipants,
 } from "./schema";
 import { alias } from "drizzle-orm/pg-core";
 import type { BookingDetail } from "@/types/booking";
@@ -281,6 +282,7 @@ export async function getTasksStats(
 
 const packageConfigs = alias(configurations, "package_configs");
 const bookingConfigs = alias(configurations, "booking_configs");
+
 type AllowedSortFields =
 	| "name"
 	| "createdAt"
@@ -309,31 +311,26 @@ export async function getBookings(
 ) {
 	const offset = (page - 1) * limit;
 
-	const bookingConfigData = await db
-		.select({
-			key: bookingConfigs.key,
-			value: bookingConfigs.value,
-		})
-		.from(bookingConfigs)
-		.where(
-			and(
-				eq(bookingConfigs.type, "booking_type"),
-				eq(bookingConfigs.organizationId, userOrganizationId),
+	const [bookingConfigData, packageConfigData] = await Promise.all([
+		db
+			.select({ key: bookingConfigs.key, value: bookingConfigs.value })
+			.from(bookingConfigs)
+			.where(
+				and(
+					eq(bookingConfigs.type, "booking_type"),
+					eq(bookingConfigs.organizationId, userOrganizationId),
+				),
 			),
-		);
-
-	const packageConfigData = await db
-		.select({
-			key: packageConfigs.key,
-			value: packageConfigs.value,
-		})
-		.from(packageConfigs)
-		.where(
-			and(
-				eq(packageConfigs.type, "package_type"),
-				eq(packageConfigs.organizationId, userOrganizationId),
+		db
+			.select({ key: packageConfigs.key, value: packageConfigs.value })
+			.from(packageConfigs)
+			.where(
+				and(
+					eq(packageConfigs.type, "package_type"),
+					eq(packageConfigs.organizationId, userOrganizationId),
+				),
 			),
-		);
+	]);
 
 	const bookingTypeMap = new Map(
 		bookingConfigData.map((config) => [config.key, config.value]),
@@ -390,11 +387,14 @@ export async function getBookings(
 				)
 			: [desc(bookings.updatedAt)];
 
-	// Fetch bookings with related data
 	const bookingsData = await db.query.bookings.findMany({
 		where: and(...whereConditions),
 		with: {
-			clients: true,
+			participants: {
+				with: {
+					client: true,
+				},
+			},
 			shoots: {
 				columns: {
 					id: true,
@@ -436,16 +436,25 @@ export async function getBookings(
 					},
 				},
 			},
+			deliverables: true,
+			receivedAmounts: true,
+			paymentSchedules: true,
 		},
 		orderBy,
 		limit,
 		offset,
 	});
 
+	// Todo: remove this mappin later and figure out a better way to show booking and package types
+
 	const formattedBookings = bookingsData.map((booking) => ({
 		...booking,
 		bookingType: bookingTypeMap.get(booking.bookingType) ?? booking.bookingType,
 		packageType: packageTypeMap.get(booking.packageType) ?? booking.packageType,
+		// participants: booking.participants.map((pp) => ({
+		// 	role: pp.role,
+		// 	client: pp.client,
+		// })),
 	}));
 
 	const total = await db.$count(bookings, and(...whereConditions));
