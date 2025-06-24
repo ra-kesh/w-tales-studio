@@ -352,28 +352,44 @@ export async function getBookings(
 	}
 
 	if (filters.createdAt) {
-		const dates = filters.createdAt
-			.split(",")
-			.map((date) => date.trim())
-			.filter((date) => date);
+		const parts = filters.createdAt.split(",").map((d) => new Date(d.trim()));
 
-		if (dates.length === 1) {
-			// Single date
-			const date = new Date(dates[0]);
-			date.setUTCHours(0, 0, 0, 0);
-			whereConditions.push(gte(bookings.createdAt, date));
-			// date.setUTCHours(23, 59, 59, 999);
-			// whereConditions.push(lte(bookings.createdAt, date));
-		} else if (dates.length === 2) {
-			// Date range
-			const startDate = new Date(dates[0]);
-			startDate.setUTCHours(0, 0, 0, 0);
-			const endDate = new Date(dates[1]);
-			endDate.setUTCHours(23, 59, 59, 999);
-			whereConditions.push(gte(bookings.createdAt, startDate));
-			whereConditions.push(lte(bookings.createdAt, endDate));
+		parts[0].setHours(0, 0, 0, 0);
+
+		if (parts[1]) {
+			parts[1].setHours(23, 59, 59, 999);
+			whereConditions.push(
+				gte(bookings.createdAt, parts[0]),
+				lte(bookings.createdAt, parts[1]),
+			);
+		} else {
+			whereConditions.push(gte(bookings.createdAt, parts[0]));
 		}
 	}
+
+	// if (filters.createdAt) {
+	// 	const dates = filters.createdAt
+	// 		.split(",")
+	// 		.map((date) => date.trim())
+	// 		.filter((date) => date);
+
+	// 	if (dates.length === 1) {
+	// 		// Single date
+	// 		const date = new Date(dates[0]);
+	// 		date.setUTCHours(0, 0, 0, 0);
+	// 		whereConditions.push(gte(bookings.createdAt, date));
+	// 		// date.setUTCHours(23, 59, 59, 999);
+	// 		// whereConditions.push(lte(bookings.createdAt, date));
+	// 	} else if (dates.length === 2) {
+	// 		// Date range
+	// 		const startDate = new Date(dates[0]);
+	// 		startDate.setUTCHours(0, 0, 0, 0);
+	// 		const endDate = new Date(dates[1]);
+	// 		endDate.setUTCHours(23, 59, 59, 999);
+	// 		whereConditions.push(gte(bookings.createdAt, startDate));
+	// 		whereConditions.push(lte(bookings.createdAt, endDate));
+	// 	}
+	// }
 
 	if (filters.name) {
 		const searchTerm = `%${filters.name}%`;
@@ -436,9 +452,9 @@ export async function getBookings(
 					},
 				},
 			},
-			deliverables: true,
-			receivedAmounts: true,
-			paymentSchedules: true,
+			// deliverables: true,
+			// receivedAmounts: true,
+			// paymentSchedules: true,
 		},
 		orderBy,
 		limit,
@@ -447,20 +463,20 @@ export async function getBookings(
 
 	// Todo: remove this mappin later and figure out a better way to show booking and package types
 
-	const formattedBookings = bookingsData.map((booking) => ({
-		...booking,
-		bookingType: bookingTypeMap.get(booking.bookingType) ?? booking.bookingType,
-		packageType: packageTypeMap.get(booking.packageType) ?? booking.packageType,
-		// participants: booking.participants.map((pp) => ({
-		// 	role: pp.role,
-		// 	client: pp.client,
-		// })),
-	}));
+	// const formattedBookings = bookingsData.map((booking) => ({
+	// 	...booking,
+	// 	bookingType: bookingTypeMap.get(booking.bookingType) ?? booking.bookingType,
+	// 	packageType: packageTypeMap.get(booking.packageType) ?? booking.packageType,
+	// 	// participants: booking.participants.map((pp) => ({
+	// 	// 	role: pp.role,
+	// 	// 	client: pp.client,
+	// 	// })),
+	// }));
 
 	const total = await db.$count(bookings, and(...whereConditions));
 
 	return {
-		data: formattedBookings,
+		data: bookingsData,
 		total,
 		page,
 		pageCount: Math.ceil(total / limit),
