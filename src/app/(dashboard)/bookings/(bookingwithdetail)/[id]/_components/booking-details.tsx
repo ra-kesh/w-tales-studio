@@ -95,30 +95,30 @@ export function BookingDetails({ id }: { id: string }) {
 					{/* Client Details Grid */}
 					<div className="rounded-lg bg-muted/40 w-full">
 						<div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-3 p-4">
-							<div className="space-y-1">
+							{/* <div className="space-y-1">
 								<p className="text-xs font-medium text-muted-foreground">
 									Bride Name
 								</p>
 								<p className="text-sm font-medium">
 									{booking.clients.brideName || "Not specified"}
 								</p>
-							</div>
-							<div className="space-y-1">
+							</div> */}
+							{/* <div className="space-y-1">
 								<p className="text-xs font-medium text-muted-foreground">
 									Groom Name
 								</p>
 								<p className="text-sm font-medium">
 									{booking.clients.groomName || "Not specified"}
 								</p>
-							</div>
-							<div className="space-y-1">
+							</div> */}
+							{/* <div className="space-y-1">
 								<p className="text-xs font-medium text-muted-foreground">
 									Email address
 								</p>
 								<p className="text-sm font-medium">
 									{booking.clients.email || "Not provided"}
 								</p>
-							</div>
+							</div> */}
 							<div className="space-y-1">
 								<p className="text-xs font-medium text-muted-foreground">
 									Package Type
@@ -135,14 +135,14 @@ export function BookingDetails({ id }: { id: string }) {
 									₹{Number(booking.packageCost).toLocaleString()}
 								</p>
 							</div>
-							<div className="space-y-1">
+							{/* <div className="space-y-1">
 								<p className="text-xs font-medium text-muted-foreground">
 									Phone number
 								</p>
 								<p className="text-sm font-medium">
 									{booking.clients.phoneNumber || "Not provided"}
 								</p>
-							</div>
+							</div> */}
 						</div>
 					</div>
 				</div>

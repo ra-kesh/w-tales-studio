@@ -51,7 +51,7 @@ export default async function EditBooking({ params }: Props) {
 	});
 
 	return (
-		<div className="flex items-center justify-center p-4 pt-0">
+		<div className="flex items-center justify-center p-6">
 			<Suspense fallback={<div>Loading booking data...</div>}>
 				<HydrationBoundary state={dehydrate(queryClient)}>
 					<EditBookingContent bookingId={id} />

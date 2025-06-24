@@ -35,8 +35,6 @@ export const BookingDetailForm = () => {
 	const { data: bookingTypes = [] } = useBookingTypes();
 	const { data: packageTypes = [] } = usePackageTypes();
 
-	const bookingType = form.watch("bookingType");
-
 	type RoleOption = { value: string; label: string };
 
 	type RolesByBookingType = {
@@ -121,8 +119,12 @@ export const BookingDetailForm = () => {
 		[],
 	);
 
-	const roleOptions =
-		rolesByBookingType[bookingType.toLowerCase()] ?? rolesByBookingType.default;
+	const raw = form.watch("bookingType");
+	const key = typeof raw === "string" ? raw.toLowerCase() : "default";
+	const roleOptions = rolesByBookingType[key] ?? rolesByBookingType.default;
+
+	// const roleOptions =
+	// 	rolesByBookingType[bookingType.toLowerCase()] ?? rolesByBookingType.default;
 
 	const {
 		fields: participants,
