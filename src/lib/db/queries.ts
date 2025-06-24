@@ -302,6 +302,19 @@ interface BookingFilters {
 	name?: string; // Optional filter for booking name
 }
 
+async function loadConfigMap(
+	type: "booking_type" | "package_type",
+	orgId: string,
+): Promise<Map<string, string>> {
+	const tbl = type === "booking_type" ? bookingConfigs : packageConfigs;
+	const rows = await db
+		.select({ key: tbl.key, value: tbl.value })
+		.from(tbl)
+		.where(and(eq(tbl.type, type), eq(tbl.organizationId, orgId)));
+
+	return new Map(rows.map((r) => [r.key, r.value]));
+}
+
 export async function getBookings(
 	userOrganizationId: string,
 	page = 1,
@@ -311,33 +324,33 @@ export async function getBookings(
 ) {
 	const offset = (page - 1) * limit;
 
-	const [bookingConfigData, packageConfigData] = await Promise.all([
-		db
-			.select({ key: bookingConfigs.key, value: bookingConfigs.value })
-			.from(bookingConfigs)
-			.where(
-				and(
-					eq(bookingConfigs.type, "booking_type"),
-					eq(bookingConfigs.organizationId, userOrganizationId),
-				),
-			),
-		db
-			.select({ key: packageConfigs.key, value: packageConfigs.value })
-			.from(packageConfigs)
-			.where(
-				and(
-					eq(packageConfigs.type, "package_type"),
-					eq(packageConfigs.organizationId, userOrganizationId),
-				),
-			),
-	]);
+	// const [bookingConfigData, packageConfigData] = await Promise.all([
+	// 	db
+	// 		.select({ key: bookingConfigs.key, value: bookingConfigs.value })
+	// 		.from(bookingConfigs)
+	// 		.where(
+	// 			and(
+	// 				eq(bookingConfigs.type, "booking_type"),
+	// 				eq(bookingConfigs.organizationId, userOrganizationId),
+	// 			),
+	// 		),
+	// 	db
+	// 		.select({ key: packageConfigs.key, value: packageConfigs.value })
+	// 		.from(packageConfigs)
+	// 		.where(
+	// 			and(
+	// 				eq(packageConfigs.type, "package_type"),
+	// 				eq(packageConfigs.organizationId, userOrganizationId),
+	// 			),
+	// 		),
+	// ]);
 
-	const bookingTypeMap = new Map(
-		bookingConfigData.map((config) => [config.key, config.value]),
-	);
-	const packageTypeMap = new Map(
-		packageConfigData.map((config) => [config.key, config.value]),
-	);
+	// const bookingTypeMap = new Map(
+	// 	bookingConfigData.map((config) => [config.key, config.value]),
+	// );
+	// const packageTypeMap = new Map(
+	// 	packageConfigData.map((config) => [config.key, config.value]),
+	// );
 
 	const whereConditions = [eq(bookings.organizationId, userOrganizationId)];
 
@@ -481,6 +494,197 @@ export async function getBookings(
 		page,
 		pageCount: Math.ceil(total / limit),
 		limit,
+	};
+}
+
+export async function getBookingDetail(
+	userOrganizationId: string,
+	bookingId: number,
+): Promise<BookingDetail | undefined> {
+	const [bookingTypeMap, packageTypeMap] = await Promise.all([
+		loadConfigMap("booking_type", userOrganizationId),
+		loadConfigMap("package_type", userOrganizationId),
+	]);
+
+	const booking = await db.query.bookings.findFirst({
+		where: and(
+			eq(bookings.id, bookingId),
+			eq(bookings.organizationId, userOrganizationId),
+		),
+		with: {
+			participants: {
+				with: {
+					client: true,
+				},
+			},
+			shoots: {
+				with: {
+					shootsAssignments: {
+						with: {
+							crew: {
+								columns: {
+									id: true,
+									name: true,
+									role: true,
+									specialization: true,
+									status: true,
+								},
+								with: {
+									member: {
+										with: {
+											user: {
+												columns: {
+													name: true,
+													email: true,
+													image: true,
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			deliverables: {
+				with: {
+					deliverablesAssignments: {
+						with: {
+							crew: {
+								columns: {
+									id: true,
+									name: true,
+									role: true,
+									specialization: true,
+									status: true,
+								},
+								with: {
+									member: {
+										with: {
+											user: {
+												columns: {
+													name: true,
+													email: true,
+													image: true,
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			receivedAmounts: true,
+			paymentSchedules: true,
+			expenses: {
+				with: {
+					expensesAssignments: {
+						with: {
+							crew: {
+								columns: {
+									id: true,
+									name: true,
+									role: true,
+									specialization: true,
+									status: true,
+								},
+								with: {
+									member: {
+										with: {
+											user: {
+												columns: {
+													name: true,
+													email: true,
+													image: true,
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			tasks: {
+				with: {
+					tasksAssignments: {
+						with: {
+							crew: {
+								columns: {
+									id: true,
+									name: true,
+									role: true,
+									specialization: true,
+									status: true,
+								},
+								with: {
+									member: {
+										with: {
+											user: {
+												columns: {
+													name: true,
+													email: true,
+													image: true,
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	});
+
+	if (!booking) {
+		return undefined;
+	}
+
+	// return {
+	// 	id: booking.id,
+	// 	organizationId: booking.organizationId,
+	// 	name: booking.name,
+	// 	// bookingTypeKey: booking.bookingType,
+	// 	bookingTypeValue: bookingTypeMap.get(booking.bookingType) ?? booking.bookingType,
+	// 	// packageTypeKey: booking.packageType,
+	// 	packageTypeValue: packageTypeMap.get(booking.packageType) ?? booking.packageType,
+	// 	packageCost: booking.packageCost,
+	// 	status: booking.status,
+	// 	note: booking.note,
+	// 	createdAt: booking.createdAt,
+	// 	updatedAt: booking.updatedAt,
+	// 	participants: booking.participants.map((pp) => ({
+	// 		role: pp.role,
+	// 		client: pp.client,
+	// 	})),
+	// 	shoots: booking.shoots,
+	// 	deliverables: b.deliverables,
+	// 	expenses: b.expenses,
+	// 	receivedAmounts: b.receivedAmounts,
+	// 	paymentSchedules: b.paymentSchedules,
+	// 	tasks: b.tasks,
+	// };
+
+	// Map bookingType and packageType to human-readable values
+	// remove crews from booking details types since crews are not directly assigned to booking
+	return {
+		...booking,
+		bookingTypeKey: booking.bookingType,
+		bookingTypeValue:
+			bookingTypeMap.get(booking.bookingType) ?? booking.bookingType,
+		packageTypeKey: booking.packageType,
+		packageTypeValue:
+			packageTypeMap.get(booking.packageType) ?? booking.packageType,
+		participants: booking.participants.map((pp) => ({
+			role: pp.role,
+			client: pp.client,
+		})),
 	};
 }
 export async function getMinimalBookings(
@@ -981,190 +1185,6 @@ export async function getConfigs(
 	});
 
 	return config;
-}
-
-export async function getBookingDetail(
-	userOrganizationId: string,
-	bookingId: number,
-): Promise<BookingDetail | undefined> {
-	const bookingConfigData = await db
-		.select({
-			key: bookingConfigs.key,
-			value: bookingConfigs.value,
-		})
-		.from(bookingConfigs)
-		.where(
-			and(
-				eq(bookingConfigs.type, "booking_type"),
-				eq(bookingConfigs.organizationId, userOrganizationId),
-			),
-		);
-
-	const packageConfigData = await db
-		.select({
-			key: packageConfigs.key,
-			value: packageConfigs.value,
-		})
-		.from(packageConfigs)
-		.where(
-			and(
-				eq(packageConfigs.type, "package_type"),
-				eq(packageConfigs.organizationId, userOrganizationId),
-			),
-		);
-
-	const bookingTypeMap = new Map(
-		bookingConfigData.map((config) => [config.key, config.value]),
-	);
-	const packageTypeMap = new Map(
-		packageConfigData.map((config) => [config.key, config.value]),
-	);
-
-	const booking = await db.query.bookings.findFirst({
-		where: and(
-			eq(bookings.id, bookingId),
-			eq(bookings.organizationId, userOrganizationId),
-		),
-		with: {
-			clients: true,
-			shoots: {
-				with: {
-					shootsAssignments: {
-						with: {
-							crew: {
-								columns: {
-									id: true,
-									name: true,
-									role: true,
-									specialization: true,
-									status: true,
-								},
-								with: {
-									member: {
-										with: {
-											user: {
-												columns: {
-													name: true,
-													email: true,
-													image: true,
-												},
-											},
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-			deliverables: {
-				with: {
-					deliverablesAssignments: {
-						with: {
-							crew: {
-								columns: {
-									id: true,
-									name: true,
-									role: true,
-									specialization: true,
-									status: true,
-								},
-								with: {
-									member: {
-										with: {
-											user: {
-												columns: {
-													name: true,
-													email: true,
-													image: true,
-												},
-											},
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-			receivedAmounts: true,
-			paymentSchedules: true,
-			expenses: {
-				with: {
-					expensesAssignments: {
-						with: {
-							crew: {
-								columns: {
-									id: true,
-									name: true,
-									role: true,
-									specialization: true,
-									status: true,
-								},
-								with: {
-									member: {
-										with: {
-											user: {
-												columns: {
-													name: true,
-													email: true,
-													image: true,
-												},
-											},
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-			tasks: {
-				with: {
-					tasksAssignments: {
-						with: {
-							crew: {
-								columns: {
-									id: true,
-									name: true,
-									role: true,
-									specialization: true,
-									status: true,
-								},
-								with: {
-									member: {
-										with: {
-											user: {
-												columns: {
-													name: true,
-													email: true,
-													image: true,
-												},
-											},
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-	});
-
-	if (!booking) {
-		return undefined;
-	}
-
-	// Map bookingType and packageType to human-readable values
-	// remove crews from booking details types since crews are not directly assigned to booking
-	return {
-		...booking,
-		bookingTypeValue:
-			bookingTypeMap.get(booking.bookingType) ?? booking.bookingType,
-		packageTypeValue:
-			packageTypeMap.get(booking.packageType) ?? booking.packageType,
-	};
 }
 
 export async function getClientDetail(
