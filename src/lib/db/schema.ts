@@ -120,20 +120,6 @@ export const activityLogs = pgTable("activity_logs", {
 	ipAddress: varchar("ip_address", { length: 45 }),
 });
 
-export enum BillTo {
-	STUDIO = "Studio",
-	CLIENT = "Client",
-}
-
-export enum ExpenseCategory {
-	FOOD = "Food",
-	DRINK = "Drink",
-	TRAVEL = "Travel",
-	EQUIPMENT = "Equipment",
-	ACCOMMODATION = "Accommodation",
-	CUSTOM = "Custom",
-}
-
 export const ConfigType = pgEnum("config_type", [
 	"task_status",
 	"task_priority",
@@ -333,6 +319,8 @@ export const paymentSchedules = pgTable("payment_schedules", {
 	updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+export const BillTo = pgEnum("bill_to", ["Studio", "Client"]);
+
 export const expenses = pgTable("expenses", {
 	id: serial("id").primaryKey(),
 	bookingId: integer("booking_id")
@@ -341,12 +329,8 @@ export const expenses = pgTable("expenses", {
 	organizationId: text("organization_id")
 		.notNull()
 		.references(() => organizations.id, { onDelete: "cascade" }),
-	billTo: text("bill_to", {
-		enum: Object.values(BillTo) as [string, ...string[]],
-	}).notNull(),
-	category: text("category", {
-		enum: Object.values(ExpenseCategory) as [string, ...string[]],
-	}).notNull(),
+	billTo: BillTo("bill_to").notNull(),
+	category: text("category").notNull(),
 	amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
 	date: date("date").notNull(),
 	description: text("description"),
@@ -547,20 +531,6 @@ export const deliverablesAssignmentsRelations = relations(
 		}),
 	}),
 );
-
-// export const taskStatusEnum = pgEnum("task_status", [
-// 	"todo",
-// 	"in_progress",
-// 	"in_review",
-// 	"in_revision",
-// 	"completed",
-// ]);
-// export const taskPriorityEnum = pgEnum("task_priority", [
-// 	"low",
-// 	"medium",
-// 	"high",
-// 	"critical",
-// ]);
 
 export const tasks = pgTable("tasks", {
 	id: serial("id").primaryKey(),
