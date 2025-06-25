@@ -38,6 +38,7 @@ import {
 	receivedAmounts,
 	paymentSchedules,
 	expensesAssignments,
+	bookingParticipants,
 } from "./schema";
 import { alias } from "drizzle-orm/pg-core";
 import type { BookingDetail } from "@/types/booking";
@@ -725,33 +726,258 @@ export async function getMinimalBookings(
 	};
 }
 
+// export async function getClients(
+// 	userOrganizationId: string,
+// 	page = 1,
+// 	limit = 10,
+// ) {
+// 	const offset = (page - 1) * limit;
+
+// 	const clientsData = await db.query.clients.findMany({
+// 		where: eq(clients.organizationId, userOrganizationId),
+// 		with: {
+// 			bookings: {
+// 				with: {
+// 					booking: true,
+// 				},
+// 			},
+// 		},
+// 		orderBy: (clients, { desc }) => [
+// 			desc(clients.updatedAt),
+// 			desc(clients.createdAt),
+// 		],
+// 		// limit,
+// 		// offset,
+// 	});
+
+// 	const total = await db.$count(
+// 		clients,
+// 		eq(clients.organizationId, userOrganizationId),
+// 	);
+
+// 	return {
+// 		data: clientsData,
+// 		total,
+// 		page,
+// 		pageCount: Math.ceil(total / limit),
+// 		limit,
+// 	};
+// }
+
+export interface ClientBookingRow {
+	id: number;
+	name: string;
+	email: string | null;
+	phoneNumber: string | null;
+	address: string | null;
+	bookingId: number;
+	bookingName: string;
+	packageType: string;
+	packageCost: string;
+	bookingStatus: string;
+	bookingCreatedAt: Date | null;
+}
+
+export interface ClientsPage {
+	data: ClientBookingRow[];
+	total: number;
+	page: number;
+	limit: number;
+	pageCount: number;
+}
+
+// 1. Define the types for our filters and sorting
+export type ClientFilters = {
+	name?: string;
+	bookingId?: string; // Filtering by booking name is more user-friendly for text search
+	packageType?: string; // Will be a comma-separated string of package types
+};
+
+// Note: Sorting requires mapping to the correct table's column
+export type AllowedClientSortFields =
+	| "name"
+	| "bookingName"
+	| "packageCost"
+	| "status"
+	| "bookingCreatedAt";
+export type ClientSortOption = { id: AllowedClientSortFields; desc: boolean };
+/**
+ * Fetch a paginated list of CLIENT+BOOKING rows for an org.
+ */
 export async function getClients(
 	userOrganizationId: string,
 	page = 1,
 	limit = 10,
-) {
+	sortOptions: ClientSortOption[] | undefined = undefined,
+	filters: ClientFilters = {},
+): Promise<ClientsPage> {
 	const offset = (page - 1) * limit;
 
-	const clientsData = await db.query.clients.findMany({
-		where: eq(clients.organizationId, userOrganizationId),
-		orderBy: (clients, { desc }) => [
-			desc(clients.updatedAt),
-			desc(clients.createdAt),
-		],
-		// limit,
-		// offset,
-	});
+	const whereConditions = [eq(clients.organizationId, userOrganizationId)];
 
-	const total = await db.$count(
-		clients,
-		eq(clients.organizationId, userOrganizationId),
-	);
+	if (filters.name) {
+		whereConditions.push(ilike(clients.name, `%${filters.name}%`));
+	}
+
+	if (filters.bookingId) {
+		const bookingIds = filters.bookingId
+			.split(",")
+			.map((id) => Number.parseInt(id.trim(), 10))
+			.filter((id) => !Number.isNaN(id));
+
+		if (bookingIds.length > 0) {
+			whereConditions.push(inArray(bookings.id, bookingIds));
+		}
+	}
+
+	if (filters.packageType) {
+		const packageTypes = filters.packageType.split(",").map((p) => p.trim());
+		if (packageTypes.length > 0) {
+			// Filter on the joined 'bookings' table
+			whereConditions.push(inArray(bookings.packageType, packageTypes));
+		}
+	}
+
+	const orderByClauses =
+		sortOptions && sortOptions.length > 0
+			? sortOptions.map((item) => {
+					const direction = item.desc ? desc : asc;
+					// Map the sort key to the correct table and column
+					switch (item.id) {
+						case "name":
+							return direction(clients.name);
+						case "bookingName":
+							return direction(bookings.name);
+						case "packageCost":
+							return direction(bookings.packageCost);
+						case "status":
+							return direction(bookings.status);
+						case "bookingCreatedAt":
+							return direction(bookings.createdAt);
+						default:
+							// Fallback or ignore invalid sort keys
+							return desc(bookings.updatedAt);
+					}
+				})
+			: [desc(bookings.updatedAt)];
+
+	// 1) Fetch the page of rows
+	const data = await db
+		.select({
+			id: clients.id,
+			name: clients.name,
+			email: clients.email,
+			phoneNumber: clients.phoneNumber,
+			address: clients.address,
+			bookingId: bookings.id,
+			bookingName: bookings.name,
+			packageType: bookings.packageType,
+			packageCost: bookings.packageCost,
+			bookingStatus: bookings.status,
+			bookingCreatedAt: bookings.createdAt,
+		})
+		.from(bookingParticipants)
+		.innerJoin(clients, eq(bookingParticipants.clientId, clients.id))
+		.innerJoin(bookings, eq(bookingParticipants.bookingId, bookings.id))
+		.where(and(...whereConditions)) // Apply all filters here
+		.orderBy(...orderByClauses)
+		.limit(limit)
+		.offset(offset);
+
+	// 2) Count total matching rows
+	const totalResult = await db
+		.select({ count: count() })
+		.from(bookingParticipants)
+		.innerJoin(clients, eq(bookingParticipants.clientId, clients.id))
+		.innerJoin(bookings, eq(bookingParticipants.bookingId, bookings.id))
+		.where(and(...whereConditions)); // Use the exact same where clause
+
+	const total = totalResult[0]?.count ?? 0;
+	const pageCount = Math.ceil(total / limit);
 
 	return {
-		data: clientsData,
+		data,
 		total,
-		// page,
-		// limit,
+		page,
+		limit,
+		pageCount,
+	};
+}
+
+export interface ClientStats {
+	totalClients: number;
+	newClients: number; // joined in last 7 days
+	activeClients: number; // have at least one non-completed booking
+	clientsWithOverdueDeliverables: number;
+}
+
+export async function getClientStats(
+	userOrganizationId: string,
+): Promise<ClientStats> {
+	const today = startOfDay(new Date());
+	const weekAgo = subDays(today, 7);
+	const todayISO = formatISO(today, { representation: "date" });
+	// const weekAgoISO = formatISO(weekAgo, { representation: "date" });
+
+	const [totalRes, newRes, activeRes, overdueRes] = await Promise.all([
+		// 1) totalClients
+		db
+			.select({ count: count() })
+			.from(clients)
+			.where(eq(clients.organizationId, userOrganizationId)),
+
+		// 2) newClients: createdAt >= weekAgo
+		db
+			.select({ count: count() })
+			.from(clients)
+			.where(
+				and(
+					eq(clients.organizationId, userOrganizationId),
+					gte(clients.createdAt, weekAgo),
+				),
+			),
+
+		// 3) activeClients: distinct clients who appear in booking_participants
+		//    for bookings whose status is not completed/cancelled
+		db
+			.select({ count: countDistinct(bookingParticipants.clientId) })
+			.from(bookingParticipants)
+			.innerJoin(bookings, eq(bookingParticipants.bookingId, bookings.id))
+			.where(
+				and(
+					eq(bookings.organizationId, userOrganizationId),
+					notInArray(bookings.status, ["completed", "cancelled"]),
+				),
+			),
+
+		// 4) clientsWithOverdueDeliverables: distinct clients who appear in
+		//    booking_participants for bookings that have >=1 overdue deliverable
+		db
+			.select({ count: countDistinct(bookingParticipants.clientId) })
+			.from(bookingParticipants)
+			.innerJoin(
+				deliverables,
+				eq(bookingParticipants.bookingId, deliverables.bookingId),
+			)
+			.innerJoin(bookings, eq(deliverables.bookingId, bookings.id))
+			.where(
+				and(
+					eq(bookings.organizationId, userOrganizationId),
+					lt(deliverables.dueDate, todayISO),
+					notInArray(deliverables.status, [
+						"completed",
+						"delivered",
+						"cancelled",
+					]),
+				),
+			),
+	]);
+
+	return {
+		totalClients: totalRes[0]?.count || 0,
+		newClients: newRes[0]?.count || 0,
+		activeClients: activeRes[0]?.count || 0,
+		clientsWithOverdueDeliverables: overdueRes[0]?.count || 0,
 	};
 }
 

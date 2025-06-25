@@ -1,19 +1,23 @@
+import type { ClientBookingRow } from "@/lib/db/queries";
 import type { Client } from "@/lib/db/schema";
 import { useQuery } from "@tanstack/react-query";
+import { useSearchParams } from "next/navigation";
 
 interface Location {
 	name: string;
 }
 
 interface ClientsResponse {
-	data: Client[];
+	data: ClientBookingRow[];
 	total: number;
-	page: number;
+	pageCount: number;
 	limit: number;
 }
 
-export async function fetchClients(): Promise<ClientsResponse> {
-	const response = await fetch("/api/clients");
+export async function fetchClients(
+	searchParams: URLSearchParams,
+): Promise<ClientsResponse> {
+	const response = await fetch(`/api/clients?${searchParams.toString()}`);
 	if (!response.ok) {
 		throw new Error("Failed to fetch clients");
 	}
@@ -21,9 +25,10 @@ export async function fetchClients(): Promise<ClientsResponse> {
 }
 
 export function useClients() {
+	const searchParams = useSearchParams();
 	return useQuery({
-		queryKey: ["clients"],
-		queryFn: fetchClients,
+		queryKey: ["clients", searchParams.toString()],
+		queryFn: () => fetchClients(searchParams),
 	});
 }
 

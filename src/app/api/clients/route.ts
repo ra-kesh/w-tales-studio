@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "@/lib/dal";
-import { getClients } from "@/lib/db/queries";
+import {
+	type AllowedClientSortFields,
+	type ClientFilters,
+	type ClientSortOption,
+	getClients,
+} from "@/lib/db/queries";
 
 export async function GET(request: Request) {
 	const { session } = await getServerSession();
@@ -19,12 +24,47 @@ export async function GET(request: Request) {
 	}
 
 	try {
-		// Get pagination parameters from the query string
 		const { searchParams } = new URL(request.url);
 		const page = Number.parseInt(searchParams.get("page") || "1", 10);
 		const limit = Number.parseInt(searchParams.get("limit") || "10", 10);
 
-		const result = await getClients(userOrganizationId, page, limit);
+		// 1. Parse Sort Parameter
+		const sortParam = searchParams.get("sort");
+		let sortOptions: ClientSortOption[] | undefined = undefined;
+		if (sortParam) {
+			try {
+				const parsedSort = JSON.parse(sortParam);
+				const allowedFields: AllowedClientSortFields[] = [
+					"name",
+					"bookingName",
+					"packageCost",
+					"status",
+					"bookingCreatedAt",
+				];
+				sortOptions = parsedSort.filter((option: ClientSortOption) =>
+					allowedFields.includes(option.id),
+				);
+			} catch (e) {
+				console.error("Failed to parse sort parameter:", e);
+			}
+		}
+
+		// 2. Construct Filters Object from URL Search Params
+		const filters: ClientFilters = {
+			name: searchParams.get("name") || undefined,
+			bookingId: searchParams.get("bookingId") || undefined,
+			packageType: searchParams.get("packageType") || undefined,
+		};
+
+		// 3. Call the updated getClients function with all parameters
+		const result = await getClients(
+			userOrganizationId,
+			page,
+			limit,
+			sortOptions,
+			filters,
+		);
+
 		return NextResponse.json(result, { status: 200 });
 	} catch (error: unknown) {
 		console.error("Error fetching clients:", error);
