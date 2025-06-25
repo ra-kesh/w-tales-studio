@@ -5,9 +5,13 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ClientTableRowActions } from "./client-table-row-actions";
 import type { Client } from "@/lib/db/schema";
 import { Badge } from "@/components/ui/badge";
+import { formatCurrency } from "@/lib/utils";
+import type { ClientBookingRow } from "@/lib/db/queries";
+import { DataTableColumnHeader } from "../../tasks/_components/task-table-column-header";
+import { TextIcon } from "lucide-react";
 
 export const useClientColumns = () => {
-	const columns: ColumnDef<Client>[] = [
+	const columns: ColumnDef<ClientBookingRow>[] = [
 		{
 			id: "select",
 			header: ({ table }) => (
@@ -27,23 +31,67 @@ export const useClientColumns = () => {
 			enableSorting: false,
 			enableHiding: false,
 		},
+
 		{
+			id: "name",
 			accessorKey: "name",
-			header: "Name",
+			header: ({ column }) => (
+				<DataTableColumnHeader column={column} title="Client" />
+			),
 			cell: ({ row }) => (
 				<div className="font-medium">{row.getValue("name")}</div>
 			),
+			meta: {
+				label: "Name",
+				placeholder: "Filter Client...",
+				variant: "text",
+				icon: TextIcon,
+			},
+			enableColumnFilter: true,
+			enableSorting: true,
 		},
+
+		// 3) Booking name
 		{
-			accessorKey: "brideName",
-			header: "Bride",
-			cell: ({ row }) => <div>{row.getValue("brideName")}</div>,
+			accessorKey: "bookingName",
+			header: "Booking",
+			cell: ({ row }) => <div>{row.getValue("bookingName")}</div>,
 		},
+
+		// 4) Package type
 		{
-			accessorKey: "groomName",
-			header: "Groom",
-			cell: ({ row }) => <div>{row.getValue("groomName")}</div>,
+			accessorKey: "packageType",
+			header: "Package Type",
+			cell: ({ row }) => (
+				<div className="capitalize">{row.getValue("packageType")}</div>
+			),
 		},
+
+		{
+			accessorKey: "packageCost",
+			header: "Cost",
+			cell: ({ row }) => {
+				const cost = row.getValue("packageCost");
+				return <div>{formatCurrency(cost as string)}</div>;
+			},
+		},
+
+		// 6) Booking date (optional)
+		// {
+		// 	id: "bookingDate",
+		// 	header: "Booked On",
+		// 	accessorFn: (row) => row.bookingCreatedAt,
+		// 	cell: ({ getValue }) => {
+		// 		const dt = getValue() as string | Date;
+		// 		return dt ? (
+		// 			<time dateTime={new Date(dt).toISOString()}>
+		// 				{format(new Date(dt), "MMM d, yyyy")}
+		// 			</time>
+		// 		) : (
+		// 			"—"
+		// 		);
+		// 	},
+		// },
 		{
 			accessorKey: "email",
 			header: "Email",
