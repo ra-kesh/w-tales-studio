@@ -24,7 +24,7 @@ import {
 	type ExpenseFormValues,
 	defaultExpense,
 } from "../expense-form-schema";
-import { useBookings, useMinimalBookings } from "@/hooks/use-bookings";
+import { useMinimalBookings } from "@/hooks/use-bookings";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -41,11 +41,12 @@ import {
 	PopoverTrigger,
 } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ExpenseCategory, BillTo } from "@/lib/db/schema";
+import { BillTo } from "@/lib/db/schema";
 import { useCrews } from "@/hooks/use-crews";
 import { useEffect, useMemo } from "react";
 import { useParams } from "next/navigation";
 import { MultiAsyncSelect } from "@/components/ui/multi-select";
+import { useConfigs } from "@/hooks/use-configs";
 
 interface ExpenseFormProps {
 	defaultValues?: ExpenseFormValues;
@@ -66,8 +67,8 @@ export function ExpenseForm({
 		bookingId: defaultValues.bookingId?.toString() ?? "",
 		description: defaultValues.description ?? "",
 		amount: defaultValues.amount?.toString() ?? "",
-		category: defaultValues.category ?? ExpenseCategory.CUSTOM,
-		billTo: defaultValues.billTo ?? BillTo.STUDIO,
+		category: defaultValues.category ?? "miscellaneous",
+		billTo: defaultValues.billTo ?? BillTo.enumValues[0],
 		date: defaultValues.date ?? "",
 		crewMembers: defaultValues.crewMembers ?? [],
 		fileUrls: defaultValues.fileUrls ?? [],
@@ -86,6 +87,8 @@ export function ExpenseForm({
 
 	const { data: MinimalBookings } = useMinimalBookings();
 	const bookings = MinimalBookings?.data;
+
+	const { data: categories = [] } = useConfigs("expense_category");
 
 	const { data: crewData, isLoading: isLoadingCrew } = useCrews();
 	const crewOptions = useMemo(() => {
@@ -246,9 +249,9 @@ export function ExpenseForm({
 										</SelectTrigger>
 									</FormControl>
 									<SelectContent>
-										{Object.values(ExpenseCategory).map((category) => (
-											<SelectItem key={category} value={category}>
-												{category}
+										{categories.map((c) => (
+											<SelectItem key={c.value} value={c.value}>
+												{c.label}
 											</SelectItem>
 										))}
 									</SelectContent>
