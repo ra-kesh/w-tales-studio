@@ -285,20 +285,6 @@ export const shoots = pgTable("shoots", {
 	updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// const deliverableStatusEnum = pgEnum("deliverable_status", [
-// 	"pending",
-// 	"in_progress",
-// 	"in_revision",
-// 	"completed",
-// 	"delivered",
-// 	"cancelled",
-// ]);
-// const deliverablePriorityEnum = pgEnum("deliverable_priority", [
-// 	"low",
-// 	"medium",
-// 	"high",
-// ]);
-
 export const deliverables = pgTable("deliverables", {
 	id: serial("id").primaryKey(),
 	bookingId: integer("booking_id")
@@ -313,12 +299,10 @@ export const deliverables = pgTable("deliverables", {
 	quantity: integer("quantity").notNull(),
 	dueDate: date("due_date"),
 	notes: text("notes"),
-	status: text("status").notNull(), // previously pgEnum
+	status: text("status").notNull().default("pending"),
 	priority: text("priority").notNull().default("medium"),
-	// status: deliverableStatusEnum("status").notNull().default("pending"),
 	fileUrl: text("file_url"),
 	clientFeedback: text("client_feedback"),
-	// priority: deliverablePriorityEnum("priority").notNull().default("medium"),
 	revisionCount: integer("revision_count").notNull().default(0),
 	deliveredAt: timestamp("delivered_at"),
 	createdAt: timestamp("created_at").defaultNow(),
@@ -564,19 +548,19 @@ export const deliverablesAssignmentsRelations = relations(
 	}),
 );
 
-export const taskStatusEnum = pgEnum("task_status", [
-	"todo",
-	"in_progress",
-	"in_review",
-	"in_revision",
-	"completed",
-]);
-export const taskPriorityEnum = pgEnum("task_priority", [
-	"low",
-	"medium",
-	"high",
-	"critical",
-]);
+// export const taskStatusEnum = pgEnum("task_status", [
+// 	"todo",
+// 	"in_progress",
+// 	"in_review",
+// 	"in_revision",
+// 	"completed",
+// ]);
+// export const taskPriorityEnum = pgEnum("task_priority", [
+// 	"low",
+// 	"medium",
+// 	"high",
+// 	"critical",
+// ]);
 
 export const tasks = pgTable("tasks", {
 	id: serial("id").primaryKey(),
@@ -589,9 +573,9 @@ export const tasks = pgTable("tasks", {
 	deliverableId: integer("deliverable_id").references(() => deliverables.id, {
 		onDelete: "cascade",
 	}),
-	status: taskStatusEnum("status").notNull().default("todo"),
+	status: text("status").notNull().default("todo"),
 	description: text("description").notNull(),
-	priority: taskPriorityEnum("priority").notNull().default("medium"),
+	priority: text("priority").notNull().default("medium"),
 	dueDate: date("due_date"),
 	createdAt: timestamp("created_at").defaultNow().notNull(),
 	updatedAt: timestamp("updated_at").defaultNow().notNull(),
