@@ -88,9 +88,9 @@ export function useTaskColumns({
 						<div className="flex flex-col space-y-1 w-full">
 							<div className="font-semibold">{row.getValue("description")}</div>
 							<div className="flex gap-3">
-								<div className="text-sm text-muted-foreground">
+								{/* <div className="text-sm text-muted-foreground">
 									{row.original.booking.name}
-								</div>
+								</div> */}
 							</div>
 						</div>
 					</div>
