@@ -12,6 +12,7 @@ import {
 	getTasksStats,
 	type TaskStats as TasksStatsType,
 	getTasks,
+	getConfigs,
 } from "@/lib/db/queries";
 import { Suspense } from "react";
 import { TasksStats } from "./_components/taks-shoot";
@@ -55,6 +56,24 @@ const TaskLayout = async ({ children }: { children: React.ReactNode }) => {
 		queryKey: ["bookings", "list", "minimal"],
 		queryFn: () =>
 			getMinimalBookings(session?.session.activeOrganizationId as string),
+	});
+
+	await queryClient.prefetchQuery({
+		queryKey: ["configurations", "task_status"],
+		queryFn: () =>
+			getConfigs(
+				session?.session.activeOrganizationId as string,
+				"task_status",
+			),
+	});
+
+	await queryClient.prefetchQuery({
+		queryKey: ["configurations", "task_priority"],
+		queryFn: () =>
+			getConfigs(
+				session?.session.activeOrganizationId as string,
+				"task_priority",
+			),
 	});
 
 	return (

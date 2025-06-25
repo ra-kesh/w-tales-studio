@@ -39,9 +39,13 @@ type TaskWithRelations = Task & {
 };
 
 export function useTaskColumns({
+	statusOptions,
+	priorityOptions,
 	minimalBookings,
 	isMininmalBookingLoading,
 }: {
+	statusOptions: Array<{ label: string; value: string }>;
+	priorityOptions: Array<{ label: string; value: string }>;
 	minimalBookings: Array<{ id: string | number; name: string }>;
 	isMininmalBookingLoading: boolean;
 }) {
@@ -146,9 +150,9 @@ export function useTaskColumns({
 			meta: {
 				label: "Priority",
 				variant: "multiSelect",
-				options: tasks.priority.enumValues.map((priority) => ({
-					label: priority.charAt(0).toUpperCase() + priority.slice(1),
-					value: priority,
+				options: priorityOptions?.map((priority) => ({
+					label: priority.label,
+					value: priority.value,
 					// count: priorityCounts[priority],
 					// icon: getPriorityIcon(priority),
 				})),
@@ -178,9 +182,9 @@ export function useTaskColumns({
 			meta: {
 				label: "Status",
 				variant: "multiSelect",
-				options: tasks.status.enumValues.map((status) => ({
-					label: status.replace("_", " "),
-					value: status,
+				options: statusOptions?.map((status) => ({
+					label: status.label,
+					value: status.value,
 					// count: statusCounts[status],
 					// icon: getStatusIcon(status),
 				})),

@@ -20,37 +20,37 @@ export async function fetchConfigs(
 }
 
 // Remove API call and use static values for task statuses
-export function useTaskStatuses() {
-	const statuses = [
-		{ value: "todo", label: "To Do" },
-		{ value: "in_progress", label: "In Progress" },
-		{ value: "in_review", label: "In Review" },
-		{ value: "in_revision", label: "In Revision" },
-		{ value: "completed", label: "Completed" },
-	];
+// export function useTaskStatuses() {
+// 	const statuses = [
+// 		{ value: "todo", label: "To Do" },
+// 		{ value: "in_progress", label: "In Progress" },
+// 		{ value: "in_review", label: "In Review" },
+// 		{ value: "in_revision", label: "In Revision" },
+// 		{ value: "completed", label: "Completed" },
+// 	];
 
-	return {
-		data: statuses,
-		isLoading: false,
-		isError: false,
-	};
-}
+// 	return {
+// 		data: statuses,
+// 		isLoading: false,
+// 		isError: false,
+// 	};
+// }
 
 // Remove API call and use static values for task priorities
-export function useTaskPriorities() {
-	const priorities = [
-		{ value: "low", label: "Low" },
-		{ value: "medium", label: "Medium" },
-		{ value: "high", label: "High" },
-		{ value: "critical", label: "Critical" },
-	];
+// export function useTaskPriorities() {
+// 	const priorities = [
+// 		{ value: "low", label: "Low" },
+// 		{ value: "medium", label: "Medium" },
+// 		{ value: "high", label: "High" },
+// 		{ value: "critical", label: "Critical" },
+// 	];
 
-	return {
-		data: priorities,
-		isLoading: false,
-		isError: false,
-	};
-}
+// 	return {
+// 		data: priorities,
+// 		isLoading: false,
+// 		isError: false,
+// 	};
+// }
 
 // Helper hook to get both statuses and priorities
 export function useTaskConfigs() {
@@ -115,6 +115,9 @@ export const usePackageTypes = () =>
 export const useBookingTypes = () => useConfigs("booking_type");
 
 export const useDeliverablesStatuses = () => useConfigs("deliverable_status");
+
+export const useTaskPriorities = () => useConfigs("task_priority");
+export const useTaskStatuses = () => useConfigs("task_status");
 
 export async function fetchConfigById(id: string): Promise<Configuration> {
 	const response = await fetch(`/api/configurations/${id}`);

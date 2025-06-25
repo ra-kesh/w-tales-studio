@@ -18,7 +18,7 @@ import {
 	sql,
 	sum,
 } from "drizzle-orm";
-import { client, db } from "./drizzle";
+import { db } from "./drizzle";
 import {
 	members,
 	users,
@@ -30,17 +30,13 @@ import {
 	tasks,
 	configurations,
 	type ConfigType,
-	type Shoot,
 	crews,
 	invitations,
 	shootsAssignments,
 	tasksAssignments,
-	expensesAssignments,
 	deliverablesAssignments,
-	taskStatusEnum,
 	receivedAmounts,
 	paymentSchedules,
-	bookingParticipants,
 } from "./schema";
 import { alias } from "drizzle-orm/pg-core";
 import type { BookingDetail } from "@/types/booking";

@@ -10,9 +10,13 @@ import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
 import { OpenTaskSheet } from "./_components/open-task-sheet";
 import { DataTableSkeleton } from "@/components/data-table/data-table-skeleton";
 import { TaskTablePagination } from "./_components/task-table-pagination";
+import { useTaskPriorities, useTaskStatuses } from "@/hooks/use-configs";
 
 export default function Tasks() {
 	const { data, isLoading } = useTasks();
+
+	const { data: statusOptions } = useTaskStatuses();
+	const { data: priorityOptions } = useTaskPriorities();
 
 	const {
 		data: minimalBookingsResponse,
@@ -23,6 +27,10 @@ export default function Tasks() {
 	const minimalBookings = minimalBookingsResponse?.data;
 
 	const columns = useTaskColumns({
+		statusOptions:
+			statusOptions?.map(({ label, value }) => ({ label, value })) ?? [],
+		priorityOptions:
+			priorityOptions?.map(({ label, value }) => ({ label, value })) ?? [],
 		minimalBookings: minimalBookings ?? [],
 		isMininmalBookingLoading,
 	});
