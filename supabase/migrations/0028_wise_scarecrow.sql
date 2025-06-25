@@ -1,0 +1,1 @@
+ALTER TABLE "deliverables" ALTER COLUMN "priority" SET DEFAULT 'medium';
