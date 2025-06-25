@@ -37,6 +37,7 @@ import {
 	deliverablesAssignments,
 	receivedAmounts,
 	paymentSchedules,
+	expensesAssignments,
 } from "./schema";
 import { alias } from "drizzle-orm/pg-core";
 import type { BookingDetail } from "@/types/booking";
@@ -754,15 +755,109 @@ export async function getClients(
 	};
 }
 
+export type ExpenseFilters = {
+	description?: string;
+	category?: string; // Will be a comma-separated string of categories
+	date?: string; // Will handle date ranges
+	crewId?: string; // Will be a comma-separated string of crew IDs
+	bookingId?: string; // Bonus: Let's add booking filter as well
+};
+
+export type AllowedExpenseSortFields =
+	| "category"
+	| "amount"
+	| "date"
+	| "createdAt"
+	| "updatedAt";
+
+export type ExpenseSortOption = { id: AllowedExpenseSortFields; desc: boolean };
+
 export async function getExpenses(
 	userOrganizationId: string,
 	page = 1,
 	limit = 10,
+	sortOptions: ExpenseSortOption[] | undefined = undefined,
+	filters: ExpenseFilters = {},
 ) {
 	const offset = (page - 1) * limit;
+	// --- Build Dynamic Where Clause ---
+	const whereConditions = [eq(expenses.organizationId, userOrganizationId)];
+
+	if (filters.description) {
+		// Filter by Description (text search)
+		whereConditions.push(
+			ilike(expenses.description, `%${filters.description}%`),
+		);
+	}
+
+	if (filters.category) {
+		// Filter by Category (multi-select)
+		const categories = filters.category.split(",").map((c) => c.trim());
+		if (categories.length > 0) {
+			whereConditions.push(inArray(expenses.category, categories));
+		}
+	}
+
+	if (filters.crewId) {
+		// Filter by Assigned Crew (subquery on a related table)
+		const crewIds = filters.crewId
+			.split(",")
+			.map((id) => Number.parseInt(id.trim(), 10))
+			.filter((id) => !Number.isNaN(id));
+		if (crewIds.length > 0) {
+			whereConditions.push(
+				exists(
+					db
+						.select({ id: expensesAssignments.id })
+						.from(expensesAssignments)
+						.where(
+							and(
+								eq(expensesAssignments.expenseId, expenses.id),
+								inArray(expensesAssignments.crewId, crewIds),
+							),
+						),
+				),
+			);
+		}
+	}
+
+	if (filters.bookingId) {
+		// Filter by Booking ID
+		const bookingIds = filters.bookingId
+			.split(",")
+			.map((id) => Number.parseInt(id.trim(), 10))
+			.filter((id) => !Number.isNaN(id));
+		if (bookingIds.length > 0) {
+			whereConditions.push(inArray(expenses.bookingId, bookingIds));
+		}
+	}
+
+	if (filters.date) {
+		// Filter by Date (date range)
+		const dates = filters.date
+			.split(",")
+			.map((date) => date.trim())
+			.filter(Boolean);
+		if (dates.length === 2) {
+			whereConditions.push(
+				gte(expenses.date, new Date(dates[0]).toISOString().slice(0, 10)),
+			);
+			whereConditions.push(
+				lte(expenses.date, new Date(dates[1]).toISOString().slice(0, 10)),
+			);
+		}
+	}
+
+	// --- Build Dynamic Order By Clause ---
+	const orderBy =
+		sortOptions && sortOptions.length > 0
+			? sortOptions.map((item) =>
+					item.desc ? desc(expenses[item.id]) : asc(expenses[item.id]),
+				)
+			: [desc(expenses.date), desc(expenses.createdAt)]; // Default sort
 
 	const expenseData = await db.query.expenses.findMany({
-		where: eq(expenses.organizationId, userOrganizationId),
+		where: and(...whereConditions),
 		with: {
 			booking: {
 				columns: {
@@ -801,25 +896,24 @@ export async function getExpenses(
 				},
 			},
 		},
-		orderBy: (expenses, { desc }) => [
-			desc(expenses.updatedAt),
-			desc(expenses.createdAt),
-		],
-
-		// limit,
-		// offset,
+		orderBy,
+		limit,
+		offset,
 	});
 
-	const total = await db.$count(
-		expenses,
-		eq(expenses.organizationId, userOrganizationId),
-	);
+	const totalResult = await db
+		.select({ count: count() })
+		.from(expenses)
+		.where(and(...whereConditions));
+
+	const total = totalResult[0]?.count ?? 0;
 
 	return {
 		data: expenseData,
 		total,
-		// page,
-		// limit,
+		page,
+		pageCount: Math.ceil(total / limit),
+		limit,
 	};
 }
 
@@ -1393,6 +1487,97 @@ export async function getDeliverablesStats(
 		activeDeliverables: stats?.active || 0,
 		pendingDeliverables: stats?.pending || 0,
 		overdueDeliverables: stats?.overdue || 0,
+	};
+}
+
+export interface ExpenseStats {
+	foodAndDrink: number;
+	travelAndAccommodation: number;
+	equipment: number;
+	miscellaneous: number;
+}
+
+/**
+ * Returns all‐time expense totals for each major bucket,
+ * counting only expenses billed to the Studio.
+ */
+export async function getExpenseStats(
+	userOrganizationId: string,
+): Promise<ExpenseStats> {
+	// Single SELECT with four SUM(CASE...)s
+	const row = (
+		await db
+			.select({
+				foodAndDrink: sql<number>`
+		  COALESCE(
+			SUM(
+			  CASE
+				WHEN ${expenses.category} IN ('food','drink')
+				  THEN ${expenses.amount}
+				ELSE 0
+			  END
+			), 0
+		  )
+		`.mapWith(Number),
+
+				travelAndAccommodation: sql<number>`
+		  COALESCE(
+			SUM(
+			  CASE
+				WHEN ${expenses.category}
+					 IN ('travel','accommodation')
+				  THEN ${expenses.amount}
+				ELSE 0
+			  END
+			), 0
+		  )
+		`.mapWith(Number),
+
+				equipment: sql<number>`
+		  COALESCE(
+			SUM(
+			  CASE
+				WHEN ${expenses.category} = 'equipment'
+				  THEN ${expenses.amount}
+				ELSE 0
+			  END
+			), 0
+		  )
+		`.mapWith(Number),
+
+				miscellaneous: sql<number>`
+		  COALESCE(
+			SUM(
+			  CASE
+				WHEN ${expenses.category} NOT IN (
+				  'food','drink','travel','accommodation','equipment'
+				)
+				THEN ${expenses.amount}
+				ELSE 0
+			  END
+			), 0
+		  )
+		`.mapWith(Number),
+			})
+			.from(expenses)
+			.where(
+				and(
+					eq(expenses.organizationId, userOrganizationId),
+					eq(expenses.billTo, "Studio"), // <— only Studio-billed expenses
+				),
+			)
+	)[0] || {
+		foodAndDrink: 0,
+		travelAndAccommodation: 0,
+		equipment: 0,
+		miscellaneous: 0,
+	};
+
+	return {
+		foodAndDrink: row.foodAndDrink,
+		travelAndAccommodation: row.travelAndAccommodation,
+		equipment: row.equipment,
+		miscellaneous: row.miscellaneous,
 	};
 }
 

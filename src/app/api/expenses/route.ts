@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
-import { getExpenses } from "@/lib/db/queries";
+import {
+	type AllowedExpenseSortFields,
+	type ExpenseFilters,
+	type ExpenseSortOption,
+	getExpenses,
+} from "@/lib/db/queries";
 import { getServerSession } from "@/lib/dal";
 import { ExpenseSchema } from "@/app/(dashboard)/expenses/expense-form-schema";
 import { db } from "@/lib/db/drizzle";
@@ -33,26 +38,56 @@ export async function GET(request: Request) {
 		const page = Number.parseInt(searchParams.get("page") || "1", 10);
 		const limit = Number.parseInt(searchParams.get("limit") || "10", 10);
 
-		const result = await getExpenses(userOrganizationId, page, limit);
+		const sortParam = searchParams.get("sort");
+		let sortOptions: ExpenseSortOption[] | undefined = undefined;
+		if (sortParam) {
+			try {
+				const parsedSort = JSON.parse(sortParam);
+				const allowedFields: AllowedExpenseSortFields[] = [
+					"category",
+					"amount",
+					"date",
+					"createdAt",
+					"updatedAt",
+				];
+				sortOptions = parsedSort.filter((option: ExpenseSortOption) =>
+					allowedFields.includes(option.id),
+				);
+			} catch (e) {
+				console.error("Failed to parse sort parameter:", e);
+			}
+		}
 
-		const transformedData = result.data.map((expense) => ({
-			...expense,
-			expensesAssignments: expense.expensesAssignments?.map((assignment) => ({
-				...assignment,
-				crew: {
-					...assignment.crew,
-					name: assignment.crew.member?.user?.name || assignment.crew.name,
-				},
-			})),
-		}));
+		// 2. Construct Filters Object from URL Search Params
+		const filters: ExpenseFilters = {
+			description: searchParams.get("description") || undefined,
+			category: searchParams.get("category") || undefined,
+			date: searchParams.get("date") || undefined,
+			crewId: searchParams.get("crewId") || undefined,
+			bookingId: searchParams.get("bookingId") || undefined,
+		};
 
-		return NextResponse.json(
-			{
-				data: transformedData,
-				total: result.total,
-			},
-			{ status: 200 },
+		// 3. Call the updated getExpenses function with all parameters
+		const result = await getExpenses(
+			userOrganizationId,
+			page,
+			limit,
+			sortOptions,
+			filters,
 		);
+
+		// const transformedData = result.data.map((expense) => ({
+		// 	...expense,
+		// 	expensesAssignments: expense.expensesAssignments?.map((assignment) => ({
+		// 		...assignment,
+		// 		crew: {
+		// 			...assignment.crew,
+		// 			name: assignment.crew.member?.user?.name || assignment.crew.name,
+		// 		},
+		// 	})),
+		// }));
+
+		return NextResponse.json(result, { status: 200 });
 	} catch (error: unknown) {
 		console.error("Error fetching expenses:", error);
 		const errorMessage =
@@ -150,7 +185,7 @@ export async function POST(request: Request) {
 					amount: validatedData.amount,
 					category: validatedData.category,
 					date: validatedData.date,
-					billTo: validatedData.billTo,
+					billTo: validatedData.billTo as "Studio" | "Client",
 					fileUrls: validatedData.fileUrls,
 					createdAt: new Date(),
 					updatedAt: new Date(),
