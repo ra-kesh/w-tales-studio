@@ -17,14 +17,16 @@ import {
 	TextIcon,
 	Users,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, formatCurrency } from "@/lib/utils";
 import { DataTableColumnHeader } from "../../tasks/_components/task-table-column-header";
 import { deliverables, Task, tasks } from "@/lib/db/schema";
 
 export const useDeliverableColumns = ({
+	statusOptions,
 	minimalBookings,
 	isMininmalBookingLoading,
 }: {
+	statusOptions: Array<{ label: string; value: string }>;
 	minimalBookings: Array<{ id: string | number; name: string }>;
 	isMininmalBookingLoading: boolean;
 }) => {
@@ -59,7 +61,9 @@ export const useDeliverableColumns = ({
 						<Badge
 							variant={row.original.isPackageIncluded ? "outline" : "default"}
 						>
-							{row.original.isPackageIncluded ? "Included" : "Add-on"}
+							{row.original.isPackageIncluded
+								? "Included"
+								: formatCurrency(Number(row.original.cost))}
 						</Badge>
 					</div>
 				</div>
@@ -110,26 +114,26 @@ export const useDeliverableColumns = ({
 				</div>
 			),
 		},
-		{
-			id: "cost",
-			header: () => (
-				<div className="flex items-center gap-1">
-					<Package2 className="h-4 w-4" />
-					<span>Extra cost</span>
-				</div>
-			),
-			cell: ({ row }) => (
-				<div className="flex items-center gap-3">
-					{!row.original.isPackageIncluded && row.original.cost ? (
-						<span className="tabular-nums text-sm">
-							${Number(row.original.cost).toLocaleString()}
-						</span>
-					) : (
-						<span className=" text-sm">N/a</span>
-					)}
-				</div>
-			),
-		},
+		// {
+		// 	id: "cost",
+		// 	header: () => (
+		// 		<div className="flex items-center gap-1">
+		// 			<Package2 className="h-4 w-4" />
+		// 			<span>Extra cost</span>
+		// 		</div>
+		// 	),
+		// 	cell: ({ row }) => (
+		// 		<div className="flex items-center gap-3">
+		// 			{!row.original.isPackageIncluded && row.original.cost ? (
+		// 				<span className="tabular-nums text-sm">
+		// 					${Number(row.original.cost).toLocaleString()}
+		// 				</span>
+		// 			) : (
+		// 				<span className=" text-sm">N/a</span>
+		// 			)}
+		// 		</div>
+		// 	),
+		// },
 		{
 			id: "status",
 			accessorKey: "status",
@@ -152,9 +156,9 @@ export const useDeliverableColumns = ({
 			meta: {
 				label: "Status",
 				variant: "multiSelect",
-				options: deliverables.status.enumValues.map((status) => ({
-					label: status.replace("_", " "),
-					value: status,
+				options: statusOptions?.map((status) => ({
+					label: status.label,
+					value: status.value,
 					// count: statusCounts[status],
 					// icon: getStatusIcon(status),
 				})),

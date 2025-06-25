@@ -7,17 +7,13 @@ import {
 } from "@tanstack/react-query";
 import {
 	getMinimalBookings,
-	getShoots,
-	getShootsStats,
-	type ShootStats as ShootsStatsType,
-	type BookingStats as BookingStatsType,
 	getDeliverables,
 	type DeliverableStats as DeliverableStatsType,
 	getDeliverablesStats,
+	getConfigs,
 } from "@/lib/db/queries";
 import { Suspense } from "react";
 import { DeliverableStats } from "./_components/deliverable-stats";
-// import { ShootsStats } from "./_components/shoot-stats";
 
 const DeliverableLayout = async ({
 	children,
@@ -61,6 +57,15 @@ const DeliverableLayout = async ({
 		queryKey: ["bookings", "deliverable", "list"],
 		queryFn: () =>
 			getDeliverables(session?.session.activeOrganizationId as string),
+	});
+
+	await queryClient.prefetchQuery({
+		queryKey: ["configurations", "deliverable_status"],
+		queryFn: () =>
+			getConfigs(
+				session?.session.activeOrganizationId as string,
+				"deliverable_status",
+			),
 	});
 
 	return (

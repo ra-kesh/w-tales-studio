@@ -10,9 +10,12 @@ import { DeliverableTablePagination } from "./_components/deliverable-table-pagi
 import { OpenDeliverableSheet } from "./_components/open-deliverable-sheet";
 import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
 import { DataTableSkeleton } from "@/components/data-table/data-table-skeleton";
+import { useDeliverablesStatuses } from "@/hooks/use-configs";
 
 export default function Deliverables() {
 	const { data, isLoading } = useDeliverables();
+
+	const { data: statusOptions } = useDeliverablesStatuses();
 
 	const {
 		data: minimalBookingsResponse,
@@ -23,6 +26,10 @@ export default function Deliverables() {
 	const minimalBookings = minimalBookingsResponse?.data;
 
 	const columns = useDeliverableColumns({
+		statusOptions: (statusOptions ?? []).map(({ label, value }) => ({
+			label,
+			value,
+		})),
 		minimalBookings: minimalBookings ?? [],
 		isMininmalBookingLoading,
 	});
