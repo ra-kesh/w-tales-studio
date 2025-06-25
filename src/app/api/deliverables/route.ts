@@ -76,26 +76,23 @@ export async function GET(request: Request) {
 			sortOptions,
 			filters,
 		);
-		const transformedData = result.data.map((deliverable) => ({
-			...deliverable,
-			deliverablesAssignments: deliverable.deliverablesAssignments?.map(
-				(assignment) => ({
-					...assignment,
-					crew: {
-						...assignment.crew,
-						name: assignment.crew.member?.user?.name || assignment.crew.name,
-					},
-				}),
-			),
-		}));
 
-		return NextResponse.json(
-			{
-				data: transformedData,
-				total: result.total,
-			},
-			{ status: 200 },
-		);
+		// Todo: Look into this later , if deliverables assignment name is acting up weird
+
+		// const transformedData = result.data.map((deliverable) => ({
+		// 	...deliverable,
+		// 	deliverablesAssignments: deliverable.deliverablesAssignments?.map(
+		// 		(assignment) => ({
+		// 			...assignment,
+		// 			crew: {
+		// 				...assignment.crew,
+		// 				name: assignment.crew.member?.user?.name || assignment.crew.name,
+		// 			},
+		// 		}),
+		// 	),
+		// }));
+
+		return NextResponse.json(result, { status: 200 });
 	} catch (error: unknown) {
 		console.error("Error fetching deliverables:", error);
 		const errorMessage =
@@ -195,13 +192,7 @@ export async function POST(request: Request) {
 					quantity: Number.parseInt(validatedData.quantity),
 					dueDate: validatedData.dueDate,
 					notes: validatedData.notes,
-					status: validatedData.status as
-						| "pending"
-						| "in_progress"
-						| "in_revision"
-						| "completed"
-						| "delivered"
-						| "cancelled",
+					status: validatedData.status,
 					organizationId: userOrganizationId,
 					createdAt: new Date(),
 					updatedAt: new Date(),

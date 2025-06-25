@@ -1,9 +1,17 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import type { Configuration, NewConfiguration } from "@/lib/db/schema";
+import type {
+	ConfigType,
+	Configuration,
+	NewConfiguration,
+} from "@/lib/db/schema";
 import { toast } from "sonner";
 import { useSession } from "@/lib/auth/auth-client";
 
-export async function fetchConfigs(type: string): Promise<Configuration[]> {
+export type ConfigTypeKey = (typeof ConfigType.enumValues)[number];
+
+export async function fetchConfigs(
+	type: ConfigTypeKey,
+): Promise<Configuration[]> {
 	const response = await fetch(`/api/configurations?type=${type}`);
 	if (!response.ok) {
 		throw new Error("Failed to fetch configurations");
@@ -69,14 +77,28 @@ interface PackageMetadata {
 	}>;
 }
 
-export function usePackageTypes() {
+// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+export type ConfigOption<Meta = any> = {
+	id: number;
+	value: string; // the config.key
+	label: string; // the config.value
+	metadata?: Meta; // optional metadata
+};
+
+/**
+ * Generic hook to load a list of configurations for the active org.
+ * @param type  one of your ConfigType enum values, e.g. "booking_type"
+ */
+
+export function useConfigs<ConfigOption>(type: ConfigTypeKey) {
 	const { data: session } = useSession();
 
 	return useQuery({
-		queryKey: ["configurations", "package_type"],
-		queryFn: () => fetchConfigs("package_type"),
-		staleTime: 5 * 60 * 1000,
+		// queryKey: ["configurations", type, session?.session.activeOrganizationId],
+		queryKey: ["configurations", type],
+		queryFn: () => fetchConfigs(type),
 		enabled: Boolean(session?.session.activeOrganizationId),
+		staleTime: 5 * 60 * 1000,
 		select: (data) =>
 			data.map((config) => ({
 				id: config.id,
@@ -86,18 +108,13 @@ export function usePackageTypes() {
 			})),
 	});
 }
-export function useBookingTypes() {
-	return useQuery({
-		queryKey: ["configurations", "booking_type"],
-		queryFn: () => fetchConfigs("booking_type"),
-		staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
-		select: (data) =>
-			data.map((config) => ({
-				value: config.key,
-				label: config.value,
-			})),
-	});
-}
+
+export const usePackageTypes = () =>
+	useConfigs<PackageMetadata>("package_type");
+
+export const useBookingTypes = () => useConfigs("booking_type");
+
+export const useDeliverablesStatuses = () => useConfigs("deliverable_status");
 
 export async function fetchConfigById(id: string): Promise<Configuration> {
 	const response = await fetch(`/api/configurations/${id}`);

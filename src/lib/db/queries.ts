@@ -45,7 +45,6 @@ import {
 import { alias } from "drizzle-orm/pg-core";
 import type { BookingDetail } from "@/types/booking";
 import { addDays, formatISO, startOfDay, subDays } from "date-fns";
-import { date } from "drizzle-orm/mysql-core";
 
 export async function getActiveOrganization(userId: string) {
 	const result = await db
@@ -62,10 +61,11 @@ export async function getActiveOrganization(userId: string) {
 
 export type DeliverableFilters = {
 	title?: string;
-	status?: string; // Will be a comma-separated string of statuses
-	bookingId?: string; // Will be a comma-separated string of booking IDs
-	crewId?: string; // Will be a comma-separated string of crew IDs
-	dueDate?: string; // Will handle date ranges
+	status?: string;
+	// priority?: string;
+	bookingId?: string;
+	crewId?: string;
+	dueDate?: string;
 };
 
 export type AllowedDeliverableSortFields =
@@ -74,6 +74,7 @@ export type AllowedDeliverableSortFields =
 	| "dueDate"
 	| "createdAt"
 	| "updatedAt";
+
 export type DeliverableSortOption = {
 	id: AllowedDeliverableSortFields;
 	desc: boolean;
@@ -99,14 +100,16 @@ export async function getDeliverables(
 	if (filters.status) {
 		const statuses = filters.status.split(",").map((s) => s.trim());
 		if (statuses.length > 0) {
-			whereConditions.push(
-				inArray(
-					deliverables.status,
-					statuses as typeof deliverables.status.enumValues,
-				),
-			);
+			whereConditions.push(inArray(deliverables.status, statuses));
 		}
 	}
+
+	// if (filters.priority) {
+	// 	const priorities = filters.priority.split(",").map((p) => p.trim());
+	// 	if (priorities.length > 0) {
+	// 		whereConditions.push(inArray(deliverables.priority, priorities));
+	// 	}
+	// }
 
 	// Filter by Booking ID (multi-select)
 	if (filters.bookingId) {
@@ -217,6 +220,7 @@ export async function getDeliverables(
 		.select({ count: count() })
 		.from(deliverables)
 		.where(and(...whereConditions));
+
 	const total = totalResult[0]?.count ?? 0;
 
 	return {

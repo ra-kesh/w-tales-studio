@@ -120,29 +120,6 @@ export const activityLogs = pgTable("activity_logs", {
 	ipAddress: varchar("ip_address", { length: 45 }),
 });
 
-// export enum BookingType {
-// 	WEDDING = "Wedding",
-// 	COMMERCIAL = "Commercial",
-// }
-
-// export enum PackageType {
-// 	BASIC_SINGLE = "Basic - Single",
-// 	BASIC_DOUBLE = "Basic - Double",
-// 	PREMIUM_SINGLE = "Premium - Single",
-// 	PREMIUM_DOUBLE = "Premium - Double",
-// 	ELITE_SINGLE = "Elite - Single",
-// 	ELITE_DOUBLE = "Elite - Double",
-// 	CUSTOM = "Custom",
-// }
-
-// export enum ShootTime {
-// 	MORNING = "Morning",
-// 	NOON = "Noon",
-// 	AFTERNOON = "Afternoon",
-// 	EVENING = "Evening",
-// 	NIGHT = "Night",
-// }
-
 export enum BillTo {
 	STUDIO = "Studio",
 	CLIENT = "Client",
@@ -156,13 +133,6 @@ export enum ExpenseCategory {
 	ACCOMMODATION = "Accommodation",
 	CUSTOM = "Custom",
 }
-
-// export const RelationType = pgEnum("relation_type", [
-// 	"bride",
-// 	"groom",
-// 	"family",
-// 	"unknown",
-// ]);
 
 export const ConfigType = pgEnum("config_type", [
 	"task_status",
@@ -195,22 +165,6 @@ export const relationsTable = pgTable("relations", {
 	id: serial("id").primaryKey(),
 	name: text("name").notNull().unique(),
 });
-
-// export const clients = pgTable("clients", {
-// 	id: serial("id").primaryKey(),
-// 	organizationId: text("organization_id")
-// 		.notNull()
-// 		.references(() => organizations.id, { onDelete: "cascade" }),
-// 	name: text("name").notNull(),
-// 	brideName: text("bride_name").notNull(),
-// 	groomName: text("groom_name").notNull(),
-// 	relation: RelationType("relation").notNull(),
-// 	phoneNumber: text("phone_number").notNull(),
-// 	email: text("email"),
-// 	address: text("address").notNull(),
-// 	createdAt: timestamp("created_at").defaultNow(),
-// 	updatedAt: timestamp("updated_at").defaultNow(),
-// });
 
 export const clients = pgTable("clients", {
 	id: serial("id").primaryKey(),
@@ -311,55 +265,6 @@ export const bookingParticipantsRelations = relations(
 	}),
 );
 
-// export const bookings = pgTable("bookings", {
-// 	id: serial("id").primaryKey(),
-// 	organizationId: text("organization_id")
-// 		.notNull()
-// 		.references(() => organizations.id, { onDelete: "cascade" }),
-// 	name: text("name").notNull(),
-// 	bookingType: text("booking_type", {
-// 		enum: Object.values(BookingType) as [string, ...string[]],
-// 	}).notNull(),
-// 	packageType: text("package_type", {
-// 		enum: Object.values(PackageType) as [string, ...string[]],
-// 	}).notNull(),
-// 	packageCost: decimal("package_cost", { precision: 10, scale: 2 }).notNull(),
-// 	clientId: integer("client_id")
-// 		.notNull()
-// 		.references(() => clients.id),
-// 	status: bookingPhaseEnum("status").notNull().default("new"),
-// 	createdAt: timestamp("created_at").defaultNow(),
-// 	updatedAt: timestamp("updated_at")
-// 		.defaultNow()
-// 		.$onUpdate(() => new Date()),
-// 	note: text("note"),
-// });
-
-// export const clientsRelations = relations(clients, ({ one, many }) => ({
-// 	organization: one(organizations, {
-// 		fields: [clients.organizationId],
-// 		references: [organizations.id],
-// 	}),
-// 	bookings: many(bookings),
-// }));
-
-// export const bookingsRelations = relations(bookings, ({ one, many }) => ({
-// 	organization: one(organizations, {
-// 		fields: [bookings.organizationId],
-// 		references: [organizations.id],
-// 	}),
-// 	clients: one(clients, {
-// 		fields: [bookings.clientId],
-// 		references: [clients.id],
-// 	}),
-// 	shoots: many(shoots),
-// 	deliverables: many(deliverables),
-// 	receivedAmounts: many(receivedAmounts),
-// 	paymentSchedules: many(paymentSchedules),
-// 	expenses: many(expenses),
-// 	tasks: many(tasks),
-// }));
-
 export const shoots = pgTable("shoots", {
 	id: serial("id").primaryKey(),
 	bookingId: integer("booking_id")
@@ -380,19 +285,19 @@ export const shoots = pgTable("shoots", {
 	updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-const deliverableStatusEnum = pgEnum("deliverable_status", [
-	"pending",
-	"in_progress",
-	"in_revision",
-	"completed",
-	"delivered",
-	"cancelled",
-]);
-const deliverablePriorityEnum = pgEnum("deliverable_priority", [
-	"low",
-	"medium",
-	"high",
-]);
+// const deliverableStatusEnum = pgEnum("deliverable_status", [
+// 	"pending",
+// 	"in_progress",
+// 	"in_revision",
+// 	"completed",
+// 	"delivered",
+// 	"cancelled",
+// ]);
+// const deliverablePriorityEnum = pgEnum("deliverable_priority", [
+// 	"low",
+// 	"medium",
+// 	"high",
+// ]);
 
 export const deliverables = pgTable("deliverables", {
 	id: serial("id").primaryKey(),
@@ -408,10 +313,12 @@ export const deliverables = pgTable("deliverables", {
 	quantity: integer("quantity").notNull(),
 	dueDate: date("due_date"),
 	notes: text("notes"),
-	status: deliverableStatusEnum("status").notNull().default("pending"),
+	status: text("status").notNull(), // previously pgEnum
+	priority: text("priority").notNull().default("medium"),
+	// status: deliverableStatusEnum("status").notNull().default("pending"),
 	fileUrl: text("file_url"),
 	clientFeedback: text("client_feedback"),
-	priority: deliverablePriorityEnum("priority").notNull().default("medium"),
+	// priority: deliverablePriorityEnum("priority").notNull().default("medium"),
 	revisionCount: integer("revision_count").notNull().default(0),
 	deliveredAt: timestamp("delivered_at"),
 	createdAt: timestamp("created_at").defaultNow(),
