@@ -300,6 +300,12 @@ export const receivedAmounts = pgTable("received_amounts", {
 	bookingId: integer("booking_id")
 		.notNull()
 		.references(() => bookings.id, { onDelete: "cascade" }),
+	invoiceId: integer("invoice_id").references(() => invoices.id, {
+		onDelete: "set null",
+	}),
+	organizationId: text("organization_id")
+		.notNull()
+		.references(() => organizations.id, { onDelete: "cascade" }),
 	amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
 	description: text("description"),
 	paidOn: date("paid_on"),
@@ -312,6 +318,9 @@ export const paymentSchedules = pgTable("payment_schedules", {
 	bookingId: integer("booking_id")
 		.notNull()
 		.references(() => bookings.id, { onDelete: "cascade" }),
+	organizationId: text("organization_id")
+		.notNull()
+		.references(() => organizations.id, { onDelete: "cascade" }),
 	amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
 	description: text("description"),
 	dueDate: date("due_date"),
@@ -610,12 +619,73 @@ export const tasksAssignmentsRelations = relations(
 	}),
 );
 
+export const invoices = pgTable("invoices", {
+	id: serial("id").primaryKey(),
+	bookingId: integer("booking_id")
+		.notNull()
+		.references(() => bookings.id, { onDelete: "cascade" }),
+	organizationId: text("organization_id")
+		.notNull()
+		.references(() => organizations.id, { onDelete: "cascade" }),
+	invoiceNumber: text("invoice_number").notNull().unique(),
+	issueDate: date("issue_date").notNull(),
+	dueDate: date("due_date").notNull(),
+	totalAmount: decimal("total_amount", { precision: 10, scale: 2 }).notNull(),
+	status: text("status").notNull().default("draft"),
+	notes: text("notes"),
+});
+
+export const invoiceLineItems = pgTable("invoice_line_items", {
+	id: serial("id").primaryKey(),
+	invoiceId: integer("invoice_id")
+		.notNull()
+		.references(() => invoices.id, { onDelete: "cascade" }),
+	description: text("description").notNull(),
+	quantity: integer("quantity").notNull(),
+	unitPrice: decimal("unit_price", { precision: 10, scale: 2 }).notNull(),
+	totalPrice: decimal("total_price", {
+		precision: 10,
+		scale: 2,
+	}).notNull(),
+});
+
 export const receivedAmountsRelations = relations(
 	receivedAmounts,
 	({ one }) => ({
 		booking: one(bookings, {
 			fields: [receivedAmounts.bookingId],
 			references: [bookings.id],
+		}),
+		invoice: one(invoices, {
+			fields: [receivedAmounts.invoiceId],
+			references: [invoices.id],
+		}),
+		organization: one(organizations, {
+			fields: [receivedAmounts.organizationId],
+			references: [organizations.id],
+		}),
+	}),
+);
+
+export const invoicesRelations = relations(invoices, ({ one, many }) => ({
+	booking: one(bookings, {
+		fields: [invoices.bookingId],
+		references: [bookings.id],
+	}),
+	lineItems: many(invoiceLineItems),
+	receivedAmounts: many(receivedAmounts),
+	organization: one(organizations, {
+		fields: [invoices.organizationId],
+		references: [organizations.id],
+	}),
+}));
+
+export const invoiceLineItemsRelations = relations(
+	invoiceLineItems,
+	({ one }) => ({
+		invoice: one(invoices, {
+			fields: [invoiceLineItems.invoiceId],
+			references: [invoices.id],
 		}),
 	}),
 );
@@ -626,6 +696,10 @@ export const paymentSchedulesRelations = relations(
 		booking: one(bookings, {
 			fields: [paymentSchedules.bookingId],
 			references: [bookings.id],
+		}),
+		organization: one(organizations, {
+			fields: [paymentSchedules.organizationId],
+			references: [organizations.id],
 		}),
 	}),
 );
@@ -745,6 +819,10 @@ export type ReceivedAmount = typeof receivedAmounts.$inferSelect;
 export type NewReceivedAmount = typeof receivedAmounts.$inferInsert;
 export type PaymentSchedule = typeof paymentSchedules.$inferSelect;
 export type NewPaymentSchedule = typeof paymentSchedules.$inferInsert;
+export type Invoice = typeof invoices.$inferSelect;
+export type NewInvoice = typeof invoices.$inferInsert;
+export type InvoiceLineItem = typeof invoiceLineItems.$inferSelect;
+export type NewInvoiceLineItem = typeof invoiceLineItems.$inferInsert;
 
 export type Expense = typeof expenses.$inferSelect;
 export type NewExpense = typeof expenses.$inferInsert;

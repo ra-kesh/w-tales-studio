@@ -3,8 +3,6 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ClientTableRowActions } from "./client-table-row-actions";
-import type { Client } from "@/lib/db/schema";
-import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/utils";
 import type { ClientBookingRow } from "@/lib/db/queries";
 import { DataTableColumnHeader } from "../../tasks/_components/task-table-column-header";
