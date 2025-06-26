@@ -2450,6 +2450,8 @@ function getDateRangeFromInterval(interval: string): {
 	return { startDate, endDate };
 }
 
+// Drop-in replacement for getBookingAnalytics
+
 async function getBookingAnalytics(organizationId: string, interval: string) {
 	const dateRange =
 		interval === "all" ? null : getDateRangeFromInterval(interval);
@@ -2473,6 +2475,7 @@ async function getBookingAnalytics(organizationId: string, interval: string) {
 		packageTypeDistribution,
 		bookingsOverTime,
 	] = await Promise.all([
+		// This query was correct
 		db
 			.select({
 				total: count(),
@@ -2483,15 +2486,25 @@ async function getBookingAnalytics(organizationId: string, interval: string) {
 			})
 			.from(bookings)
 			.where(and(...conditions)),
+
+		// --- THIS QUERY IS NOW FIXED ---
+		// It now joins through the bookingParticipants table to get the client name.
+		// In your Promise.all array inside getBookingAnalytics:
+
 		db
 			.select({
 				id: bookings.id,
 				name: bookings.name,
-				clientName: clients.name,
+				// Use string_agg to combine names from multiple clients into one string
+				clientName: sql<string>`string_agg(${clients.name}, ', ')`,
 				createdAt: bookings.createdAt,
 			})
 			.from(bookings)
-			.leftJoin(clients, eq(bookings.clientId, clients.id))
+			.leftJoin(
+				bookingParticipants,
+				eq(bookings.id, bookingParticipants.bookingId),
+			)
+			.leftJoin(clients, eq(bookingParticipants.clientId, clients.id))
 			.where(
 				and(
 					eq(bookings.organizationId, organizationId),
@@ -2499,13 +2512,19 @@ async function getBookingAnalytics(organizationId: string, interval: string) {
 				),
 			)
 			.orderBy(desc(bookings.createdAt))
+			// IMPORTANT: Group only by the booking's unique ID
+			.groupBy(bookings.id)
 			.limit(10),
+
+		// This query was correct
 		db
 			.select()
 			.from(clients)
 			.where(eq(clients.organizationId, organizationId))
 			.orderBy(desc(clients.createdAt))
 			.limit(3),
+
+		// This query was correct
 		db
 			.select({
 				id: receivedAmounts.id,
@@ -2518,6 +2537,8 @@ async function getBookingAnalytics(organizationId: string, interval: string) {
 			.where(eq(bookings.organizationId, organizationId))
 			.orderBy(desc(receivedAmounts.paidOn))
 			.limit(5),
+
+		// ... The rest of the Promise.all queries were correct and remain unchanged ...
 		db
 			.select({
 				type: bookings.bookingType,
@@ -2549,14 +2570,6 @@ async function getBookingAnalytics(organizationId: string, interval: string) {
 			.orderBy(sql`DATE_TRUNC('day', ${bookings.createdAt})`),
 	]);
 
-	// const totalBookingsForRate =
-	// 	(bookingCounts[0]?.total || 0) + (bookingCounts[0]?.cancelled || 0);
-
-	// const cancellationRate =
-	// 	totalBookingsForRate > 0
-	// 		? (bookingCounts[0]?.cancelled || 0) / totalBookingsForRate
-	// 		: 0;
-
 	return {
 		summary: {
 			totalBookings: bookingCounts[0]?.total || 0,
@@ -2566,7 +2579,6 @@ async function getBookingAnalytics(organizationId: string, interval: string) {
 		recentNewBookings,
 		recentClients,
 		recentPayments,
-
 		bookingTypeDistribution: bookingTypeDistribution.map((item) => ({
 			...item,
 			totalRevenue: item.totalRevenue || "0.00",
@@ -2578,6 +2590,135 @@ async function getBookingAnalytics(organizationId: string, interval: string) {
 		bookingsOverTime,
 	};
 }
+
+// async function getBookingAnalytics(organizationId: string, interval: string) {
+// 	const dateRange =
+// 		interval === "all" ? null : getDateRangeFromInterval(interval);
+
+// 	const buildConditions = (): SQL[] => {
+// 		const conditions: SQL[] = [eq(bookings.organizationId, organizationId)];
+// 		if (dateRange) {
+// 			conditions.push(gte(bookings.createdAt, dateRange.startDate));
+// 			conditions.push(lte(bookings.createdAt, dateRange.endDate));
+// 		}
+// 		return conditions;
+// 	};
+// 	const conditions = buildConditions();
+
+// 	const [
+// 		bookingCounts,
+// 		recentNewBookings,
+// 		recentClients,
+// 		recentPayments,
+// 		bookingTypeDistribution,
+// 		packageTypeDistribution,
+// 		bookingsOverTime,
+// 	] = await Promise.all([
+// 		db
+// 			.select({
+// 				total: count(),
+// 				active: count(
+// 					sql`CASE WHEN ${bookings.status} NOT IN ('completed', 'cancelled') THEN 1 END`,
+// 				),
+// 				new: count(sql`CASE WHEN ${bookings.status} = 'new' THEN 1 END`),
+// 			})
+// 			.from(bookings)
+// 			.where(and(...conditions)),
+// 		db
+// 			.select({
+// 				id: bookings.id,
+// 				name: bookings.name,
+// 				clientName: clients.name,
+// 				createdAt: bookings.createdAt,
+// 			})
+// 			.from(bookings)
+// 			.leftJoin(clients, eq(bookings.clientId, clients.id))
+// 			.where(
+// 				and(
+// 					eq(bookings.organizationId, organizationId),
+// 					eq(bookings.status, "new"),
+// 				),
+// 			)
+// 			.orderBy(desc(bookings.createdAt))
+// 			.limit(10),
+// 		db
+// 			.select()
+// 			.from(clients)
+// 			.where(eq(clients.organizationId, organizationId))
+// 			.orderBy(desc(clients.createdAt))
+// 			.limit(3),
+// 		db
+// 			.select({
+// 				id: receivedAmounts.id,
+// 				amount: receivedAmounts.amount,
+// 				paidOn: receivedAmounts.paidOn,
+// 				bookingName: bookings.name,
+// 			})
+// 			.from(receivedAmounts)
+// 			.leftJoin(bookings, eq(receivedAmounts.bookingId, bookings.id))
+// 			.where(eq(bookings.organizationId, organizationId))
+// 			.orderBy(desc(receivedAmounts.paidOn))
+// 			.limit(5),
+// 		db
+// 			.select({
+// 				type: bookings.bookingType,
+// 				count: count(),
+// 				totalRevenue: sum(bookings.packageCost),
+// 			})
+// 			.from(bookings)
+// 			.where(and(...conditions, notInArray(bookings.status, ["cancelled"])))
+// 			.groupBy(bookings.bookingType)
+// 			.orderBy(desc(count())),
+// 		db
+// 			.select({
+// 				type: bookings.packageType,
+// 				count: count(),
+// 				totalRevenue: sum(bookings.packageCost),
+// 			})
+// 			.from(bookings)
+// 			.where(and(...conditions, notInArray(bookings.status, ["cancelled"])))
+// 			.groupBy(bookings.packageType)
+// 			.orderBy(desc(count())),
+// 		db
+// 			.select({
+// 				date: sql<string>`DATE_TRUNC('day', ${bookings.createdAt})`,
+// 				count: count(),
+// 			})
+// 			.from(bookings)
+// 			.where(and(...conditions))
+// 			.groupBy(sql`DATE_TRUNC('day', ${bookings.createdAt})`)
+// 			.orderBy(sql`DATE_TRUNC('day', ${bookings.createdAt})`),
+// 	]);
+
+// 	// const totalBookingsForRate =
+// 	// 	(bookingCounts[0]?.total || 0) + (bookingCounts[0]?.cancelled || 0);
+
+// 	// const cancellationRate =
+// 	// 	totalBookingsForRate > 0
+// 	// 		? (bookingCounts[0]?.cancelled || 0) / totalBookingsForRate
+// 	// 		: 0;
+
+// 	return {
+// 		summary: {
+// 			totalBookings: bookingCounts[0]?.total || 0,
+// 			activeBookings: bookingCounts[0]?.active || 0,
+// 			newBookings: bookingCounts[0]?.new || 0,
+// 		},
+// 		recentNewBookings,
+// 		recentClients,
+// 		recentPayments,
+
+// 		bookingTypeDistribution: bookingTypeDistribution.map((item) => ({
+// 			...item,
+// 			totalRevenue: item.totalRevenue || "0.00",
+// 		})),
+// 		packageTypeDistribution: packageTypeDistribution.map((item) => ({
+// 			...item,
+// 			totalRevenue: item.totalRevenue || "0.00",
+// 		})),
+// 		bookingsOverTime,
+// 	};
+// }
 
 async function getFinancialsKpis(organizationId: string, interval: string) {
 	const dateRange =
@@ -2664,12 +2805,84 @@ async function getFinancialsKpis(organizationId: string, interval: string) {
 	};
 }
 
+// async function getActionItems(organizationId: string) {
+// 	const today = startOfDay(new Date());
+// 	const nextWeek = addDays(today, 7);
+
+// 	const [overdueTasks, overdueDeliverables, unstaffedShoots] =
+// 		await Promise.all([
+// 			db
+// 				.select({
+// 					id: tasks.id,
+// 					description: tasks.description,
+// 					bookingName: bookings.name,
+// 					dueDate: tasks.dueDate,
+// 				})
+// 				.from(tasks)
+// 				.leftJoin(bookings, eq(tasks.bookingId, bookings.id))
+// 				.where(
+// 					and(
+// 						eq(tasks.organizationId, organizationId),
+// 						lte(tasks.dueDate, formatISO(today, { representation: "date" })),
+// 						notInArray(tasks.status, [taskStatusEnum.enumValues[4]]),
+// 					),
+// 				)
+// 				.limit(5),
+// 			db
+// 				.select({
+// 					id: deliverables.id,
+// 					title: deliverables.title,
+// 					bookingName: bookings.name,
+// 					dueDate: deliverables.dueDate,
+// 				})
+// 				.from(deliverables)
+// 				.leftJoin(bookings, eq(deliverables.bookingId, bookings.id))
+// 				.where(
+// 					and(
+// 						eq(deliverables.organizationId, organizationId),
+// 						lte(
+// 							deliverables.dueDate,
+// 							formatISO(today, { representation: "date" }),
+// 						),
+// 						notInArray(deliverables.status, ["cancelled"]),
+// 					),
+// 				)
+// 				.limit(5),
+// 			db
+// 				.select({
+// 					id: shoots.id,
+// 					title: shoots.title,
+// 					bookingName: bookings.name,
+// 					shootDate: shoots.date,
+// 				})
+// 				.from(shoots)
+// 				.leftJoin(shootsAssignments, eq(shoots.id, shootsAssignments.shootId))
+// 				.leftJoin(bookings, eq(shoots.bookingId, bookings.id))
+// 				.where(
+// 					and(
+// 						eq(shoots.organizationId, organizationId),
+// 						gte(shoots.date, formatISO(today, { representation: "date" })),
+// 						lte(shoots.date, formatISO(nextWeek, { representation: "date" })),
+// 						isNull(shootsAssignments.id),
+// 					),
+// 				)
+// 				.groupBy(shoots.id, bookings.name)
+// 				.limit(5),
+// 		]);
+
+// 	return { overdueTasks, overdueDeliverables, unstaffedShoots };
+// }
+
+// Drop-in replacement for getActionItems
+
 async function getActionItems(organizationId: string) {
 	const today = startOfDay(new Date());
 	const nextWeek = addDays(today, 7);
 
 	const [overdueTasks, overdueDeliverables, unstaffedShoots] =
 		await Promise.all([
+			// --- THIS QUERY IS NOW FIXED ---
+			// It now checks for status 'completed' as a string, not an enum.
 			db
 				.select({
 					id: tasks.id,
@@ -2683,10 +2896,13 @@ async function getActionItems(organizationId: string) {
 					and(
 						eq(tasks.organizationId, organizationId),
 						lte(tasks.dueDate, formatISO(today, { representation: "date" })),
-						notInArray(tasks.status, [taskStatusEnum.enumValues[4]]),
+						// Corrected line:
+						notInArray(tasks.status, ["completed"]),
 					),
 				)
 				.limit(5),
+
+			// This query was correct
 			db
 				.select({
 					id: deliverables.id,
@@ -2707,6 +2923,8 @@ async function getActionItems(organizationId: string) {
 					),
 				)
 				.limit(5),
+
+			// This query was correct
 			db
 				.select({
 					id: shoots.id,

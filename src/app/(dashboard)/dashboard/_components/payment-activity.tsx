@@ -85,7 +85,35 @@ export function PayementsAndClients({
 							View all<span className="sr-only">, clients</span>
 						</Link>
 					</div>
+
 					<ul className="mt-6 grid grid-cols-1 gap-x-4 gap-y-8 lg:grid-cols-3 xl:gap-x-4">
+						{recentClients.map((client) => (
+							<li
+								key={client.id}
+								className="overflow-hidden rounded-xl border border-gray-200"
+							>
+								<div className="flex items-center gap-x-4 border-b border-gray-900/5 bg-gray-50 p-4">
+									<div className="flex h-12 w-12 flex-none items-center justify-center rounded-lg bg-white object-cover text-lg font-bold text-gray-700 ring-1 ring-gray-900/10">
+										{getInitials(client.name)}
+									</div>
+									<div className="text-sm/6 font-medium text-gray-900">
+										{client.name}
+									</div>
+								</div>
+								<dl className="-my-3 divide-y divide-gray-100 px-6 py-4 text-sm/6">
+									<div className="flex justify-between gap-x-4 py-3">
+										<dt className="text-gray-500">Phone</dt>
+										<dd className="text-gray-700">{client.phoneNumber}</dd>
+									</div>
+									<div className="flex justify-between gap-x-4 py-3">
+										<dt className="text-gray-500">Email</dt>
+										<dd className="text-gray-700">{client.email}</dd>
+									</div>
+								</dl>
+							</li>
+						))}
+					</ul>
+					{/* <ul className="mt-6 grid grid-cols-1 gap-x-4 gap-y-8 lg:grid-cols-3 xl:gap-x-4">
 						{recentClients.map((client) => (
 							<li
 								key={client.id}
@@ -107,7 +135,7 @@ export function PayementsAndClients({
 								</dl>
 							</li>
 						))}
-					</ul>
+					</ul> */}
 				</div>
 			</div>
 			<div className="border border-dashed border-gray-900/5" />
