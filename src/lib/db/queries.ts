@@ -2934,3 +2934,209 @@ export async function getDashboardData(params: DashboardParams) {
 		operations,
 	};
 }
+
+// ====================================================================
+// Function for Received Payments
+// ====================================================================
+
+export type ReceivedPaymentFilters = {
+	description?: string;
+	paidOn?: string; // For date range filtering
+	bookingId?: string;
+	invoiceId?: string;
+};
+
+type AllowedReceivedPaymentSortFields = "amount" | "paidOn" | "createdAt";
+type ReceivedPaymentSortOption = {
+	id: AllowedReceivedPaymentSortFields;
+	desc: boolean;
+};
+
+export async function getReceivedPayments(
+	userOrganizationId: string,
+	page = 1,
+	limit = 10,
+	sortOptions: ReceivedPaymentSortOption[] | undefined = undefined,
+	filters: ReceivedPaymentFilters = {},
+) {
+	const offset = (page - 1) * limit;
+
+	const whereConditions = [
+		eq(receivedAmounts.organizationId, userOrganizationId),
+	];
+
+	// --- Dynamic Filtering ---
+	if (filters.description) {
+		whereConditions.push(
+			ilike(receivedAmounts.description, `%${filters.description}%`),
+		);
+	}
+	if (filters.bookingId) {
+		const bookingIds = filters.bookingId.split(",").map(Number).filter(Boolean);
+		if (bookingIds.length > 0) {
+			whereConditions.push(inArray(receivedAmounts.bookingId, bookingIds));
+		}
+	}
+	if (filters.invoiceId) {
+		const invoiceIds = filters.invoiceId.split(",").map(Number).filter(Boolean);
+		if (invoiceIds.length > 0) {
+			whereConditions.push(inArray(receivedAmounts.invoiceId, invoiceIds));
+		}
+	}
+	if (filters.paidOn) {
+		const dates = filters.paidOn
+			.split(",")
+			.map((d) => d.trim())
+			.filter(Boolean);
+		if (dates.length === 2) {
+			whereConditions.push(
+				gte(
+					receivedAmounts.paidOn,
+					new Date(dates[0]).toISOString().slice(0, 10),
+				),
+			);
+			whereConditions.push(
+				lte(
+					receivedAmounts.paidOn,
+					new Date(dates[1]).toISOString().slice(0, 10),
+				),
+			);
+		}
+	}
+
+	// --- Dynamic Sorting ---
+	const orderBy =
+		sortOptions && sortOptions.length > 0
+			? sortOptions.map((item) =>
+					item.desc
+						? desc(receivedAmounts[item.id])
+						: asc(receivedAmounts[item.id]),
+				)
+			: [desc(receivedAmounts.paidOn)];
+
+	// --- Main Data Query ---
+	const data = await db.query.receivedAmounts.findMany({
+		where: and(...whereConditions),
+		with: {
+			booking: { columns: { name: true } },
+			invoice: { columns: { invoiceNumber: true } },
+		},
+		orderBy,
+		limit,
+		offset,
+	});
+
+	// --- Total Count Query ---
+	const totalResult = await db
+		.select({ count: count() })
+		.from(receivedAmounts)
+		.where(and(...whereConditions));
+	const total = totalResult[0]?.count ?? 0;
+
+	return {
+		data,
+		total,
+		page,
+		pageCount: Math.ceil(total / limit),
+		limit,
+	};
+}
+
+// ====================================================================
+// Function for Payment Schedules
+// ====================================================================
+
+export type ScheduledPaymentFilters = {
+	description?: string;
+	dueDate?: string; // For date range filtering
+	bookingId?: string;
+};
+
+type AllowedScheduledPaymentSortFields = "amount" | "dueDate" | "createdAt";
+type ScheduledPaymentSortOption = {
+	id: AllowedScheduledPaymentSortFields;
+	desc: boolean;
+};
+
+export async function getPaymentSchedules(
+	userOrganizationId: string,
+	page = 1,
+	limit = 10,
+	sortOptions: ScheduledPaymentSortOption[] | undefined = undefined,
+	filters: ScheduledPaymentFilters = {},
+) {
+	const offset = (page - 1) * limit;
+
+	const whereConditions = [
+		eq(paymentSchedules.organizationId, userOrganizationId),
+	];
+
+	// --- Dynamic Filtering ---
+	if (filters.description) {
+		whereConditions.push(
+			ilike(paymentSchedules.description, `%${filters.description}%`),
+		);
+	}
+	if (filters.bookingId) {
+		const bookingIds = filters.bookingId.split(",").map(Number).filter(Boolean);
+		if (bookingIds.length > 0) {
+			whereConditions.push(inArray(paymentSchedules.bookingId, bookingIds));
+		}
+	}
+	if (filters.dueDate) {
+		const dates = filters.dueDate
+			.split(",")
+			.map((d) => d.trim())
+			.filter(Boolean);
+		if (dates.length === 2) {
+			whereConditions.push(
+				gte(
+					paymentSchedules.dueDate,
+					new Date(dates[0]).toISOString().slice(0, 10),
+				),
+			);
+			whereConditions.push(
+				lte(
+					paymentSchedules.dueDate,
+					new Date(dates[1]).toISOString().slice(0, 10),
+				),
+			);
+		}
+	}
+
+	// --- Dynamic Sorting ---
+	const orderBy =
+		sortOptions && sortOptions.length > 0
+			? sortOptions.map((item) =>
+					item.desc
+						? desc(paymentSchedules[item.id])
+						: asc(paymentSchedules[item.id]),
+				)
+			: [desc(paymentSchedules.dueDate)];
+
+	// --- Main Data Query ---
+	const data = await db.query.paymentSchedules.findMany({
+		where: and(...whereConditions),
+		with: {
+			booking: { columns: { name: true } },
+		},
+		orderBy,
+		limit,
+		offset,
+	});
+
+	// --- Total Count Query ---
+	const totalResult = await db
+		.select({ count: count() })
+		.from(paymentSchedules)
+		.where(and(...whereConditions));
+	const total = totalResult[0]?.count ?? 0;
+
+	return {
+		data,
+		total,
+		page,
+		pageCount: Math.ceil(total / limit),
+		limit,
+	};
+}

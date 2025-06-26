@@ -1,9 +1,9 @@
-// src/app/api/payment-schedules/route.ts
+// src/app/api/received-payments/route.ts
 import { NextResponse } from "next/server";
 import { getServerSession } from "@/lib/dal";
 import {
-	getPaymentSchedules,
-	type ScheduledPaymentFilters,
+	getReceivedPayments,
+	type ReceivedPaymentFilters,
 } from "@/lib/db/queries";
 
 export async function GET(request: Request) {
@@ -26,13 +26,14 @@ export async function GET(request: Request) {
 
 		// Add sort parsing here if needed in the future
 
-		const filters: ScheduledPaymentFilters = {
+		const filters: ReceivedPaymentFilters = {
 			description: searchParams.get("description") || undefined,
-			dueDate: searchParams.get("dueDate") || undefined,
+			paidOn: searchParams.get("paidOn") || undefined,
 			bookingId: searchParams.get("bookingId") || undefined,
+			invoiceId: searchParams.get("invoiceId") || undefined,
 		};
 
-		const result = await getPaymentSchedules(
+		const result = await getReceivedPayments(
 			orgId,
 			page,
 			limit,
@@ -42,7 +43,7 @@ export async function GET(request: Request) {
 
 		return NextResponse.json(result, { status: 200 });
 	} catch (error: unknown) {
-		console.error("Error fetching payment schedules:", error);
+		console.error("Error fetching received payments:", error);
 		const errorMessage =
 			error instanceof Error ? error.message : "Unknown error";
 		return NextResponse.json(
