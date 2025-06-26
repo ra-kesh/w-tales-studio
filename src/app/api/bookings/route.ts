@@ -6,15 +6,12 @@ import {
 	bookingParticipants,
 	bookings,
 	clients,
-	crews,
 	deliverables,
-	NewShoot,
 	paymentSchedules,
 	receivedAmounts,
 	shoots,
 	shootsAssignments,
 } from "@/lib/db/schema";
-import { z } from "zod";
 import { BookingSchema } from "@/app/(dashboard)/bookings/_components/booking-form/booking-form-schema";
 import { and, eq, inArray } from "drizzle-orm";
 
@@ -158,23 +155,26 @@ export async function POST(request: Request) {
 				);
 			}
 
-			// 5) Optional: received amounts
 			if (data.payments?.length) {
 				await tx.insert(receivedAmounts).values(
 					data.payments.map((pmt) => ({
 						bookingId,
+						organizationId: orgId, // Added to match new schema
 						amount: pmt.amount,
 						description: pmt.description,
 						paidOn: pmt.date,
+						// invoiceId is intentionally omitted to be NULL
 					})),
 				);
 			}
 
-			// 6) Optional: scheduled payments
 			if (data.scheduledPayments?.length) {
+				// 6) Optional: scheduled payments
+				// CORRECTED: This now matches your new schema by adding the orgId.
 				await tx.insert(paymentSchedules).values(
 					data.scheduledPayments.map((sch) => ({
 						bookingId,
+						organizationId: orgId, // Added to match new schema
 						amount: sch.amount,
 						description: sch.description,
 						dueDate: sch.dueDate,

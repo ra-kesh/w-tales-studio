@@ -383,10 +383,12 @@ export async function PUT(
 		await tx
 			.delete(receivedAmounts)
 			.where(eq(receivedAmounts.bookingId, bookingId));
+
 		if (data.payments?.length) {
 			await tx.insert(receivedAmounts).values(
 				data.payments.map((pmt) => ({
 					bookingId,
+					organizationId: orgId,
 					amount: pmt.amount,
 					description: pmt.description,
 					paidOn: pmt.date,
@@ -398,10 +400,12 @@ export async function PUT(
 		await tx
 			.delete(paymentSchedules)
 			.where(eq(paymentSchedules.bookingId, bookingId));
+
 		if (data.scheduledPayments?.length) {
 			await tx.insert(paymentSchedules).values(
 				data.scheduledPayments.map((sch) => ({
 					bookingId,
+					organizationId: orgId,
 					amount: sch.amount,
 					description: sch.description,
 					dueDate: sch.dueDate,
