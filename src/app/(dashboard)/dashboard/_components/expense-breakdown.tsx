@@ -62,7 +62,7 @@ export function ExpenseBreakdown({ data }: { data: ExpenseData[] }) {
 				</ResponsiveContainer>
 			</div>
 
-			<div className="flex flex-col justify-center space-y-4 sm:pr-6 xl:pr-8">
+			<div className="flex flex-col justify-center space-y-4 sm:pr-4 xl:pr-6">
 				{chartData.map((entry) => (
 					<div key={entry.name} className="flex items-center justify-between">
 						<div className="flex items-center gap-3">

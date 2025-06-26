@@ -3175,7 +3175,7 @@ export async function getExpenseAnalytics(
 			total: stats?.foodAndDrink || 0,
 		},
 		{
-			category: "Travel & Accommodation",
+			category: "Travel & Stay",
 			total: stats?.travelAndAccommodation || 0,
 		},
 		{
