@@ -3087,39 +3087,111 @@ async function getOperationsData(organizationId: string, interval: string) {
 	};
 }
 
-async function getExpenseAnalytics(organizationId: string, interval: string) {
+// async function getExpenseAnalytics(organizationId: string, interval: string) {
+// 	const dateRange =
+// 		interval === "all" ? null : getDateRangeFromInterval(interval);
+
+// 	const expensesByCategory = await db
+// 		.select({
+// 			category: expenses.category,
+// 			total: sum(expenses.amount).mapWith(Number),
+// 		})
+// 		.from(expenses)
+// 		.where(
+// 			and(
+// 				eq(expenses.organizationId, organizationId),
+// 				dateRange
+// 					? gte(
+// 							expenses.date,
+// 							formatISO(dateRange.startDate, { representation: "date" }),
+// 						)
+// 					: undefined,
+// 				dateRange
+// 					? lte(
+// 							expenses.date,
+// 							formatISO(dateRange.endDate, { representation: "date" }),
+// 						)
+// 					: undefined,
+// 			),
+// 		)
+// 		.groupBy(expenses.category)
+// 		.orderBy(desc(sum(expenses.amount)));
+
+// 	return expensesByCategory;
+// }
+
+// This function should replace your existing getExpenseAnalytics.
+// It is designed to work directly with your ExpenseBreakdown component.
+
+// The return type matches the component's expected `ExpenseData[]` prop.
+type ExpenseBreakdownData = {
+	category: string;
+	total: number;
+};
+
+export async function getExpenseAnalytics(
+	organizationId: string,
+	interval: string,
+): Promise<ExpenseBreakdownData[]> {
 	const dateRange =
 		interval === "all" ? null : getDateRangeFromInterval(interval);
 
-	const expensesByCategory = await db
+	const whereConditions: (SQL | undefined)[] = [
+		eq(expenses.organizationId, organizationId),
+		eq(expenses.billTo, "Studio"),
+	];
+	if (dateRange) {
+		whereConditions.push(
+			gte(expenses.date, dateRange.startDate.toISOString().slice(0, 10)),
+		);
+		whereConditions.push(
+			lte(expenses.date, dateRange.endDate.toISOString().slice(0, 10)),
+		);
+	}
+
+	// --- Run the single, efficient query from getExpenseStats ---
+	const [stats] = await db
 		.select({
-			category: expenses.category,
-			total: sum(expenses.amount).mapWith(Number),
+			foodAndDrink: sql<number>`
+        COALESCE(SUM(CASE WHEN ${expenses.category} IN ('food','drink') THEN ${expenses.amount} ELSE 0 END), 0)
+      `.mapWith(Number),
+			travelAndAccommodation: sql<number>`
+        COALESCE(SUM(CASE WHEN ${expenses.category} IN ('travel','accommodation') THEN ${expenses.amount} ELSE 0 END), 0)
+      `.mapWith(Number),
+			equipment: sql<number>`
+        COALESCE(SUM(CASE WHEN ${expenses.category} = 'equipment' THEN ${expenses.amount} ELSE 0 END), 0)
+      `.mapWith(Number),
+			miscellaneous: sql<number>`
+        COALESCE(SUM(CASE WHEN ${expenses.category} NOT IN ('food','drink','travel','accommodation','equipment') THEN ${expenses.amount} ELSE 0 END), 0)
+      `.mapWith(Number),
 		})
 		.from(expenses)
-		.where(
-			and(
-				eq(expenses.organizationId, organizationId),
-				dateRange
-					? gte(
-							expenses.date,
-							formatISO(dateRange.startDate, { representation: "date" }),
-						)
-					: undefined,
-				dateRange
-					? lte(
-							expenses.date,
-							formatISO(dateRange.endDate, { representation: "date" }),
-						)
-					: undefined,
-			),
-		)
-		.groupBy(expenses.category)
-		.orderBy(desc(sum(expenses.amount)));
+		.where(and(...whereConditions));
 
-	return expensesByCategory;
+	// --- Transform the result into the EXACT shape the component needs ---
+	const expenseBreakdown: ExpenseBreakdownData[] = [
+		{
+			category: "Food & Drink",
+			total: stats?.foodAndDrink || 0,
+		},
+		{
+			category: "Travel & Accommodation",
+			total: stats?.travelAndAccommodation || 0,
+		},
+		{
+			category: "Equipment",
+			total: stats?.equipment || 0,
+		},
+		{
+			category: "Miscellaneous",
+			total: stats?.miscellaneous || 0,
+		},
+	];
+
+	// Filter out any categories with a zero total to keep the chart clean.
+	// This returns the final array in the perfect format.
+	return expenseBreakdown.filter((item) => item.total > 0);
 }
-
 interface DashboardParams {
 	organizationId: string;
 	interval: string;
