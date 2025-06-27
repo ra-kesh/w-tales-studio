@@ -30,6 +30,18 @@ export function GlobalSheets() {
 			<Suspense fallback={<div>Loading...</div>}>
 				<BookingTypeEditSheet />
 			</Suspense>
+			<DeliverableStatusCreateSheet />
+			<Suspense fallback={<div>Loading...</div>}>
+				<DeliverableStatusEditSheet />
+			</Suspense>
+			<TaskStatusCreateSheet />
+			<Suspense fallback={<div>Loading...</div>}>
+				<TaskStatusEditSheet />
+			</Suspense>
+			<TaskPriorityCreateSheet />
+			<Suspense fallback={<div>Loading...</div>}>
+				<TaskPriorityEditSheet />
+			</Suspense>
 
 			<DeliverableCreateSheet />
 			<Suspense fallback={<div>Loading...</div>}>

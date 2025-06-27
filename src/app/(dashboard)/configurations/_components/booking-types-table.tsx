@@ -26,7 +26,6 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { useBookingTypesColumns } from "./booking-types-table-columns";
-import { BookingTypesTablePagination } from "./booking-types-table-pagination";
 import { BookingTypesTableToolbar } from "./booking-types-table-toolbar";
 
 interface BookingType {

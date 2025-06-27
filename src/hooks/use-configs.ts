@@ -319,3 +319,324 @@ export function useDeleteBookingTypeMutation() {
 		},
 	});
 }
+
+export function useDeliverableStatusDetail(id: string | null) {
+	return useQuery({
+		queryKey: ["configurations", "deliverable_status", id],
+		queryFn: () => fetchConfigById(id as string),
+		enabled: Boolean(id),
+		staleTime: 5 * 60 * 1000,
+		select: (data) => ({
+			id: data.id,
+			key: data.key,
+			value: data.value,
+			metadata: data.metadata,
+		}),
+	});
+}
+
+export function useCreateDeliverableStatusMutation() {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: async (data: Omit<NewConfiguration, "type" | "key" | "metadata">) => {
+			const response = await fetch("/api/configurations/deliverable_status", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({ ...data, type: "deliverable_status" }),
+			});
+			if (!response.ok) {
+				throw new Error("Failed to create deliverable status");
+			}
+			return response.json();
+		},
+		onSuccess: () => {
+			queryClient.invalidateQueries({
+				queryKey: ["configurations", "deliverable_status"],
+			});
+			toast.success("Deliverable status created successfully");
+		},
+		onError: (error) => {
+			toast.error(error.message || "Failed to create deliverable status");
+		},
+	});
+}
+
+export function useUpdateDeliverableStatusMutation() {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: async ({
+			data,
+			deliverableStatusId,
+		}: {
+			data: Partial<NewConfiguration>;
+			deliverableStatusId: string;
+		}) => {
+			const response = await fetch(
+				`/api/configurations/deliverable_status/${deliverableStatusId}`,
+				{
+					method: "PUT",
+					headers: {
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify({ ...data, type: "deliverable_status" }),
+				},
+			);
+			if (!response.ok) {
+				throw new Error("Failed to update deliverable status");
+			}
+			return response.json();
+		},
+		onSuccess: () => {
+			queryClient.invalidateQueries({
+				queryKey: ["configurations", "deliverable_status"],
+			});
+			toast.success("Deliverable status updated successfully");
+		},
+		onError: (error) => {
+			toast.error(error.message || "Failed to update deliverable status");
+		},
+	});
+}
+
+export function useDeleteDeliverableStatusMutation() {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: async (deliverableStatusId: string) => {
+			const response = await fetch(
+				`/api/configurations/deliverable_status/${deliverableStatusId}`,
+				{
+					method: "DELETE",
+				},
+			);
+			if (!response.ok) {
+				throw new Error("Failed to delete deliverable status");
+			}
+			return response.json();
+		},
+		onSuccess: () => {
+			queryClient.invalidateQueries({
+				queryKey: ["configurations", "deliverable_status"],
+			});
+			toast.success("Deliverable status deleted successfully");
+		},
+		onError: (error) => {
+			toast.error(error.message || "Failed to delete deliverable status");
+		},
+	});
+}
+
+export function useTaskStatusDetail(id: string | null) {
+	return useQuery({
+		queryKey: ["configurations", "task_status", id],
+		queryFn: () => fetchConfigById(id as string),
+		enabled: Boolean(id),
+		staleTime: 5 * 60 * 1000,
+		select: (data) => ({
+			id: data.id,
+			key: data.key,
+			value: data.value,
+			metadata: data.metadata,
+		}),
+	});
+}
+
+export function useCreateTaskStatusMutation() {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: async (data: Omit<NewConfiguration, "type" | "key" | "metadata">) => {
+			const response = await fetch("/api/configurations/task_status", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({ ...data, type: "task_status" }),
+			});
+			if (!response.ok) {
+				throw new Error("Failed to create task status");
+			}
+			return response.json();
+		},
+		onSuccess: () => {
+			queryClient.invalidateQueries({
+				queryKey: ["configurations", "task_status"],
+			});
+			toast.success("Task status created successfully");
+		},
+		onError: (error) => {
+			toast.error(error.message || "Failed to create task status");
+		},
+	});
+}
+
+export function useUpdateTaskStatusMutation() {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: async ({
+			data,
+			taskStatusId,
+		}: {
+			data: Partial<NewConfiguration>;
+			taskStatusId: string;
+		}) => {
+			const response = await fetch(
+				`/api/configurations/task_status/${taskStatusId}`,
+				{
+					method: "PUT",
+					headers: {
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify({ ...data, type: "task_status" }),
+				},
+			);
+			if (!response.ok) {
+				throw new Error("Failed to update task status");
+			}
+			return response.json();
+		},
+		onSuccess: () => {
+			queryClient.invalidateQueries({
+				queryKey: ["configurations", "task_status"],
+			});
+			toast.success("Task status updated successfully");
+		},
+		onError: (error) => {
+			toast.error(error.message || "Failed to update task status");
+		},
+	});
+}
+
+export function useDeleteTaskStatusMutation() {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: async (taskStatusId: string) => {
+			const response = await fetch(
+				`/api/configurations/task_status/${taskStatusId}`,
+				{
+					method: "DELETE",
+				},
+			);
+			if (!response.ok) {
+				throw new Error("Failed to delete task status");
+			}
+			return response.json();
+		},
+		onSuccess: () => {
+			queryClient.invalidateQueries({
+				queryKey: ["configurations", "task_status"],
+			});
+			toast.success("Task status deleted successfully");
+		},
+		onError: (error) => {
+			toast.error(error.message || "Failed to delete task status");
+		},
+	});
+}
+
+export function useTaskPriorityDetail(id: string | null) {
+	return useQuery({
+		queryKey: ["configurations", "task_priority", id],
+		queryFn: () => fetchConfigById(id as string),
+		enabled: Boolean(id),
+		staleTime: 5 * 60 * 1000,
+		select: (data) => ({
+			id: data.id,
+			key: data.key,
+			value: data.value,
+			metadata: data.metadata,
+		}),
+	});
+}
+
+export function useCreateTaskPriorityMutation() {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: async (data: Omit<NewConfiguration, "type" | "key" | "metadata">) => {
+			const response = await fetch("/api/configurations/task_priority", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({ ...data, type: "task_priority" }),
+			});
+			if (!response.ok) {
+				throw new Error("Failed to create task priority");
+			}
+			return response.json();
+		},
+		onSuccess: () => {
+			queryClient.invalidateQueries({
+				queryKey: ["configurations", "task_priority"],
+			});
+			toast.success("Task priority created successfully");
+		},
+		onError: (error) => {
+			toast.error(error.message || "Failed to create task priority");
+		},
+	});
+}
+
+export function useUpdateTaskPriorityMutation() {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: async ({
+			data,
+			taskPriorityId,
+		}: {
+			data: Partial<NewConfiguration>;
+			taskPriorityId: string;
+		}) => {
+			const response = await fetch(
+				`/api/configurations/task_priority/${taskPriorityId}`,
+				{
+					method: "PUT",
+					headers: {
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify({ ...data, type: "task_priority" }),
+				},
+			);
+			if (!response.ok) {
+				throw new Error("Failed to update task priority");
+			}
+			return response.json();
+		},
+		onSuccess: () => {
+			queryClient.invalidateQueries({
+				queryKey: ["configurations", "task_priority"],
+			});
+			toast.success("Task priority updated successfully");
+		},
+		onError: (error) => {
+			toast.error(error.message || "Failed to update task priority");
+		},
+	});
+}
+
+export function useDeleteTaskPriorityMutation() {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: async (taskPriorityId: string) => {
+			const response = await fetch(
+				`/api/configurations/task_priority/${taskPriorityId}`,
+				{
+					method: "DELETE",
+				},
+			);
+			if (!response.ok) {
+				throw new Error("Failed to delete task priority");
+			}
+			return response.json();
+		},
+		onSuccess: () => {
+			queryClient.invalidateQueries({
+				queryKey: ["configurations", "task_priority"],
+			});
+			toast.success("Task priority deleted successfully");
+		},
+		onError: (error) => {
+			toast.error(error.message || "Failed to delete task priority");
+		},
+	});
+}
