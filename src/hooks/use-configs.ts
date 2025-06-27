@@ -142,6 +142,21 @@ export function usePackageDetail(id: string | null) {
 	});
 }
 
+export function useBookingTypeDetail(id: string | null) {
+	return useQuery({
+		queryKey: ["configurations", "booking_type", id],
+		queryFn: () => fetchConfigById(id as string),
+		enabled: Boolean(id),
+		staleTime: 5 * 60 * 1000,
+		select: (data) => ({
+			id: data.id,
+			key: data.key,
+			value: data.value,
+			metadata: data.metadata,
+		}),
+	});
+}
+
 export function useCreatePackageMutation() {
 	const queryClient = useQueryClient();
 	return useMutation({
@@ -172,6 +187,34 @@ export function useCreatePackageMutation() {
 		},
 		onError: (error) => {
 			toast.error(error.message || "Failed to create package");
+		},
+	});
+}
+
+export function useCreateBookingTypeMutation() {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: async (data: Omit<NewConfiguration, "type" | "key" | "metadata">) => {
+			const response = await fetch("/api/configurations/booking_types", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({ ...data, type: "booking_type" }),
+			});
+			if (!response.ok) {
+				throw new Error("Failed to create booking type");
+			}
+			return response.json();
+		},
+		onSuccess: () => {
+			queryClient.invalidateQueries({
+				queryKey: ["configurations", "booking_type"],
+			});
+			toast.success("Booking type created successfully");
+		},
+		onError: (error) => {
+			toast.error(error.message || "Failed to create booking type");
 		},
 	});
 }
@@ -209,6 +252,70 @@ export function useUpdatePackageMutation() {
 		},
 		onError: (error) => {
 			toast.error(error.message || "Failed to update package");
+		},
+	});
+}
+
+export function useUpdateBookingTypeMutation() {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: async ({
+			data,
+			bookingTypeId,
+		}: {
+			data: Partial<NewConfiguration>;
+			bookingTypeId: string;
+		}) => {
+			const response = await fetch(
+				`/api/configurations/booking_types/${bookingTypeId}`,
+				{
+					method: "PUT",
+					headers: {
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify({ ...data, type: "booking_type" }),
+				},
+			);
+			if (!response.ok) {
+				throw new Error("Failed to update booking type");
+			}
+			return response.json();
+		},
+		onSuccess: () => {
+			queryClient.invalidateQueries({
+				queryKey: ["configurations", "booking_type"],
+			});
+			toast.success("Booking type updated successfully");
+		},
+		onError: (error) => {
+			toast.error(error.message || "Failed to update booking type");
+		},
+	});
+}
+
+export function useDeleteBookingTypeMutation() {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: async (bookingTypeId: string) => {
+			const response = await fetch(
+				`/api/configurations/booking_types/${bookingTypeId}`,
+				{
+					method: "DELETE",
+				},
+			);
+			if (!response.ok) {
+				throw new Error("Failed to delete booking type");
+			}
+			return response.json();
+		},
+		onSuccess: () => {
+			queryClient.invalidateQueries({
+				queryKey: ["configurations", "booking_type"],
+			});
+			toast.success("Booking type deleted successfully");
+		},
+		onError: (error) => {
+			toast.error(error.message || "Failed to delete booking type");
 		},
 	});
 }

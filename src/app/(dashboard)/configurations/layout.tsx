@@ -15,8 +15,8 @@ const SettingsLayout = ({ children }: SettingsLayoutProps) => {
 
 	const tabs = [
 		{ path: "/configurations/packages", label: "Package Types" },
+		{ path: "/configurations/booking-types", label: "Booking Types" },
 		// { path: "/configurations/deliverables", label: "Deliverables" },
-		// { path: "/configurations/booking", label: "Booking Types" },
 	];
 
 	return (
