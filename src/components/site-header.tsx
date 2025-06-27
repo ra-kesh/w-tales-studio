@@ -45,6 +45,10 @@ const pageMetadata: Record<string, { title: string; description?: string }> = {
 		title: "Expenses",
 		description: "Track and manage project-related expenses",
 	},
+	"/payments": {
+		title: "Payments",
+		description: "Keep track of past and upcoming payments",
+	},
 	"/configurations": {
 		title: "Configurations",
 		description: "Configure your studio offerings",

@@ -17,6 +17,8 @@ import {
 	SquareTerminal,
 	UsersIcon,
 	Home,
+	WalletIcon,
+	Wallet2Icon,
 } from "lucide-react";
 
 export const sidebarData = {
@@ -80,15 +82,21 @@ export const sidebarData = {
 		},
 
 		{
-			title: "Configurations",
-			url: "/configurations",
-			icon: Settings2Icon,
+			title: "Payments",
+			url: "/payments",
+			icon: Wallet2Icon,
 			isActive: true,
 		},
 		{
 			title: "Crews",
 			url: "/crews",
 			icon: UsersIcon,
+			isActive: true,
+		},
+		{
+			title: "Configurations",
+			url: "/configurations",
+			icon: Settings2Icon,
 			isActive: true,
 		},
 	],
@@ -103,22 +111,22 @@ export const sidebarData = {
 			url: "#",
 			icon: HelpCircleIcon,
 		},
-		{
-			title: "Search",
-			url: "#",
-			icon: SearchIcon,
-		},
+		// {
+		// 	title: "Search",
+		// 	url: "#",
+		// 	icon: SearchIcon,
+		// },
 	],
-	bookings: [
-		{
-			name: "Celebrity Wedding",
-			url: "#",
-			// icon: Frame,
-		},
-		{
-			name: "SPortsman Wedding",
-			url: "#",
-			// icon: PieChart,
-		},
-	],
+	// bookings: [
+	// 	{
+	// 		name: "Celebrity Wedding",
+	// 		url: "#",
+	// 		// icon: Frame,
+	// 	},
+	// 	{
+	// 		name: "SPortsman Wedding",
+	// 		url: "#",
+	// 		// icon: PieChart,
+	// 	},
+	// ],
 };
