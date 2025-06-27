@@ -63,7 +63,7 @@
     "zod": "3.24.2"
   },
   "devDependencies": {
-    "@biomejs/biome": "1.9.4",
+    "@biomejs/biome": "2.0.5",
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
@@ -72,6 +72,8 @@
     "drizzle-kit": "^0.30.5",
     "eslint": "^9",
     "eslint-config-next": "15.2.2",
-    "tailwindcss": "^4"
+    "prettier": "^3.5.3",
+    "tailwindcss": "^4",
+    "ultracite": "5.0.25"
   }
 }
