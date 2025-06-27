@@ -3430,3 +3430,38 @@ export async function getPaymentSchedules(
 		limit,
 	};
 }
+
+export type PaymentsStats = {
+	totalReceived: string;
+	totalScheduled: string;
+	receivedCount: number;
+	scheduledCount: number;
+};
+
+export async function getPaymentsStats(
+	organizationId: string,
+): Promise<PaymentsStats> {
+	const [receivedResult, scheduledResult] = await Promise.all([
+		db
+			.select({
+				total: sum(receivedAmounts.amount),
+				count: count(),
+			})
+			.from(receivedAmounts)
+			.where(eq(receivedAmounts.organizationId, organizationId)),
+		db
+			.select({
+				total: sum(paymentSchedules.amount),
+				count: count(),
+			})
+			.from(paymentSchedules)
+			.where(eq(paymentSchedules.organizationId, organizationId)),
+	]);
+
+	return {
+		totalReceived: receivedResult[0]?.total || "0.00",
+		totalScheduled: scheduledResult[0]?.total || "0.00",
+		receivedCount: receivedResult[0]?.count || 0,
+		scheduledCount: scheduledResult[0]?.count || 0,
+	};
+}
