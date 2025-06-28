@@ -1,34 +1,48 @@
-import { DashboardMetrics } from "./_components/dashboard-metrics";
-import { RecentBookings } from "./_components/recent-bookings";
-import { UpcomingShoots } from "./_components/upcoming-shoots";
-import { PendingDeliverables } from "./_components/pending-deliverables";
-import { RevenueChart } from "./_components/revenue-chart";
-import { ExpenseBreakdown } from "./_components/expense-breakdown";
+import {
+	dehydrate,
+	HydrationBoundary,
+	QueryClient,
+} from "@tanstack/react-query";
+import { getServerSession } from "@/lib/dal";
+import { getDashboardData } from "@/lib/db/queries";
 
-export default function DashboardPage() {
+import DashboardClient from "./dashboardclient";
+
+export const dynamic = "force-dynamic";
+
+export default async function DashboardPage({
+	searchParams,
+}: {
+	searchParams: { interval?: string; operationsInterval?: string };
+}) {
+	const { session } = await getServerSession();
+	const userOrganizationId = session?.session.activeOrganizationId;
+	const queryClient = new QueryClient();
+
+	const interval = searchParams.interval || "all";
+	const operationsInterval = searchParams.operationsInterval || "7d";
+
+	const filters = {
+		interval,
+		operationsInterval,
+	};
+
+	if (userOrganizationId) {
+		const queryKey = ["dashboard", { orgId: userOrganizationId, ...filters }];
+
+		await queryClient.prefetchQuery({
+			queryKey,
+			queryFn: () =>
+				getDashboardData({
+					organizationId: userOrganizationId,
+					...filters,
+				}),
+		});
+	}
+
 	return (
-		<div className="flex-1 space-y-4 p-6 pt-6">
-			<div className="flex items-center justify-between space-y-2">
-				<h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
-			</div>
-			<div className="space-y-4">
-				<DashboardMetrics />
-
-				<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-					<div className="col-span-4">
-						<RevenueChart />
-					</div>
-					<div className="col-span-3">
-						<ExpenseBreakdown />
-					</div>
-				</div>
-
-				<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-					<PendingDeliverables />
-					<RecentBookings />
-					<UpcomingShoots />
-				</div>
-			</div>
-		</div>
+		<HydrationBoundary state={dehydrate(queryClient)}>
+			<DashboardClient />
+		</HydrationBoundary>
 	);
 }

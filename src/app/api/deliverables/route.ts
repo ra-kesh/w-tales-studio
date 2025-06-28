@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
-import { getDeliverables } from "@/lib/db/queries";
+import {
+	type AllowedDeliverableSortFields,
+	type DeliverableFilters,
+	type DeliverableSortOption,
+	getDeliverables,
+} from "@/lib/db/queries";
 import { getServerSession } from "@/lib/dal";
 
 import { db } from "@/lib/db/drizzle";
@@ -35,28 +40,59 @@ export async function GET(request: Request) {
 		const page = Number.parseInt(searchParams.get("page") || "1", 10);
 		const limit = Number.parseInt(searchParams.get("limit") || "10", 10);
 
-		const result = await getDeliverables(userOrganizationId, page, limit);
+		const sortParam = searchParams.get("sort");
+		let sortOptions: DeliverableSortOption[] | undefined = undefined;
+		if (sortParam) {
+			try {
+				const parsedSort = JSON.parse(sortParam);
+				const allowedFields: AllowedDeliverableSortFields[] = [
+					"title",
+					"status",
+					"dueDate",
+					"createdAt",
+					"updatedAt",
+				];
+				sortOptions = parsedSort.filter((option: DeliverableSortOption) =>
+					allowedFields.includes(option.id),
+				);
+			} catch (e) {
+				console.error("Failed to parse sort parameter:", e);
+			}
+		}
 
-		const transformedData = result.data.map((deliverable) => ({
-			...deliverable,
-			deliverablesAssignments: deliverable.deliverablesAssignments?.map(
-				(assignment) => ({
-					...assignment,
-					crew: {
-						...assignment.crew,
-						name: assignment.crew.member?.user?.name || assignment.crew.name,
-					},
-				}),
-			),
-		}));
+		// 2. Construct Filters Object from URL Search Params
+		const filters: DeliverableFilters = {
+			title: searchParams.get("title") || undefined,
+			status: searchParams.get("status") || undefined,
+			bookingId: searchParams.get("bookingId") || undefined,
+			crewId: searchParams.get("crewId") || undefined,
+			dueDate: searchParams.get("dueDate") || undefined,
+		};
 
-		return NextResponse.json(
-			{
-				data: transformedData,
-				total: result.total,
-			},
-			{ status: 200 },
+		const result = await getDeliverables(
+			userOrganizationId,
+			page,
+			limit,
+			sortOptions,
+			filters,
 		);
+
+		// Todo: Look into this later , if deliverables assignment name is acting up weird
+
+		// const transformedData = result.data.map((deliverable) => ({
+		// 	...deliverable,
+		// 	deliverablesAssignments: deliverable.deliverablesAssignments?.map(
+		// 		(assignment) => ({
+		// 			...assignment,
+		// 			crew: {
+		// 				...assignment.crew,
+		// 				name: assignment.crew.member?.user?.name || assignment.crew.name,
+		// 			},
+		// 		}),
+		// 	),
+		// }));
+
+		return NextResponse.json(result, { status: 200 });
 	} catch (error: unknown) {
 		console.error("Error fetching deliverables:", error);
 		const errorMessage =
@@ -156,13 +192,7 @@ export async function POST(request: Request) {
 					quantity: Number.parseInt(validatedData.quantity),
 					dueDate: validatedData.dueDate,
 					notes: validatedData.notes,
-					status: validatedData.status as
-						| "pending"
-						| "in_progress"
-						| "in_revision"
-						| "completed"
-						| "delivered"
-						| "cancelled",
+					status: validatedData.status,
 					organizationId: userOrganizationId,
 					createdAt: new Date(),
 					updatedAt: new Date(),

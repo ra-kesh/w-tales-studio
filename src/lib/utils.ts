@@ -115,3 +115,11 @@ export async function convertImageToBase64(file: File): Promise<string> {
 		reader.readAsDataURL(file);
 	});
 }
+
+export const formatCurrency = (value: string | number) => {
+	return new Intl.NumberFormat("en-IN", {
+		style: "currency",
+		currency: "INR",
+		maximumFractionDigits: 0,
+	}).format(Number(value));
+};

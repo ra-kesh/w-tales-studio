@@ -5,7 +5,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import type { Booking, Client, Shoot } from "@/lib/db/schema";
 import { BookingTableRowActions } from "./booking-table-row-actions";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
 	Tooltip,
 	TooltipContent,
@@ -25,12 +24,17 @@ import {
 	PackageIcon,
 } from "lucide-react";
 import { DataTableColumnHeader } from "@/app/(dashboard)/tasks/_components/task-table-column-header";
-import { usePackageTypes } from "@/hooks/use-configs";
+import type { PackageMetadata } from "@/app/(dashboard)/configurations/_components/package-form-schema";
 
-export const useBookingColumns = () => {
-	const { data: packageTypes, isLoading: isPackageTypesLoading } =
-		usePackageTypes();
-
+export const useBookingColumns = ({
+	packageTypes,
+	isPackageTypesLoading,
+}: {
+	packageTypes:
+		| { id: number; value: string; label: string; metadata: PackageMetadata }[]
+		| undefined;
+	isPackageTypesLoading: boolean;
+}) => {
 	const columns: ColumnDef<Booking & { shoots: Shoot[] }>[] = [
 		{
 			id: "select",
@@ -62,12 +66,7 @@ export const useBookingColumns = () => {
 				const type = row.original.bookingType;
 				return (
 					<div className="flex items-center gap-3">
-						{/* <Badge
-							variant="outline"
-							// className="bg-primary/5 hover:bg-primary/10"
-						>
-							{type || "Not specified"}
-						</Badge> */}
+						{/* <Badge variant="outline">{type || "Not specified"}</Badge> */}
 						<div className="font-medium">{bookingName}</div>
 					</div>
 				);

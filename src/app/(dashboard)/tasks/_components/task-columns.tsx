@@ -5,10 +5,23 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { DataTableColumnHeader } from "./task-table-column-header";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import type { Task, TasksAssignment, Crew } from "@/lib/db/schema";
+import {
+	type Task,
+	type TasksAssignment,
+	type Crew,
+	tasks,
+} from "@/lib/db/schema";
 import { useTaskConfigs } from "@/hooks/use-configs";
 import { TaskTableRowActions } from "./task-table-row-actions";
 import { format } from "date-fns";
+import {
+	ArrowUpDown,
+	Calendar,
+	CalendarIcon,
+	CameraIcon,
+	CircleDashed,
+	TextIcon,
+} from "lucide-react";
 
 type TaskWithRelations = Task & {
 	booking: { name: string };
@@ -25,7 +38,17 @@ type TaskWithRelations = Task & {
 	>;
 };
 
-export function useTaskColumns() {
+export function useTaskColumns({
+	statusOptions,
+	priorityOptions,
+	minimalBookings,
+	isMininmalBookingLoading,
+}: {
+	statusOptions: Array<{ label: string; value: string }>;
+	priorityOptions: Array<{ label: string; value: string }>;
+	minimalBookings: Array<{ id: string | number; name: string }>;
+	isMininmalBookingLoading: boolean;
+}) {
 	const { statuses, priorities } = useTaskConfigs();
 
 	const taskColumns: ColumnDef<TaskWithRelations>[] = [
@@ -54,6 +77,7 @@ export function useTaskColumns() {
 			enableHiding: false,
 		},
 		{
+			id: "description",
 			accessorKey: "description",
 			header: ({ column }) => (
 				<DataTableColumnHeader column={column} title="Task" />
@@ -64,16 +88,49 @@ export function useTaskColumns() {
 						<div className="flex flex-col space-y-1 w-full">
 							<div className="font-semibold">{row.getValue("description")}</div>
 							<div className="flex gap-3">
-								<div className="text-sm text-muted-foreground">
+								{/* <div className="text-sm text-muted-foreground">
 									{row.original.booking.name}
-								</div>
+								</div> */}
 							</div>
 						</div>
 					</div>
 				);
 			},
+			meta: {
+				label: "Title",
+				placeholder: "Filter tasks...",
+				variant: "text",
+				icon: TextIcon,
+			},
+			enableColumnFilter: true,
+			enableSorting: true,
 		},
 		{
+			id: "bookingId",
+			accessorKey: "booking.name",
+			header: ({ column }) => (
+				<DataTableColumnHeader column={column} title="Booking" />
+			),
+			cell: ({ row }) => {
+				return <span className="text-md ">{row.original.booking.name}</span>;
+			},
+			meta: {
+				label: "Boooking",
+				variant: "multiSelect",
+				options: isMininmalBookingLoading
+					? []
+					: (minimalBookings.map((booking) => ({
+							label: booking.name,
+							value: String(booking.id),
+						})) ?? []),
+				icon: CameraIcon,
+			},
+			enableColumnFilter: true,
+			enableSorting: false,
+			enableHiding: false,
+		},
+		{
+			id: "priority",
 			accessorKey: "priority",
 			header: ({ column }) => (
 				<DataTableColumnHeader column={column} title="Priority" />
@@ -90,12 +147,22 @@ export function useTaskColumns() {
 					</div>
 				);
 			},
-			filterFn: (row, id, value) => {
-				return value.includes(row.getValue(id));
+			meta: {
+				label: "Priority",
+				variant: "multiSelect",
+				options: priorityOptions?.map((priority) => ({
+					label: priority.label,
+					value: priority.value,
+					// count: priorityCounts[priority],
+					// icon: getPriorityIcon(priority),
+				})),
+				icon: ArrowUpDown,
 			},
+			enableColumnFilter: true,
 		},
 
 		{
+			id: "status",
 			accessorKey: "status",
 			header: ({ column }) => (
 				<DataTableColumnHeader column={column} title="Status" />
@@ -112,9 +179,18 @@ export function useTaskColumns() {
 					</div>
 				);
 			},
-			filterFn: (row, id, value) => {
-				return value.includes(row.getValue(id));
+			meta: {
+				label: "Status",
+				variant: "multiSelect",
+				options: statusOptions?.map((status) => ({
+					label: status.label,
+					value: status.value,
+					// count: statusCounts[status],
+					// icon: getStatusIcon(status),
+				})),
+				icon: CircleDashed,
 			},
+			enableColumnFilter: true,
 		},
 
 		// {
@@ -186,22 +262,24 @@ export function useTaskColumns() {
 		},
 
 		{
+			id: "dueDate",
 			accessorKey: "dueDate",
-			header: ({ column }) => (
-				<DataTableColumnHeader column={column} title="Due" />
+			header: () => (
+				<div className="flex items-center gap-1">
+					<Calendar className="h-4 w-4" />
+					<span>Due Date</span>
+				</div>
 			),
-			cell: ({ row }) => {
-				const dueDate = row.getValue("dueDate");
-				if (!dueDate) return null;
-				return (
-					<div className="flex items-center">
-						<span>{format(new Date(dueDate as string), "MMM dd, yyyy")}</span>
-					</div>
-				);
+			cell: ({ row }) => (
+				<div>{format(new Date(row.getValue("dueDate")), "MMM dd, yyyy")}</div>
+			),
+			meta: {
+				label: "Due Date",
+				variant: "dateRange",
+				icon: CalendarIcon,
 			},
-			filterFn: (row, id, value) => {
-				return value.includes(row.getValue(id));
-			},
+			enableColumnFilter: true,
+			enableSorting: true,
 		},
 		{
 			id: "actions",

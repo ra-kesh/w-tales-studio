@@ -1,21 +1,18 @@
+// src/app/api/payment-schedules/route.ts
 import { NextResponse } from "next/server";
-import { headers } from "next/headers";
-import { db } from "@/lib/db/drizzle";
-import { paymentSchedules, bookings } from "@/lib/db/schema";
-import { auth } from "@/lib/auth";
-import { count, eq } from "drizzle-orm";
+import { getServerSession } from "@/lib/dal";
+import {
+	getPaymentSchedules,
+	type ScheduledPaymentFilters,
+} from "@/lib/db/queries";
 
 export async function GET(request: Request) {
-	const session = await auth.api.getSession({
-		headers: await headers(),
-	});
-
-	if (!session || !session.user) {
+	const { session } = await getServerSession();
+	if (!session?.user) {
 		return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 	}
-
-	const userOrganizationId = session.session.activeOrganizationId;
-	if (!userOrganizationId) {
+	const orgId = session.session.activeOrganizationId;
+	if (!orgId) {
 		return NextResponse.json(
 			{ message: "User not associated with an organization" },
 			{ status: 403 },
@@ -25,44 +22,25 @@ export async function GET(request: Request) {
 	try {
 		const { searchParams } = new URL(request.url);
 		const page = Number.parseInt(searchParams.get("page") || "1", 10);
-		const limit = Number.parseInt(searchParams.get("limit") || "10", 10);
-		const offset = (page - 1) * limit;
+		const limit = Number.parseInt(searchParams.get("perPage") || "10", 10);
 
-		const [paymentScheduleData, totalData] = await Promise.all([
-			db
-				.select({
-					id: paymentSchedules.id,
-					bookingId: paymentSchedules.bookingId,
-					bookingName: bookings.name,
-					amount: paymentSchedules.amount,
-					description: paymentSchedules.description,
-					dueDate: paymentSchedules.dueDate,
-					createdAt: paymentSchedules.createdAt,
-					updatedAt: paymentSchedules.updatedAt,
-				})
-				.from(paymentSchedules)
-				.leftJoin(bookings, eq(paymentSchedules.bookingId, bookings.id))
-				.where(eq(bookings.organizationId, userOrganizationId))
-				.limit(limit)
-				.offset(offset),
-			db
-				.select({ count: count() })
-				.from(paymentSchedules)
-				.leftJoin(bookings, eq(paymentSchedules.bookingId, bookings.id))
-				.where(eq(bookings.organizationId, userOrganizationId)),
-		]);
+		// Add sort parsing here if needed in the future
 
-		const total = totalData[0].count;
+		const filters: ScheduledPaymentFilters = {
+			description: searchParams.get("description") || undefined,
+			dueDate: searchParams.get("dueDate") || undefined,
+			bookingId: searchParams.get("bookingId") || undefined,
+		};
 
-		return NextResponse.json(
-			{
-				data: paymentScheduleData,
-				total,
-				page,
-				limit,
-			},
-			{ status: 200 },
+		const result = await getPaymentSchedules(
+			orgId,
+			page,
+			limit,
+			undefined,
+			filters,
 		);
+
+		return NextResponse.json(result, { status: 200 });
 	} catch (error: unknown) {
 		console.error("Error fetching payment schedules:", error);
 		const errorMessage =

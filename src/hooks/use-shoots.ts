@@ -1,8 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import type { ShootsResponse } from "@/types/shoots";
+import { useSearchParams } from "next/navigation";
 
-export async function fetchShoots(): Promise<ShootsResponse> {
-	const response = await fetch("/api/shoots", {
+export async function fetchShoots(
+	searchParams: URLSearchParams,
+): Promise<ShootsResponse> {
+	const response = await fetch(`/api/shoots?${searchParams.toString()}`, {
 		headers: {
 			"Content-Type": "application/json",
 		},
@@ -16,10 +19,10 @@ export async function fetchShoots(): Promise<ShootsResponse> {
 }
 
 export function useShoots() {
+	const searchParams = useSearchParams();
 	return useQuery({
-		queryKey: ["bookings", "shoot", "list"],
-		queryFn: fetchShoots,
-		placeholderData: { data: [], total: 0 },
+		queryKey: ["bookings", "shoot", "list", searchParams.toString()],
+		queryFn: () => fetchShoots(searchParams),
 	});
 }
 

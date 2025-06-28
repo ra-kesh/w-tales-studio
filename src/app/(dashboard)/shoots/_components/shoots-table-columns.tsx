@@ -6,11 +6,24 @@ import { ShootTableRowActions } from "./shoots-table-row-actions";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ChevronRight, Users } from "lucide-react";
+import {
+	CalendarIcon,
+	CameraIcon,
+	ChevronRight,
+	TextIcon,
+	Users,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ShootRowData } from "@/types/shoots";
+import { DataTableColumnHeader } from "../../tasks/_components/task-table-column-header";
 
-export const useShootColumns = () => {
+export const useShootColumns = ({
+	minimalBookings,
+	isMininmalBookingLoading,
+}: {
+	minimalBookings: Array<{ id: string | number; name: string }>;
+	isMininmalBookingLoading: boolean;
+}) => {
 	const columns: ColumnDef<ShootRowData>[] = [
 		{
 			id: "select",
@@ -32,31 +45,75 @@ export const useShootColumns = () => {
 			enableHiding: false,
 		},
 		{
+			id: "title",
 			accessorKey: "title",
-			header: "Shoot",
+			header: ({ column }) => (
+				<DataTableColumnHeader column={column} title="Shoot Title" />
+			),
 			cell: ({ row }) => (
-				<div className="flex flex-col space-y-1">
-					<div className="font-semibold">{row.getValue("title")}</div>
+				<div>
+					<div className="font-medium">{row.original.title}</div>
 					<div className="text-sm text-muted-foreground">
 						{row.original.booking.name}
 					</div>
 				</div>
 			),
+			meta: {
+				label: "Title",
+				placeholder: "Filter titles...",
+				variant: "text",
+				icon: TextIcon,
+			},
+			enableColumnFilter: true,
+			enableSorting: true,
+		},
+
+		{
+			id: "bookingId",
+			accessorKey: "booking.name",
+			header: ({ column }) => (
+				<DataTableColumnHeader column={column} title="Booking" />
+			),
+			cell: ({ row }) => {
+				return <span className="text-md ">{row.original.booking.name}</span>;
+			},
+			meta: {
+				label: "Boooking",
+				variant: "multiSelect",
+				options: isMininmalBookingLoading
+					? []
+					: (minimalBookings.map((booking) => ({
+							label: booking.name,
+							value: String(booking.id),
+						})) ?? []),
+				icon: CameraIcon,
+			},
+			enableColumnFilter: true,
+			enableSorting: false,
+			enableHiding: false,
 		},
 		{
+			id: "date",
 			accessorKey: "date",
-			header: "Date",
-			cell: ({ row }) => (
-				<div>{format(new Date(row.getValue("date")), "MMM dd, yyyy")}</div>
+			header: ({ column }) => (
+				<DataTableColumnHeader column={column} title="Date" />
 			),
-		},
-		{
-			accessorKey: "time",
-			header: "Time",
 			cell: ({ row }) => (
-				<Badge variant="outline">{row.getValue("time")}</Badge>
+				<div>
+					{format(new Date(row.getValue("date")), "MMM dd, yyyy")} at{" "}
+					{row.original.time}{" "}
+				</div>
 			),
+			meta: {
+				label: "Date",
+				variant: "dateRange",
+				icon: CalendarIcon,
+			},
+			enableColumnFilter: true,
+			enableSorting: true,
 		},
+
+		// },
 		{
 			accessorKey: "location",
 			header: "Location",
@@ -65,6 +122,7 @@ export const useShootColumns = () => {
 			),
 		},
 		{
+			id: "crew",
 			accessorKey: "shootsAssignments",
 			header: () => (
 				<div className="flex items-center gap-1">

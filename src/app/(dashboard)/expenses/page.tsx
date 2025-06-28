@@ -1,28 +1,70 @@
-import { Expenses } from "./expenses";
-import {
-	dehydrate,
-	HydrationBoundary,
-	QueryClient,
-} from "@tanstack/react-query";
-import { getExpenses } from "@/lib/db/queries";
-import { getServerSession } from "@/lib/dal";
-import { Suspense } from "react";
+"use client";
 
-export default async function ExpensesPage() {
-	const { session } = await getServerSession();
+import { useExpenses } from "@/hooks/use-expenses";
+import { useExpenseColumns } from "./_components/expense-table-columns";
+import { ExpenseTable } from "./_components/expense-table";
+import React from "react";
+import { useBookingTable } from "@/hooks/use-booking-table";
+import { useMinimalBookings } from "@/hooks/use-bookings";
+import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
+import { OpenExpenseSheet } from "./_components/open-expense-sheet";
+import { DataTableSkeleton } from "@/components/data-table/data-table-skeleton";
+import { ExpenseTablePagination } from "./_components/expense-table-pagination";
+import { useConfigs } from "@/hooks/use-configs";
 
-	const queryClient = new QueryClient();
-	await queryClient.prefetchQuery({
-		queryKey: ["expenses"],
-		queryFn: () => getExpenses(session?.session.activeOrganizationId as string),
+export default function Expenses() {
+	const { data, isLoading } = useExpenses();
+
+	const {
+		data: minimalBookingsResponse,
+		isLoading: isMininmalBookingLoading,
+		isFetched: isMinimalBookingFetched,
+	} = useMinimalBookings();
+
+	const minimalBookings = minimalBookingsResponse?.data;
+
+	const { data: categories = [] } = useConfigs("expense_category");
+
+	const columns = useExpenseColumns({
+		categoryOptions: categories,
+		minimalBookings: minimalBookings ?? [],
+		isMininmalBookingLoading,
 	});
+
+	const defaultData = React.useMemo(() => [], []);
+
+	const { table } = useBookingTable({
+		data: data?.data ?? defaultData,
+		pageCount: data?.pageCount ?? 0,
+		columns,
+		initialState: {
+			sorting: [{ id: "createdAt", desc: true }],
+			columnPinning: { right: ["actions"] },
+		},
+		getRowId: (originalRow) => originalRow.id.toString(),
+		shallow: false,
+		clearOnDefault: true,
+	});
+
 	return (
-		<div className="h-full flex-1 flex flex-col p-6">
-			<Suspense fallback={<div>Loadding...</div>}>
-				<HydrationBoundary state={dehydrate(queryClient)}>
-					<Expenses />
-				</HydrationBoundary>
-			</Suspense>
+		<div className="flex-1 min-w-0 py-6">
+			{!isMininmalBookingLoading && isMinimalBookingFetched && (
+				<DataTableToolbar table={table} className="my-2">
+					<OpenExpenseSheet />
+				</DataTableToolbar>
+			)}
+			{isLoading ? (
+				<DataTableSkeleton
+					columnCount={4}
+					filterCount={0}
+					cellWidths={["20rem", "10rem", "10rem", "6rem", "6rem", "6rem"]}
+					shrinkZero
+				/>
+			) : (
+				<ExpenseTable table={table} columns={columns}>
+					<ExpenseTablePagination table={table} />
+				</ExpenseTable>
+			)}
 		</div>
 	);
 }

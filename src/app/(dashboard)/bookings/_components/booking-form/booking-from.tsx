@@ -215,7 +215,7 @@ const BookingForm = ({
 		<Form {...form}>
 			<form
 				onSubmit={form.handleSubmit(onSubmit)}
-				className="container max-w-5xl py-8"
+				className="container max-w-6xl"
 			>
 				{/* Error Summary */}
 				{form.formState.isSubmitted && getErrorSummary()}
@@ -232,7 +232,6 @@ const BookingForm = ({
 							className="relative"
 						>
 							Details
-							
 						</TabsTrigger>
 						<TabsTrigger
 							ref={paymentsTabRef}
@@ -240,11 +239,9 @@ const BookingForm = ({
 							className="relative"
 						>
 							Payments
-					
 						</TabsTrigger>
 						<TabsTrigger ref={shootsTabRef} value="shoots" className="relative">
 							Shoots
-					
 						</TabsTrigger>
 						<TabsTrigger
 							ref={deliverablesTabRef}
@@ -252,7 +249,6 @@ const BookingForm = ({
 							className="relative"
 						>
 							Deliverables
-							
 						</TabsTrigger>
 					</TabsList>
 

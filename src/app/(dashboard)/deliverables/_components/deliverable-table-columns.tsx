@@ -7,10 +7,29 @@ import type { DeliverableRowData } from "@/types/deliverables";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, ChevronRight, Package2, Users } from "lucide-react";
-import { cn } from "@/lib/utils";
+import {
+	Calendar,
+	CalendarIcon,
+	CameraIcon,
+	ChevronRight,
+	CircleDashed,
+	Package2,
+	TextIcon,
+	Users,
+} from "lucide-react";
+import { cn, formatCurrency } from "@/lib/utils";
+import { DataTableColumnHeader } from "../../tasks/_components/task-table-column-header";
+import { deliverables, Task, tasks } from "@/lib/db/schema";
 
-export const useDeliverableColumns = () => {
+export const useDeliverableColumns = ({
+	statusOptions,
+	minimalBookings,
+	isMininmalBookingLoading,
+}: {
+	statusOptions: Array<{ label: string; value: string }>;
+	minimalBookings: Array<{ id: string | number; name: string }>;
+	isMininmalBookingLoading: boolean;
+}) => {
 	const columns: ColumnDef<DeliverableRowData>[] = [
 		{
 			id: "select",
@@ -32,29 +51,55 @@ export const useDeliverableColumns = () => {
 			enableHiding: false,
 		},
 		{
+			id: "title",
 			accessorKey: "title",
 			header: "Deliverable",
 			cell: ({ row }) => (
 				<div className="flex w-full">
-					<div className="flex flex-col space-y-1 w-full">
+					<div className="flex space-x-2 w-full">
 						<div className="font-semibold">{row.getValue("title")}</div>
-						<div className="flex gap-3">
-							<div className="text-sm text-muted-foreground">
-								{row.original.booking.name}
-							</div>
-							<div className="flex items-center">
-								<Badge
-									variant={
-										row.original.isPackageIncluded ? "outline" : "default"
-									}
-								>
-									{row.original.isPackageIncluded ? "Included" : "Add-on"}
-								</Badge>
-							</div>
-						</div>
+						<Badge
+							variant={row.original.isPackageIncluded ? "outline" : "default"}
+						>
+							{row.original.isPackageIncluded
+								? "Included"
+								: formatCurrency(Number(row.original.cost))}
+						</Badge>
 					</div>
 				</div>
 			),
+			meta: {
+				label: "Title",
+				placeholder: "Filter titles...",
+				variant: "text",
+				icon: TextIcon,
+			},
+			enableColumnFilter: true,
+			enableSorting: true,
+		},
+		{
+			id: "bookingId",
+			accessorKey: "booking.name",
+			header: ({ column }) => (
+				<DataTableColumnHeader column={column} title="Booking" />
+			),
+			cell: ({ row }) => {
+				return <span className="text-md ">{row.original.booking.name}</span>;
+			},
+			meta: {
+				label: "Boooking",
+				variant: "multiSelect",
+				options: isMininmalBookingLoading
+					? []
+					: (minimalBookings.map((booking) => ({
+							label: booking.name,
+							value: String(booking.id),
+						})) ?? []),
+				icon: CameraIcon,
+			},
+			enableColumnFilter: true,
+			enableSorting: false,
+			enableHiding: false,
 		},
 
 		{
@@ -69,29 +114,32 @@ export const useDeliverableColumns = () => {
 				</div>
 			),
 		},
+		// {
+		// 	id: "cost",
+		// 	header: () => (
+		// 		<div className="flex items-center gap-1">
+		// 			<Package2 className="h-4 w-4" />
+		// 			<span>Extra cost</span>
+		// 		</div>
+		// 	),
+		// 	cell: ({ row }) => (
+		// 		<div className="flex items-center gap-3">
+		// 			{!row.original.isPackageIncluded && row.original.cost ? (
+		// 				<span className="tabular-nums text-sm">
+		// 					${Number(row.original.cost).toLocaleString()}
+		// 				</span>
+		// 			) : (
+		// 				<span className=" text-sm">N/a</span>
+		// 			)}
+		// 		</div>
+		// 	),
+		// },
 		{
-			id: "cost",
-			header: () => (
-				<div className="flex items-center gap-1">
-					<Package2 className="h-4 w-4" />
-					<span>Extra cost</span>
-				</div>
-			),
-			cell: ({ row }) => (
-				<div className="flex items-center gap-3">
-					{!row.original.isPackageIncluded && row.original.cost ? (
-						<span className="tabular-nums text-sm">
-							${Number(row.original.cost).toLocaleString()}
-						</span>
-					) : (
-						<span className=" text-sm">N/a</span>
-					)}
-				</div>
-			),
-		},
-		{
+			id: "status",
 			accessorKey: "status",
-			header: "Status",
+			header: ({ column }) => (
+				<DataTableColumnHeader column={column} title="Status" />
+			),
 			cell: ({ row }) => {
 				const status = row.getValue("status") as string;
 				const variant =
@@ -105,8 +153,22 @@ export const useDeliverableColumns = () => {
 
 				return <Badge variant={variant}>{status?.replace("_", " ")}</Badge>;
 			},
+			meta: {
+				label: "Status",
+				variant: "multiSelect",
+				options: statusOptions?.map((status) => ({
+					label: status.label,
+					value: status.value,
+					// count: statusCounts[status],
+					// icon: getStatusIcon(status),
+				})),
+				icon: CircleDashed,
+			},
+			enableColumnFilter: true,
 		},
+
 		{
+			id: "dueDate",
 			accessorKey: "dueDate",
 			header: () => (
 				<div className="flex items-center gap-1">
@@ -117,6 +179,13 @@ export const useDeliverableColumns = () => {
 			cell: ({ row }) => (
 				<div>{format(new Date(row.getValue("dueDate")), "MMM dd, yyyy")}</div>
 			),
+			meta: {
+				label: "Due Date",
+				variant: "dateRange",
+				icon: CalendarIcon,
+			},
+			enableColumnFilter: true,
+			enableSorting: true,
 		},
 		{
 			accessorKey: "deliverablesAssignments",

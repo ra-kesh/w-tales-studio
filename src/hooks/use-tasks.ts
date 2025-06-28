@@ -1,13 +1,19 @@
 import { useQuery } from "@tanstack/react-query";
 import type { Task } from "@/lib/db/schema";
+import { useSearchParams } from "next/navigation";
 
 interface TasksResponse {
 	data: Task[];
 	total: number;
+	pageCount: number;
+	limit: number;
 }
 
-export async function fetchTasks(): Promise<TasksResponse> {
-	const response = await fetch("/api/tasks", {
+export async function fetchTasks(
+	searchParams: URLSearchParams,
+): Promise<TasksResponse> {
+	// Append the params to the API call
+	const response = await fetch(`/api/tasks?${searchParams.toString()}`, {
 		headers: {
 			"Content-Type": "application/json",
 		},
@@ -21,10 +27,10 @@ export async function fetchTasks(): Promise<TasksResponse> {
 }
 
 export function useTasks() {
+	const searchParams = useSearchParams();
 	return useQuery({
-		queryKey: ["bookings", "task", "list"],
-		queryFn: fetchTasks,
-		placeholderData: { data: [], total: 0 },
+		queryKey: ["bookings", "task", "list", searchParams.toString()],
+		queryFn: () => fetchTasks(searchParams),
 	});
 }
 

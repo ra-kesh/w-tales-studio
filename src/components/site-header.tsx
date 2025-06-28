@@ -4,16 +4,11 @@ import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 
 import { usePathname } from "next/navigation";
-import { useMemo } from "react";
-import { generateBreadcrumbs } from "@/lib/utils";
-import { useSession } from "@/lib/auth/auth-client";
 import { NavUser } from "./nav-user";
-import type { User } from "@/lib/db/schema";
 import type { Session } from "@/types/auth";
 
-// Define page metadata for different routes
 const pageMetadata: Record<string, { title: string; description?: string }> = {
-	"/home": { title: "Home", description: "Welcome to WeddingTales Studio" },
+	"/home": { title: "Home", description: "Welcome to StudioPlus" },
 	"/dashboard": { title: "Dashboard", description: "Overview of your studio" },
 	"/bookings": {
 		title: "Bookings",
@@ -27,7 +22,6 @@ const pageMetadata: Record<string, { title: string; description?: string }> = {
 		title: "Edit Booking",
 		description: "Update booking details",
 	},
-	// Add this new entry for the dynamic edit route
 	"/bookings/edit/": {
 		title: "Edit Booking",
 		description: "Update booking details",
@@ -51,6 +45,10 @@ const pageMetadata: Record<string, { title: string; description?: string }> = {
 		title: "Expenses",
 		description: "Track and manage project-related expenses",
 	},
+	"/payments": {
+		title: "Payments",
+		description: "Keep track of past and upcoming payments",
+	},
 	"/configurations": {
 		title: "Configurations",
 		description: "Configure your studio offerings",
@@ -63,34 +61,27 @@ export function SiteHeader({
 	sessions: Session[];
 }) {
 	const pathname = usePathname();
-	// const breadcrumbs = useMemo(() => generateBreadcrumbs(pathname), [pathname]);
 
-	// Get the current page metadata
 	const getPageMetadata = () => {
-		// First try exact match
 		if (pageMetadata[pathname]) {
 			return pageMetadata[pathname];
 		}
 
-		// Special case for dynamic routes with IDs
 		const editBookingRegex = /^\/bookings\/edit\/\d+$/;
 		if (editBookingRegex.test(pathname)) {
 			return pageMetadata["/bookings/edit/"];
 		}
 
-		// Then try to match parent routes
 		for (const route in pageMetadata) {
 			if (pathname.startsWith(route) && route !== "/") {
 				return pageMetadata[route];
 			}
 		}
 
-		// Default to dashboard if no match
 		return pageMetadata["/"];
 	};
 
 	const currentPageMetadata = getPageMetadata();
-	const { data } = useSession();
 
 	return (
 		<header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 border-b">

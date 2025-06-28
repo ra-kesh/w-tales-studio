@@ -8,7 +8,11 @@ export function OpenShootsSheet() {
 
 	return (
 		<div>
-			<Button onClick={() => setParams({ createShoot: true })}>
+			<Button
+				size="sm"
+				className="bg-indigo-600  font-semibold text-white  hover:bg-indigo-500 cursor-pointer"
+				onClick={() => setParams({ createShoot: true })}
+			>
 				Add Shoot
 			</Button>
 		</div>

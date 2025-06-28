@@ -9,28 +9,30 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 const DashboardLayout = async ({ children }: { children: React.ReactNode }) => {
-	const [session, activeSessions, deviceSessions, organization] =
-		await Promise.all([
-			auth.api.getSession({
-				headers: await headers(),
-			}),
-			auth.api.listSessions({
-				headers: await headers(),
-			}),
-			auth.api.listDeviceSessions({
-				headers: await headers(),
-			}),
-			auth.api.getFullOrganization({
-				headers: await headers(),
-			}),
-		]).catch((e) => {
-			console.log(e);
-			throw redirect("/sign-in");
-		});
+	const [session, deviceSessions, organization] = await Promise.all([
+		auth.api.getSession({
+			headers: await headers(),
+		}),
+		auth.api.listDeviceSessions({
+			headers: await headers(),
+		}),
+		auth.api.getFullOrganization({
+			headers: await headers(),
+		}),
+	]).catch((e) => {
+		console.log(e);
+		throw redirect("/sign-in");
+	});
+
+	console.log("deviceSessions", deviceSessions);
+	console.log("session", session);
 
 	return (
 		<SidebarProvider>
-			<AppSidebar />
+			<AppSidebar
+				session={JSON.parse(JSON.stringify(session))}
+				activeOrganization={JSON.parse(JSON.stringify(organization))}
+			/>
 			<SidebarInset>
 				<SiteHeader sessions={JSON.parse(JSON.stringify(deviceSessions))} />
 				<div className="flex flex-1 flex-col">

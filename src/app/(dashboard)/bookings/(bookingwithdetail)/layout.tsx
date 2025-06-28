@@ -10,7 +10,7 @@ import {
 	getBookingsStats,
 	getConfigs,
 	type BookingStats as BookingStatsType,
-} from "@/lib/db/queries"; // Import BookingStatsType
+} from "@/lib/db/queries";
 import { Suspense } from "react";
 
 const BookingLayout = async ({ children }: { children: React.ReactNode }) => {
@@ -27,8 +27,8 @@ const BookingLayout = async ({ children }: { children: React.ReactNode }) => {
 		bookingsStats = {
 			totalBookings: 0,
 			activeBookings: 0,
-			totalExpenses: 0,
-			totalRevenue: 0,
+			newBookings: 0,
+			overdueBookings: 0,
 		};
 
 		console.warn(
@@ -49,11 +49,13 @@ const BookingLayout = async ({ children }: { children: React.ReactNode }) => {
 	}
 
 	return (
-		<div className="hidden h-full flex-1 flex-col space-y-4 p-6 md:flex relative">
+		<div>
 			<Suspense fallback={<div>Loading...</div>}>
 				<BookingStats stats={bookingsStats} />
 				<HydrationBoundary state={dehydrate(queryClient)}>
-					<div>{children}</div>
+					<div className="flex flex-col  mx-auto  px-4  sm:px-6 lg:px-8 lg:mx-0 lg:max-w-none">
+						{children}
+					</div>
 				</HydrationBoundary>
 			</Suspense>
 		</div>

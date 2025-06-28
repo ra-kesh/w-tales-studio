@@ -2,10 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-
-import { cn } from "@/lib/utils";
-import { SimpleTabsList, SimpleTabsTrigger } from "@/components/ui/tabs";
 import { Suspense } from "react";
+import { SimpleTabsList, SimpleTabsTrigger } from "@/components/ui/tabs";
+import { cn } from "@/lib/utils";
 
 interface SettingsLayoutProps {
 	children?: React.ReactNode;
@@ -16,27 +15,26 @@ const SettingsLayout = ({ children }: SettingsLayoutProps) => {
 
 	const tabs = [
 		{ path: "/configurations/packages", label: "Package Types" },
-		{ path: "/configurations/deliverables", label: "Deliverables" },
-		{ path: "/configurations/booking", label: "Booking Types" },
+		{ path: "/configurations/booking-types", label: "Booking Types" },
+		// { path: "/configurations/deliverables", label: "Deliverables" },
 	];
 
 	return (
-		<div className="hidden h-full flex-1 flex-col space-y-8 p-6 pt-0 md:flex ">
-			<div className="flex flex-col space-y-4">
+		<div className="hidden h-full flex-1 flex-col space-y-8 p-6 pt-0 md:flex">
+			<div className="flex flex-col space-y-8">
 				<SimpleTabsList className="w-full justify-start gap-6">
 					{tabs.map((tab) => (
 						<SimpleTabsTrigger
 							key={tab.path}
 							className={cn(
-								"text-center text-base",
+								"group flex items-center p-2 border-b-2 border-transparent transition-colors",
 								pathname === tab.path ||
-									(tab.path !== "/configurations" &&
-										pathname.startsWith(tab.path))
-									? "text-foreground shadow-[inset_0_-1px_0_0,0_1px_0_0]"
-									: "text-muted-foreground",
+									(tab.path !== "/settings" && pathname.startsWith(tab.path))
+									? "border-indigo-500 hover:border-indigo-500 text-indigo-600 hover:text-indigo-600 font-medium"
+									: "text-gray-500 hover:border-gray-300 hover:text-gray-700",
 							)}
 						>
-							<Link href={tab.path} className="w-full py-3">
+							<Link href={tab.path} className="w-full py-2">
 								{tab.label}
 							</Link>
 						</SimpleTabsTrigger>

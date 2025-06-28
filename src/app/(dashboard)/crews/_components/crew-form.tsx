@@ -105,7 +105,11 @@ export function CrewForm({
 													variant="outline"
 													// biome-ignore lint/a11y/useSemanticElements: <explanation>
 													role="combobox"
-													disabled={isLoadingMembers || !!membersError}
+													disabled={
+														isLoadingMembers ||
+														!!membersError ||
+														mode === "edit"
+													}
 													className={cn(
 														"w-full justify-between",
 														!field.value && "text-muted-foreground",
@@ -207,7 +211,7 @@ export function CrewForm({
 							name="name"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>External Crew Name</FormLabel>
+									<FormLabel>Crew Name</FormLabel>
 									<FormControl>
 										<Input
 											placeholder="Enter name for external crew member"

@@ -1,11 +1,6 @@
 "use client";
 
-import type * as React from "react";
-
 import { NavMain } from "@/components/nav-main";
-import { NavProjects } from "@/components/nav-projects";
-import { NavUser } from "@/components/nav-user";
-import { TeamSwitcher } from "@/components/team-switcher";
 import {
 	Sidebar,
 	SidebarContent,
@@ -15,26 +10,55 @@ import {
 } from "@/components/ui/sidebar";
 
 import { sidebarData } from "@/data/sidebar-data";
-import { useSession } from "@/lib/auth/auth-client";
-import type { User } from "better-auth";
 import { NavSecondary } from "./nav-secondary";
+import type { ActiveOrganization, Session } from "@/types/auth";
+import dynamic from "next/dynamic";
+import { Loader2 } from "lucide-react";
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-	const { data } = useSession();
+const OrganisationSwitcher = dynamic(
+	() =>
+		import("@/components/organisation-switcher").then(
+			(mod) => mod.OrganisationSwitcher,
+		),
+	{
+		ssr: false,
+		loading: () => (
+			<div className="flex items-center p-2">
+				<div className="bg-muted flex aspect-square size-8 items-center justify-center rounded-lg" />
+				<div className="ml-2 flex-1 space-y-1">
+					<div className="h-4 w-24 bg-muted rounded" />
+				</div>
+				<Loader2 className="ml-auto size-4 animate-spin text-muted-foreground" />
+			</div>
+		),
+	},
+);
 
+export function AppSidebar({
+	session,
+	activeOrganization,
+}: {
+	session: Session | null;
+	activeOrganization: ActiveOrganization | null;
+}) {
 	return (
-		<Sidebar variant="inset" collapsible="icon" {...props}>
+		<Sidebar variant="inset" collapsible="icon">
 			<SidebarHeader>
-				<TeamSwitcher teams={sidebarData.teams} />
+				<div className="grid flex-1 text-left text-md leading-tight pl-2">
+					<span className="truncate font-bold">Studio Plus</span>
+				</div>
 			</SidebarHeader>
 			<SidebarContent>
 				<NavMain items={sidebarData.navMain} />
-				{/* <NavProjects projects={sidebarData.bookings} /> */}
 				<NavSecondary items={sidebarData.navSecondary} className="mt-auto" />
 			</SidebarContent>
-			{/* <SidebarFooter>
-				<NavUser user={data?.user as User} />
-			</SidebarFooter> */}
+
+			<SidebarFooter>
+				<OrganisationSwitcher
+					session={session}
+					activeOrganization={activeOrganization}
+				/>
+			</SidebarFooter>
 			<SidebarRail />
 		</Sidebar>
 	);

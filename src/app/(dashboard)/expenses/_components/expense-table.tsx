@@ -1,19 +1,9 @@
 "use client";
 
-import * as React from "react";
 import {
-	useReactTable,
+	type Table as TanstackTable,
 	type ColumnDef,
-	type ColumnFiltersState,
-	type SortingState,
-	type VisibilityState,
 	flexRender,
-	getCoreRowModel,
-	getFacetedRowModel,
-	getFacetedUniqueValues,
-	getFilteredRowModel,
-	getPaginationRowModel,
-	getSortedRowModel,
 } from "@tanstack/react-table";
 
 import {
@@ -30,46 +20,17 @@ import { ExpenseTableToolbar } from "./expense-table-toolbar";
 
 interface ExpenseTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
-	data: TData[];
+	table: TanstackTable<TData>;
+	children: React.ReactNode;
 }
 
 export function ExpenseTable<TData, TValue>({
 	columns,
-	data,
+	table,
+	children,
 }: ExpenseTableProps<TData, TValue>) {
-	const [rowSelection, setRowSelection] = React.useState({});
-	const [columnVisibility, setColumnVisibility] =
-		React.useState<VisibilityState>({});
-	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-		[],
-	);
-	const [sorting, setSorting] = React.useState<SortingState>([]);
-
-	const table = useReactTable({
-		data,
-		columns,
-		state: {
-			sorting,
-			columnVisibility,
-			rowSelection,
-			columnFilters,
-		},
-		enableRowSelection: true,
-		onRowSelectionChange: setRowSelection,
-		onSortingChange: setSorting,
-		onColumnFiltersChange: setColumnFilters,
-		onColumnVisibilityChange: setColumnVisibility,
-		getCoreRowModel: getCoreRowModel(),
-		getFilteredRowModel: getFilteredRowModel(),
-		getPaginationRowModel: getPaginationRowModel(),
-		getSortedRowModel: getSortedRowModel(),
-		getFacetedRowModel: getFacetedRowModel(),
-		getFacetedUniqueValues: getFacetedUniqueValues(),
-	});
-
 	return (
 		<div className="w-full">
-			<ExpenseTableToolbar table={table} />
 			<div className="mt-4 rounded-md border">
 				<Table>
 					<TableHeader>
@@ -118,9 +79,7 @@ export function ExpenseTable<TData, TValue>({
 					</TableBody>
 				</Table>
 			</div>
-			<div className="mt-4">
-				<ExpenseTablePagination table={table} />
-			</div>
+			<div className="mt-4">{children}</div>
 		</div>
 	);
 }
