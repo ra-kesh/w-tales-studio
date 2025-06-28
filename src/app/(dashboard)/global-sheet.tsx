@@ -5,8 +5,12 @@ import { ShootCreateSheet } from "@/app/(dashboard)/shoots/_components/shoot-cre
 import { ClientEditSheet } from "./clients/_components/client-edit-sheet";
 import { BookingTypeCreateSheet } from "./configurations/_components/booking-type-create-sheet";
 import { BookingTypeEditSheet } from "./configurations/_components/booking-type-edit-sheet";
+import { DeliverableStatusCreateSheet } from "./configurations/_components/deliverable-status-create-sheet";
+import { DeliverableStatusEditSheet } from "./configurations/_components/deliverable-status-edit-sheet";
 import { PackageCreateSheet } from "./configurations/_components/package-create-sheet";
 import { PackageEditSheet } from "./configurations/_components/package-edit-sheet";
+import { TaskStatusCreateSheet } from "./configurations/_components/task-status-create-sheet";
+import { TaskStatusEditSheet } from "./configurations/_components/task-status-edit-sheet";
 import { CrewCreateSheet } from "./crews/_components/crew-create-sheet";
 import { CrewEditSheet } from "./crews/_components/crew-edit-sheet";
 import { DeliverableCreateSheet } from "./deliverables/_components/deliverable-create-sheet";
@@ -38,10 +42,10 @@ export function GlobalSheets() {
 			<Suspense fallback={<div>Loading...</div>}>
 				<TaskStatusEditSheet />
 			</Suspense>
-			<TaskPriorityCreateSheet />
+			{/* <TaskPriorityCreateSheet />
 			<Suspense fallback={<div>Loading...</div>}>
 				<TaskPriorityEditSheet />
-			</Suspense>
+			</Suspense> */}
 
 			<DeliverableCreateSheet />
 			<Suspense fallback={<div>Loading...</div>}>
