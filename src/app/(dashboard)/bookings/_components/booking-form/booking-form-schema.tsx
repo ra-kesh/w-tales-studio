@@ -89,7 +89,7 @@ export type BookingFormValues = z.infer<typeof BookingSchema>;
 // ————————————————————————————————
 export const defaultBooking: BookingFormValues = {
 	bookingName: "",
-	bookingType: "WEDDING",
+	bookingType: "",
 	packageType: "",
 	packageCost: "0.00",
 	participants: [

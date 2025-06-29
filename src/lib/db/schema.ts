@@ -1,19 +1,19 @@
 import { relations, sql } from "drizzle-orm";
 import {
-	varchar,
-	pgTable,
-	text,
-	integer,
-	timestamp,
 	boolean,
-	serial,
-	jsonb,
-	decimal,
-	date,
-	time,
-	pgEnum,
-	uniqueIndex,
 	check,
+	date,
+	decimal,
+	integer,
+	jsonb,
+	pgEnum,
+	pgTable,
+	serial,
+	text,
+	time,
+	timestamp,
+	uniqueIndex,
+	varchar,
 } from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
@@ -184,7 +184,9 @@ export const bookings = pgTable("bookings", {
 	bookingType: text("booking_type").notNull(),
 	packageType: text("package_type").notNull(),
 	packageCost: decimal("package_cost", { precision: 10, scale: 2 }).notNull(),
-	status: bookingPhaseEnum("status").notNull().default("new"),
+	status: bookingPhaseEnum("status")
+		.notNull()
+		.default(bookingPhaseEnum.enumValues[0]),
 	note: text("note"),
 	createdAt: timestamp("created_at").defaultNow(),
 	updatedAt: timestamp("updated_at")
