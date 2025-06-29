@@ -1,4 +1,11 @@
-import { use, useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { Loader2, PlusIcon } from "lucide-react";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { organization } from "@/lib/auth/auth-client";
+import { Button } from "./ui/button";
 import {
 	Dialog,
 	DialogContent,
@@ -8,14 +15,8 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "./ui/dialog";
-import { Button } from "./ui/button";
-import { Loader2, PlusIcon } from "lucide-react";
-import { Label } from "./ui/label";
 import { Input } from "./ui/input";
-import Image from "next/image";
-import { organization } from "@/lib/auth/auth-client";
-import { toast } from "sonner";
-import { QueryClient, useQueryClient } from "@tanstack/react-query";
+import { Label } from "./ui/label";
 
 function CreateOrganizationDialog() {
 	const [name, setName] = useState("");
@@ -26,6 +27,8 @@ function CreateOrganizationDialog() {
 	const [logo, setLogo] = useState<string | null>(null);
 
 	const queryClient = useQueryClient();
+
+	const router = useRouter();
 
 	useEffect(() => {
 		if (!isSlugEdited) {
@@ -51,6 +54,68 @@ function CreateOrganizationDialog() {
 				setLogo(reader.result as string);
 			};
 			reader.readAsDataURL(file);
+		}
+	};
+
+	const handleCreate = async () => {
+		if (!name || !slug) {
+			toast.error("Studio Name and Slug are required.");
+			return;
+		}
+
+		setLoading(true);
+		let newOrgId: string | null = null;
+
+		try {
+			const { data: newOrg } = await organization.create({
+				name: name,
+				slug: slug,
+				logo: logo || undefined,
+			});
+
+			if (!newOrg?.id) {
+				throw new Error(
+					"Failed to get organization ID from creation response.",
+				);
+			}
+			newOrgId = newOrg.id;
+
+			await organization.setActive({ organizationId: newOrgId });
+
+			try {
+				const crewResponse = await fetch("/api/crews/from-member", {
+					method: "POST",
+				});
+				if (!crewResponse.ok) {
+					throw new Error("Server responded with an error.");
+				}
+			} catch (crewError) {
+				console.error(
+					"Non-critical error: Failed to auto-add owner to crew.",
+					crewError,
+				);
+				toast.warning(
+					"Studio created! There was an issue adding you to the crew list automatically. You may need to do this manually.",
+				);
+			}
+
+			toast.success("Studio created successfully!");
+			setOpen(false);
+
+			await Promise.all([
+				router.refresh(),
+				queryClient.invalidateQueries({ queryKey: ["organizations"] }),
+				queryClient.invalidateQueries({ queryKey: ["onboarding"] }),
+			]);
+		} catch (error) {
+			const errorMessage =
+				error instanceof Error
+					? error.message
+					: "An unexpected error occurred.";
+			toast.error(errorMessage);
+			console.error("Creation process failed:", error);
+		} finally {
+			setLoading(false);
 		}
 	};
 
@@ -108,35 +173,48 @@ function CreateOrganizationDialog() {
 				<DialogFooter>
 					<Button
 						disabled={loading}
-						onClick={async () => {
-							setLoading(true);
-							await organization.create(
-								{
-									name: name,
-									slug: slug,
-									logo: logo || undefined,
-								},
-								{
-									onResponse: () => {
-										setLoading(false);
-									},
-									onSuccess: () => {
-										queryClient.invalidateQueries({
-											queryKey: ["onboarding"],
-										});
-										toast.success("Organization created successfully");
-										setOpen(false);
-										queryClient.refetchQueries({
-											queryKey: ["onboarding"],
-										});
-									},
-									onError: (error) => {
-										toast.error(error.error.message);
-										setLoading(false);
-									},
-								},
-							);
-						}}
+						onClick={handleCreate}
+						// onClick={async () => {
+						// 	setLoading(true);
+						// 	await organization.create(
+						// 		{
+						// 			name: name,
+						// 			slug: slug,
+						// 			logo: logo || undefined,
+						// 		},
+						// 		{
+						// 			onResponse: () => {
+						// 				setLoading(false);
+						// 			},
+						// 			onSuccess: () => {
+						// 				queryClient.invalidateQueries({
+						// 					queryKey: ["onboarding"],
+						// 				});
+						// 				toast.success("Organization created successfully");
+						// 				setOpen(false);
+						// 				queryClient.refetchQueries({
+						// 					queryKey: ["onboarding"],
+						// 				});
+						// 				// // fetch("/api/crews/from-member", { method: "POST" }).catch(
+						// 				// // 	(err) => {
+						// 				// // 		console.error(
+						// 				// // 			"Silent error: Failed to auto-create crew member.",
+						// 				// // 			err,
+						// 				// // 		);
+						// 				// // 		toast.warning(
+						// 				// // 			"Welcome! There was an issue adding you to the crew list automatically. you may need to add them manually.",
+						// 				// // 		);
+						// 				// // 	},
+						// 				// // );
+						// 				// window.location.reload();
+						// 			},
+						// 			onError: (error) => {
+						// 				toast.error(error.error.message);
+						// 				setLoading(false);
+						// 			},
+						// 		},
+						// 	);
+						// }}
 					>
 						{loading ? (
 							<Loader2 className="animate-spin" size={16} />

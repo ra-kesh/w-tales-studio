@@ -1,3 +1,4 @@
+import { addDays, formatISO, startOfDay, subDays } from "date-fns";
 import {
 	and,
 	asc,
@@ -18,31 +19,30 @@ import {
 	sql,
 	sum,
 } from "drizzle-orm";
-import { db } from "./drizzle";
-import {
-	members,
-	users,
-	deliverables,
-	bookings,
-	clients,
-	expenses,
-	shoots,
-	tasks,
-	configurations,
-	type ConfigType,
-	crews,
-	invitations,
-	shootsAssignments,
-	tasksAssignments,
-	deliverablesAssignments,
-	receivedAmounts,
-	paymentSchedules,
-	expensesAssignments,
-	bookingParticipants,
-} from "./schema";
 import { alias } from "drizzle-orm/pg-core";
 import type { BookingDetail } from "@/types/booking";
-import { addDays, formatISO, startOfDay, subDays } from "date-fns";
+import { db } from "./drizzle";
+import {
+	bookingParticipants,
+	bookings,
+	type ConfigType,
+	clients,
+	configurations,
+	crews,
+	deliverables,
+	deliverablesAssignments,
+	expenses,
+	expensesAssignments,
+	invitations,
+	members,
+	paymentSchedules,
+	receivedAmounts,
+	shoots,
+	shootsAssignments,
+	tasks,
+	tasksAssignments,
+	users,
+} from "./schema";
 
 export async function getActiveOrganization(userId: string) {
 	const result = await db
@@ -1830,11 +1830,10 @@ export async function getOnboardingStatus(userOrganizationId: string): Promise<{
 	]);
 
 	return {
-		onboarded:
-			packagesCount > 0 &&
-			bookingsCount > 0 &&
-			userOrganizationId !== null &&
-			invitationsCount > 0,
+		onboarded: !!userOrganizationId && invitationsCount > 0,
+		// packagesCount > 0 &&
+		// bookingsCount > 0 &&
+
 		organizationCreated: !!userOrganizationId,
 		packageCreated: packagesCount > 0,
 		bookingCreated: bookingsCount > 0,

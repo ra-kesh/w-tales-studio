@@ -1,9 +1,9 @@
 "use client";
 
+import { Plus, Trash2 } from "lucide-react";
 import React, { useMemo } from "react";
-import { useFormContext, useFieldArray } from "react-hook-form";
-import type { BookingFormValues } from "./booking-form-schema";
-import { useBookingTypes, usePackageTypes } from "@/hooks/use-configs";
+import { useFieldArray, useFormContext } from "react-hook-form";
+import { Button } from "@/components/ui/button";
 import {
 	Card,
 	CardContent,
@@ -11,24 +11,27 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import {
+	FormControl,
+	FormField,
+	FormItem,
+	FormLabel,
+	FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import {
 	Select,
 	SelectContent,
 	SelectItem,
+	SelectSeparator,
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import {
-	FormField,
-	FormItem,
-	FormLabel,
-	FormControl,
-	FormMessage,
-} from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
-import { DivideCircle, Plus, Trash2 } from "lucide-react";
+import { useBookingTypesParams } from "@/hooks/use-booking-types-params";
+import { useBookingTypes, usePackageTypes } from "@/hooks/use-configs";
+import { usePackageParams } from "@/hooks/use-package-params";
+import type { BookingFormValues } from "./booking-form-schema";
 
 export const BookingDetailForm = () => {
 	const form = useFormContext<BookingFormValues>();
@@ -123,6 +126,9 @@ export const BookingDetailForm = () => {
 	const key = typeof raw === "string" ? raw.toLowerCase() : "default";
 	const roleOptions = rolesByBookingType[key] ?? rolesByBookingType.default;
 
+	const { setParams } = usePackageParams();
+	const { setParams: setBookingParams } = useBookingTypesParams();
+
 	// const roleOptions =
 	// 	rolesByBookingType[bookingType.toLowerCase()] ?? rolesByBookingType.default;
 
@@ -179,6 +185,25 @@ export const BookingDetailForm = () => {
 														{t.label}
 													</SelectItem>
 												))}
+												<SelectSeparator />
+												<div
+													role="button"
+													tabIndex={0}
+													className="relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-accent focus:bg-accent focus:text-accent-foreground"
+													onKeyDown={(e) => {
+														if (e.key === "Enter" || e.key === " ") {
+															setBookingParams({ createBookingType: true });
+														}
+													}}
+													onClick={() =>
+														setBookingParams({ createBookingType: true })
+													}
+												>
+													<span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+														<Plus className="h-4 w-4" />
+													</span>
+													Add New Booking Type
+												</div>
 											</SelectContent>
 										</Select>
 										<FormMessage />
@@ -233,11 +258,35 @@ export const BookingDetailForm = () => {
 												</SelectTrigger>
 											</FormControl>
 											<SelectContent>
-												{packageTypes.map((p) => (
-													<SelectItem key={p.value} value={p.value}>
-														{p.label}
-													</SelectItem>
-												))}
+												{packageTypes?.length > 0 ? (
+													packageTypes.map((p) => (
+														<SelectItem key={p.value} value={p.value}>
+															{p.label}
+														</SelectItem>
+													))
+												) : (
+													<span className="text-sm flex justify-center items-center text-muted-foreground">
+														No Package types found
+													</span>
+												)}
+
+												<SelectSeparator />
+												<div
+													role="button"
+													tabIndex={0}
+													className="relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-accent focus:bg-accent focus:text-accent-foreground"
+													onKeyDown={(e) => {
+														if (e.key === "Enter" || e.key === " ") {
+															setParams({ createPackage: true });
+														}
+													}}
+													onClick={() => setParams({ createPackage: true })}
+												>
+													<span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+														<Plus className="h-4 w-4" />
+													</span>
+													Create New Package...
+												</div>
 											</SelectContent>
 										</Select>
 										<FormMessage />

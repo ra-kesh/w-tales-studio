@@ -1,5 +1,7 @@
 "use client";
 
+import { Loader2 } from "lucide-react";
+import dynamic from "next/dynamic";
 import { NavMain } from "@/components/nav-main";
 import {
 	Sidebar,
@@ -8,12 +10,9 @@ import {
 	SidebarHeader,
 	SidebarRail,
 } from "@/components/ui/sidebar";
-
 import { sidebarData } from "@/data/sidebar-data";
-import { NavSecondary } from "./nav-secondary";
 import type { ActiveOrganization, Session } from "@/types/auth";
-import dynamic from "next/dynamic";
-import { Loader2 } from "lucide-react";
+import { NavSecondary } from "./nav-secondary";
 
 const OrganisationSwitcher = dynamic(
 	() =>
@@ -45,7 +44,9 @@ export function AppSidebar({
 		<Sidebar variant="inset" collapsible="icon">
 			<SidebarHeader>
 				<div className="grid flex-1 text-left text-md leading-tight pl-2">
-					<span className="truncate font-bold">Studio Plus</span>
+					<span className="truncate font-bold">
+						{activeOrganization?.name ?? "Personal Studio"}
+					</span>
 				</div>
 			</SidebarHeader>
 			<SidebarContent>
@@ -53,12 +54,12 @@ export function AppSidebar({
 				<NavSecondary items={sidebarData.navSecondary} className="mt-auto" />
 			</SidebarContent>
 
-			<SidebarFooter>
+			{/* <SidebarFooter>
 				<OrganisationSwitcher
 					session={session}
 					activeOrganization={activeOrganization}
 				/>
-			</SidebarFooter>
+			</SidebarFooter> */}
 			<SidebarRail />
 		</Sidebar>
 	);

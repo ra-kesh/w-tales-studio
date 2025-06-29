@@ -1,7 +1,6 @@
 import { GalleryVerticalEnd } from "lucide-react";
-
-import { Login } from "../login";
 import { Suspense } from "react";
+import { Login } from "../login";
 
 export default function LoginPage() {
 	return (
