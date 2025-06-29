@@ -1,12 +1,11 @@
-import { AppSidebar } from "@/components/app-sidebar";
-
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import { SiteHeader } from "@/components/site-header";
-import { GlobalSheets } from "./global-sheet";
-import { Suspense } from "react";
-import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
+import { AppSidebar } from "@/components/app-sidebar";
+import { SiteHeader } from "@/components/site-header";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { auth } from "@/lib/auth";
+import { GlobalSheets } from "./global-sheet";
 
 const DashboardLayout = async ({ children }: { children: React.ReactNode }) => {
 	const [session, deviceSessions, organization] = await Promise.all([
@@ -24,8 +23,8 @@ const DashboardLayout = async ({ children }: { children: React.ReactNode }) => {
 		throw redirect("/sign-in");
 	});
 
-	console.log("deviceSessions", deviceSessions);
-	console.log("session", session);
+	// console.log("deviceSessions", deviceSessions);
+	// console.log("session", session);
 
 	return (
 		<SidebarProvider>

@@ -81,9 +81,7 @@ const page = async () => {
 								</h1>
 
 								<p className="text-muted-foreground text-md">
-									{!organization?.name
-										? "You don't have any active organisation yet"
-										: `You are currently on ${organization?.name}`}
+									All the work that are asssigned to you
 								</p>
 							</div>
 						</div>

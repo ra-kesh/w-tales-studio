@@ -88,14 +88,14 @@ export function SiteHeader({ sessions }: { sessions: Session[] }) {
 						className="mr-2 data-[orientation=vertical]:h-4"
 					/>
 					<div className="flex flex-col">
-						<h1 className="text-lg font-semibold">
+						<h1 className="text-md font-medium">
 							{currentPageMetadata?.title ?? ""}
 						</h1>
-						{currentPageMetadata?.description && (
+						{/* {currentPageMetadata?.description && (
 							<p className="text-sm text-muted-foreground">
 								{currentPageMetadata?.description ?? ""}
 							</p>
-						)}
+						)} */}
 					</div>
 				</div>
 				<div>
