@@ -1,29 +1,24 @@
 "use client";
 
+import { Camera, CheckCircle2, Package } from "lucide-react";
 import { useQueryState } from "nuqs";
-import { useOnboarding } from "@/hooks/use-onboarding";
 import { SimpleTabsList, SimpleTabsTrigger } from "@/components/ui/tabs";
-import { GettingStarted } from "./_components/getting-started";
-import { Announcements } from "./_components/announcements";
-import { useEffect } from "react";
+import { useOnboarding } from "@/hooks/use-onboarding";
 import { cn } from "@/lib/utils";
-import { useSession } from "@/lib/auth/auth-client";
-import { DashboardOverview } from "./_components/dashboard-overview";
+import { AllDeliverables } from "./_components/all-deliverables";
 import { AllShoots } from "./_components/all-shoots";
 import { AllTasks } from "./_components/all-tasks";
-import { AllDeliverables } from "./_components/all-deliverables";
-import { Camera, CheckCircle2, Package } from "lucide-react";
+import { Announcements } from "./_components/announcements";
+import { DashboardOverview } from "./_components/dashboard-overview";
 
 type TabValue =
 	| "home"
-	| "getting-started"
 	| "announcements"
 	| "all-shoots"
 	| "all-tasks"
 	| "all-deliverables";
 
 const HomeContent = () => {
-	const { data: session } = useSession();
 	const { data: onboarding, isLoading: onboardingLoading } = useOnboarding();
 	const [activeTab, setActiveTab] = useQueryState<TabValue>("tab", {
 		defaultValue: "home",
@@ -31,7 +26,6 @@ const HomeContent = () => {
 			if (
 				[
 					"home",
-					"getting-started",
 					"announcements",
 					"all-shoots",
 					"all-tasks",
@@ -44,45 +38,13 @@ const HomeContent = () => {
 		},
 	});
 
-	// const isOwnerOrAdmin =
-	// 	session?.user?.role === "owner" || session?.user?.role === "admin";
-
-	const showGettingStarted = onboarding && !onboarding.onboarded;
-
-	useEffect(() => {
-		if (
-			!onboardingLoading &&
-			onboarding &&
-			!onboarding.organizationCreated &&
-			activeTab === "home"
-		) {
-			setActiveTab("getting-started");
-		}
-	}, [onboarding, onboardingLoading, activeTab, setActiveTab]);
-
-	useEffect(() => {
-		if (
-			!onboardingLoading &&
-			onboarding &&
-			onboarding?.onboarded &&
-			activeTab === "getting-started"
-		) {
-			setActiveTab("home");
-		}
-	}, [onboarding, onboardingLoading, activeTab, setActiveTab]);
-
 	const tabs = [
 		{
 			value: "home" as const,
 			label: "Overview",
 			show: true,
 		},
-		{
-			value: "getting-started" as const,
-			label: "Getting Started",
-			show: showGettingStarted,
-			highlight: true,
-		},
+
 		{
 			value: "all-shoots" as const,
 			label: "My Shoots",
@@ -110,8 +72,6 @@ const HomeContent = () => {
 
 	const renderTabContent = () => {
 		switch (activeTab) {
-			case "getting-started":
-				return <GettingStarted />;
 			case "announcements":
 				return <Announcements />;
 			case "all-shoots":
@@ -138,15 +98,11 @@ const HomeContent = () => {
 									activeTab === tab.value
 										? "border-indigo-500 hover:border-indigo-500 text-indigo-600 hover:text-indigo-600 font-medium"
 										: "text-gray-500 hover:border-gray-300 hover:text-gray-700",
-									tab.highlight && "relative",
 								)}
 								onClick={() => setActiveTab(tab.value)}
 							>
 								{tab.icon && <tab.icon className="h-4 w-4 mr-2" />}
 								{tab.label}
-								{tab.highlight && (
-									<div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full" />
-								)}
 							</SimpleTabsTrigger>
 						))}
 				</SimpleTabsList>

@@ -1,11 +1,10 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-
-import { usePathname } from "next/navigation";
-import { NavUser } from "./nav-user";
 import type { Session } from "@/types/auth";
+import { NavUser } from "./nav-user";
 
 const pageMetadata: Record<string, { title: string; description?: string }> = {
 	"/home": { title: "Home", description: "Welcome to StudioPlus" },
@@ -55,11 +54,7 @@ const pageMetadata: Record<string, { title: string; description?: string }> = {
 	},
 };
 
-export function SiteHeader({
-	sessions,
-}: {
-	sessions: Session[];
-}) {
+export function SiteHeader({ sessions }: { sessions: Session[] }) {
 	const pathname = usePathname();
 
 	const getPageMetadata = () => {
@@ -94,11 +89,11 @@ export function SiteHeader({
 					/>
 					<div className="flex flex-col">
 						<h1 className="text-lg font-semibold">
-							{currentPageMetadata.title}
+							{currentPageMetadata?.title ?? ""}
 						</h1>
-						{currentPageMetadata.description && (
+						{currentPageMetadata?.description && (
 							<p className="text-sm text-muted-foreground">
-								{currentPageMetadata.description}
+								{currentPageMetadata?.description ?? ""}
 							</p>
 						)}
 					</div>

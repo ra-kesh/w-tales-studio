@@ -1,5 +1,10 @@
 "use client";
 
+import { Building, Calendar, CheckCircle2, Package, Users } from "lucide-react";
+import Link from "next/link";
+import CreateOrganisationDialog from "@/components/create-organisation-dialog";
+import InviteMemberDialog from "@/components/invite-member-dialog";
+import { Button } from "@/components/ui/button";
 import {
 	Card,
 	CardContent,
@@ -7,15 +12,9 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { CheckCircle2, Users, Package, Calendar, Building } from "lucide-react";
 import { useOnboarding } from "@/hooks/use-onboarding";
-import Link from "next/link";
 import { cn } from "@/lib/utils";
-
-import CreateOrganisationDialog from "@/components/create-organisation-dialog";
 import { OpenPackageSheet } from "../../configurations/_components/open-package-sheet";
-import InviteMemberDialog from "@/components/invite-member-dialog";
 
 interface Step {
 	id: string;
@@ -54,34 +53,34 @@ export function GettingStarted() {
 			completed: onboarding.organizationCreated,
 			actionComponent: <CreateOrganisationDialog />, // Add your custom component here
 		},
-		{
-			id: "packages",
-			title: "Create Package Types",
-			description: "Set up your service packages and pricing",
-			icon: Package,
-			href: "/configurations/packages",
-			completed: onboarding.packageCreated,
-			actionComponent: <OpenPackageSheet />,
-		},
-		{
-			id: "booking",
-			title: "Create Your First Booking",
-			description: "Add your first client booking to get started",
-			icon: Calendar,
-			href: "/bookings",
-			completed: onboarding.bookingCreated,
-			actionComponent: (
-				<Link
-					href={{
-						pathname: "/bookings/add",
-						query: { tab: "details" },
-					}}
-					prefetch={true}
-				>
-					<Button>Add Booking</Button>
-				</Link>
-			),
-		},
+		// {
+		// 	id: "packages",
+		// 	title: "Create Package Types",
+		// 	description: "Set up your service packages and pricing",
+		// 	icon: Package,
+		// 	href: "/configurations/packages",
+		// 	completed: onboarding.packageCreated,
+		// 	actionComponent: <OpenPackageSheet />,
+		// },
+		// {
+		// 	id: "booking",
+		// 	title: "Create Your First Booking",
+		// 	description: "Add your first client booking to get started",
+		// 	icon: Calendar,
+		// 	href: "/bookings",
+		// 	completed: onboarding.bookingCreated,
+		// 	actionComponent: (
+		// 		<Link
+		// 			href={{
+		// 				pathname: "/bookings/add",
+		// 				query: { tab: "details" },
+		// 			}}
+		// 			prefetch={true}
+		// 		>
+		// 			<Button>Add Booking</Button>
+		// 		</Link>
+		// 	),
+		// },
 		{
 			id: "members",
 			title: "Invite Team Members",
@@ -99,20 +98,22 @@ export function GettingStarted() {
 
 	if (onboarding.onboarded) {
 		return (
-			<Card className="border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950">
-				<CardHeader className="pb-3">
-					<div className="flex items-center gap-2">
+			<div>
+				<Card className=" border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950">
+					<CardHeader className="flex items-center gap-2">
 						<CheckCircle2 className="h-5 w-5 text-green-600" />
 						<CardTitle className="text-green-900 dark:text-green-100">
 							Setup Complete!
 						</CardTitle>
-					</div>
-					<CardDescription className="text-green-700 dark:text-green-300">
-						Congratulations! You've completed the initial setup. Your studio is
-						ready to go.
+					</CardHeader>
+					<CardDescription className="text-green-700 dark:text-green-300 px-8">
+						<p>
+							Congratulations! You've completed the initial setup. Your studio
+							is ready to go.
+						</p>
 					</CardDescription>
-				</CardHeader>
-			</Card>
+				</Card>
+			</div>
 		);
 	}
 

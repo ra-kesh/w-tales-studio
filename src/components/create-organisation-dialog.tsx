@@ -1,4 +1,10 @@
-import { use, useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { Loader2, PlusIcon } from "lucide-react";
+import Image from "next/image";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { organization } from "@/lib/auth/auth-client";
+import { Button } from "./ui/button";
 import {
 	Dialog,
 	DialogContent,
@@ -8,14 +14,8 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "./ui/dialog";
-import { Button } from "./ui/button";
-import { Loader2, PlusIcon } from "lucide-react";
-import { Label } from "./ui/label";
 import { Input } from "./ui/input";
-import Image from "next/image";
-import { organization } from "@/lib/auth/auth-client";
-import { toast } from "sonner";
-import { QueryClient, useQueryClient } from "@tanstack/react-query";
+import { Label } from "./ui/label";
 
 function CreateOrganizationDialog() {
 	const [name, setName] = useState("");
@@ -129,6 +129,7 @@ function CreateOrganizationDialog() {
 										queryClient.refetchQueries({
 											queryKey: ["onboarding"],
 										});
+										window.location.reload();
 									},
 									onError: (error) => {
 										toast.error(error.error.message);
