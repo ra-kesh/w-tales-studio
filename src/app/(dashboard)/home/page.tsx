@@ -31,7 +31,7 @@ const page = async () => {
 		activeOrganizationId ?? "",
 	);
 
-	if (!activeOrganizationId && !onboardingStatus.onboarded) {
+	if (!activeOrganizationId || !onboardingStatus.onboarded) {
 		redirect("/getting-started");
 	}
 
