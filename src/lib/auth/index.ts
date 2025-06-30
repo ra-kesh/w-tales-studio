@@ -1,6 +1,6 @@
+import { type BetterAuthOptions, betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { betterAuth, type BetterAuthOptions } from "better-auth";
-import { db } from "../db/drizzle";
+import { nextCookies } from "better-auth/next-js";
 import {
 	admin,
 	customSession,
@@ -9,14 +9,13 @@ import {
 	organization,
 	username,
 } from "better-auth/plugins";
-import { nextCookies } from "better-auth/next-js";
+import { and, eq } from "drizzle-orm";
+import { db } from "../db/drizzle";
 import { getActiveOrganization } from "../db/queries";
-import { resend } from "../email/resend";
-import { reactInvitationEmail } from "../email/invitation";
-import { reactResetPasswordEmail } from "../email/resetPassword";
-
 import { members } from "../db/schema";
-import { eq, and } from "drizzle-orm";
+import { reactInvitationEmail } from "../email/invitation";
+import { resend } from "../email/resend";
+import { reactResetPasswordEmail } from "../email/resetPassword";
 
 const from = process.env.BETTER_AUTH_EMAIL || "mail@updates.rakyesh.com";
 const to = process.env.TEST_EMAIL || "";
@@ -75,7 +74,7 @@ const options = {
 							process.env.NODE_ENV === "development"
 								? `http://localhost:3000/sign-in?redirect=/accept-invitation/${data.id}`
 								: `${
-										process.env.BETTER_AUTH_URL || "https://wtp.rakyesh.com"
+										process.env.BETTER_AUTH_URL || "https://studsol.com"
 									}/sign-in?redirect=/accept-invitation/${data.id}`,
 					}),
 				});

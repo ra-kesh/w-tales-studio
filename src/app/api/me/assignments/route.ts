@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { getServerSession } from "@/lib/dal";
 import { getUserAssignments } from "@/lib/db/queries";
-import { z } from "zod";
 
 const assignmentsQuerySchema = z.object({
 	types: z
@@ -52,7 +52,7 @@ export async function GET(request: Request) {
 			...queryParams.data,
 		});
 
-		console.log("Assignments fetched:", assignments);
+		// console.log("Assignments fetched:", assignments);
 
 		if (!assignments) {
 			return NextResponse.json(

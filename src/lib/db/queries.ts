@@ -1866,7 +1866,7 @@ export async function getUserAssignments(params: GetUserAssignmentsParams) {
 		pageSize,
 	} = params;
 
-	console.log(userId, organizationId, types, status, startDate, endDate);
+	// console.log(userId, organizationId, types, status, startDate, endDate);
 
 	const inactiveTaskStatuses = ["completed"];
 
