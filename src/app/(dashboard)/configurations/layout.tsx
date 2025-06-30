@@ -21,6 +21,7 @@ const SettingsLayout = ({ children }: SettingsLayoutProps) => {
 			label: "Deliverables Status",
 		},
 		{ path: "/configurations/task-status", label: "Task Status" },
+		// { path: "/configurations/task-priority", label: "Task Priority" },
 	];
 
 	return (

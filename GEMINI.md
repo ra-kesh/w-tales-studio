@@ -90,4 +90,11 @@ Since the `config_type` enum already contains all necessary types, the strategy 
         *   `src/app/(dashboard)/configurations/_components/task-priority-create-sheet.tsx`
         *   `src/app/(dashboard)/configurations/_components/task-priority-edit-sheet.tsx`
         *   `src/hooks/use-task-priority-params.ts`
+        *   `src/app/(dashboard)/configurations/_components/task-priority-table.tsx`
+        *   `src/app/(dashboard)/configurations/_components/task-priority-table-columns.tsx`
+        *   `src/app/(dashboard)/configurations/_components/task-priority-table-toolbar.tsx`
+        *   `src/app/(dashboard)/configurations/task-priority/page.tsx`
+        *   `src/app/(dashboard)/configurations/task-priority/task-priority.tsx`
+        *   `src/app/(dashboard)/configurations/_components/open-task-priority-sheet.tsx`
+        *   `src/app/(dashboard)/configurations/layout.tsx` (updated with link to task priority page)
     *   **Completed:** `src/app/(dashboard)/global-sheet.tsx` has been updated to include `DeliverableStatusCreateSheet`, `DeliverableStatusEditSheet`, `TaskStatusCreateSheet`, `TaskStatusEditSheet`, `TaskPriorityCreateSheet`, and `TaskPriorityEditSheet`.

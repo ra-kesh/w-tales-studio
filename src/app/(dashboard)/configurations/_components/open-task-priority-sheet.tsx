@@ -8,9 +8,13 @@ export function OpenTaskPrioritySheet() {
 
 	return (
 		<div>
-			<Button onClick={() => setParams({ createTaskPriority: true })}>
+			<Button
+				size="sm"
+				className="bg-indigo-600  font-semibold text-white  hover:bg-indigo-500 cursor-pointer"
+				onClick={() => setParams({ createTaskPriority: true })}
+			>
 				Add Task Priority
 			</Button>
-			</div>
+		</div>
 	);
 }
