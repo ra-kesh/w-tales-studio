@@ -11,10 +11,9 @@ import { PackageTableRowActions } from "./package-table-row-actions";
 
 interface PackageType {
 	id: number;
-	key: string;
-	type: string;
+	label: string;
 	value: string; //–– your “label”
-	organizationId: string;
+	// organizationId: string;
 	isSystem: boolean;
 	createdAt: string;
 	updatedAt: string;

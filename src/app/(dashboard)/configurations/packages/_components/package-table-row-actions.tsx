@@ -10,10 +10,8 @@ import {
 
 interface PackageType {
 	id: number;
-	key: string;
-	type: string;
-	value: string; //–– your “label”
-	organizationId: string;
+	label: string;
+	value: string;
 	isSystem: boolean;
 	createdAt: string;
 	updatedAt: string;

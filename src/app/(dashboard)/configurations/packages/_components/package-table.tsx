@@ -32,6 +32,10 @@ import { PackageTableToolbar } from "./package-table-toolbar";
 interface PackageType {
 	id: number;
 	label: string;
+	value: string;
+	isSystem: boolean;
+	createdAt: string;
+	updatedAt: string;
 	metadata: {
 		defaultCost: string;
 		defaultDeliverables?: {
@@ -40,6 +44,8 @@ interface PackageType {
 			is_package_included: boolean;
 		}[];
 	};
+	onEdit?: (id: number) => void;
+	onDelete?: (id: number) => void;
 }
 
 interface PackageTableProps {
