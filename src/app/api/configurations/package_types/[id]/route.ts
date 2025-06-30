@@ -1,13 +1,13 @@
-import { NextResponse } from "next/server";
-import { getServerSession } from "@/lib/dal";
-import { db } from "@/lib/db/drizzle";
-import { configurations } from "@/lib/db/schema";
 import { and, eq, not } from "drizzle-orm";
-import { generateKey } from "@/lib/utils";
+import { NextResponse } from "next/server";
 import {
 	type PackageMetadata,
 	PackageSchema,
-} from "@/app/(dashboard)/configurations/_components/package-form-schema";
+} from "@/app/(dashboard)/configurations/packages/_components/package-form-schema";
+import { getServerSession } from "@/lib/dal";
+import { db } from "@/lib/db/drizzle";
+import { configurations } from "@/lib/db/schema";
+import { generateKey } from "@/lib/utils";
 
 export async function PUT(
 	request: Request,

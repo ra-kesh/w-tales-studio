@@ -1,9 +1,8 @@
 "use client";
 
-import { PackageTable } from "../_components/package-table";
-
 import { usePackageTypes } from "@/hooks/use-configs";
 import { usePackageParams } from "@/hooks/use-package-params";
+import { PackageTable } from "./_components/package-table";
 
 export default function PackageConfigs() {
 	const { data: packageTypes = [] } = usePackageTypes();

@@ -4,7 +4,7 @@ import type { Table } from "@tanstack/react-table";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { OpenPackageSheet } from "./open-package-sheet";
+import { OpenPackageSheet } from "../../_components/open-package-sheet";
 
 interface PackageTableToolbarProps<TData> {
 	table: Table<TData>;

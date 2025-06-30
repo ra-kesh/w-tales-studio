@@ -1,13 +1,8 @@
 "use client";
 
-import * as React from "react";
-import { cn } from "@/lib/utils";
 import {
-	useReactTable,
 	type ColumnDef,
 	type ColumnFiltersState,
-	type SortingState,
-	type VisibilityState,
 	type ExpandedState,
 	flexRender,
 	getCoreRowModel,
@@ -16,8 +11,11 @@ import {
 	getFilteredRowModel,
 	getPaginationRowModel,
 	getSortedRowModel,
+	type SortingState,
+	useReactTable,
+	type VisibilityState,
 } from "@tanstack/react-table";
-
+import * as React from "react";
 import {
 	Table,
 	TableBody,
@@ -26,9 +24,10 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
+import { cn } from "@/lib/utils";
 import { usePackageColumns } from "./package-table-columns";
-import { PackageTableToolbar } from "./package-table-toolbar";
 import { PackageTablePagination } from "./package-table-pagination";
+import { PackageTableToolbar } from "./package-table-toolbar";
 
 interface PackageType {
 	id: number;

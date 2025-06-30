@@ -7,10 +7,11 @@ import { BookingTypeCreateSheet } from "./configurations/_components/booking-typ
 import { BookingTypeEditSheet } from "./configurations/_components/booking-type-edit-sheet";
 import { DeliverableStatusCreateSheet } from "./configurations/_components/deliverable-status-create-sheet";
 import { DeliverableStatusEditSheet } from "./configurations/_components/deliverable-status-edit-sheet";
-import { PackageCreateSheet } from "./configurations/_components/package-create-sheet";
-import { PackageEditSheet } from "./configurations/_components/package-edit-sheet";
+
 import { TaskStatusCreateSheet } from "./configurations/_components/task-status-create-sheet";
 import { TaskStatusEditSheet } from "./configurations/_components/task-status-edit-sheet";
+import { PackageCreateSheet } from "./configurations/packages/_components/package-create-sheet";
+import { PackageEditSheet } from "./configurations/packages/_components/package-edit-sheet";
 import { CrewCreateSheet } from "./crews/_components/crew-create-sheet";
 import { CrewEditSheet } from "./crews/_components/crew-edit-sheet";
 import { DeliverableCreateSheet } from "./deliverables/_components/deliverable-create-sheet";
@@ -29,7 +30,9 @@ export function GlobalSheets() {
 				<ShootEditSheet />
 			</Suspense>
 			<PackageCreateSheet />
-			<PackageEditSheet />
+			<Suspense fallback={<div>Loading...</div>}>
+				<PackageEditSheet />
+			</Suspense>
 			<BookingTypeCreateSheet />
 			<Suspense fallback={<div>Loading...</div>}>
 				<BookingTypeEditSheet />

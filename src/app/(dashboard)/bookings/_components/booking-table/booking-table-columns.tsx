@@ -1,30 +1,30 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { Checkbox } from "@/components/ui/checkbox";
-import type { Booking, Client, Shoot } from "@/lib/db/schema";
-import { BookingTableRowActions } from "./booking-table-row-actions";
+import {
+	Calendar,
+	CalendarIcon,
+	Camera,
+	ChevronRight,
+	Mail,
+	PackageIcon,
+	Phone,
+	Text,
+	Users,
+} from "lucide-react";
+import type { PackageMetadata } from "@/app/(dashboard)/configurations/packages/_components/package-form-schema";
+import { DataTableColumnHeader } from "@/app/(dashboard)/tasks/_components/task-table-column-header";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
 	Tooltip,
 	TooltipContent,
 	TooltipProvider,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
+import type { Booking, Client, Shoot } from "@/lib/db/schema";
 import { cn, formatDate } from "@/lib/utils";
-import {
-	Camera,
-	ChevronRight,
-	Calendar,
-	Mail,
-	Phone,
-	Users,
-	Text,
-	CalendarIcon,
-	PackageIcon,
-} from "lucide-react";
-import { DataTableColumnHeader } from "@/app/(dashboard)/tasks/_components/task-table-column-header";
-import type { PackageMetadata } from "@/app/(dashboard)/configurations/_components/package-form-schema";
+import { BookingTableRowActions } from "./booking-table-row-actions";
 
 export const useBookingColumns = ({
 	packageTypes,
