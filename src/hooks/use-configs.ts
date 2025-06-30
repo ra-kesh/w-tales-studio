@@ -1,11 +1,11 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { useSession } from "@/lib/auth/auth-client";
 import type {
 	ConfigType,
 	Configuration,
 	NewConfiguration,
 } from "@/lib/db/schema";
-import { toast } from "sonner";
-import { useSession } from "@/lib/auth/auth-client";
 
 export type ConfigTypeKey = (typeof ConfigType.enumValues)[number];
 
@@ -18,39 +18,6 @@ export async function fetchConfigs(
 	}
 	return response.json();
 }
-
-// Remove API call and use static values for task statuses
-// export function useTaskStatuses() {
-// 	const statuses = [
-// 		{ value: "todo", label: "To Do" },
-// 		{ value: "in_progress", label: "In Progress" },
-// 		{ value: "in_review", label: "In Review" },
-// 		{ value: "in_revision", label: "In Revision" },
-// 		{ value: "completed", label: "Completed" },
-// 	];
-
-// 	return {
-// 		data: statuses,
-// 		isLoading: false,
-// 		isError: false,
-// 	};
-// }
-
-// Remove API call and use static values for task priorities
-// export function useTaskPriorities() {
-// 	const priorities = [
-// 		{ value: "low", label: "Low" },
-// 		{ value: "medium", label: "Medium" },
-// 		{ value: "high", label: "High" },
-// 		{ value: "critical", label: "Critical" },
-// 	];
-
-// 	return {
-// 		data: priorities,
-// 		isLoading: false,
-// 		isError: false,
-// 	};
-// }
 
 // Helper hook to get both statuses and priorities
 export function useTaskConfigs() {
@@ -194,7 +161,9 @@ export function useCreatePackageMutation() {
 export function useCreateBookingTypeMutation() {
 	const queryClient = useQueryClient();
 	return useMutation({
-		mutationFn: async (data: Omit<NewConfiguration, "type" | "key" | "metadata">) => {
+		mutationFn: async (
+			data: Omit<NewConfiguration, "type" | "key" | "metadata">,
+		) => {
 			const response = await fetch("/api/configurations/booking_types", {
 				method: "POST",
 				headers: {
@@ -338,7 +307,9 @@ export function useDeliverableStatusDetail(id: string | null) {
 export function useCreateDeliverableStatusMutation() {
 	const queryClient = useQueryClient();
 	return useMutation({
-		mutationFn: async (data: Omit<NewConfiguration, "type" | "key" | "metadata">) => {
+		mutationFn: async (
+			data: Omit<NewConfiguration, "type" | "key" | "metadata">,
+		) => {
 			const response = await fetch("/api/configurations/deliverable_status", {
 				method: "POST",
 				headers: {
@@ -445,7 +416,9 @@ export function useTaskStatusDetail(id: string | null) {
 export function useCreateTaskStatusMutation() {
 	const queryClient = useQueryClient();
 	return useMutation({
-		mutationFn: async (data: Omit<NewConfiguration, "type" | "key" | "metadata">) => {
+		mutationFn: async (
+			data: Omit<NewConfiguration, "type" | "key" | "metadata">,
+		) => {
 			const response = await fetch("/api/configurations/task_status", {
 				method: "POST",
 				headers: {
@@ -552,7 +525,9 @@ export function useTaskPriorityDetail(id: string | null) {
 export function useCreateTaskPriorityMutation() {
 	const queryClient = useQueryClient();
 	return useMutation({
-		mutationFn: async (data: Omit<NewConfiguration, "type" | "key" | "metadata">) => {
+		mutationFn: async (
+			data: Omit<NewConfiguration, "type" | "key" | "metadata">,
+		) => {
 			const response = await fetch("/api/configurations/task_priority", {
 				method: "POST",
 				headers: {

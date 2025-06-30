@@ -1,16 +1,23 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
+import { format } from "date-fns";
 import { ChevronRight, Package } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { cn, formatCurrency } from "@/lib/utils";
 import { PackageTableRowActions } from "./package-table-row-actions";
 
 interface PackageType {
 	id: number;
-	label: string;
+	key: string;
+	type: string;
+	value: string; //–– your “label”
+	organizationId: string;
+	isSystem: boolean;
+	createdAt: string;
+	updatedAt: string;
 	metadata: {
 		defaultCost: string;
 		defaultDeliverables?: {
@@ -58,19 +65,24 @@ export const usePackageColumns = () => {
 			header: "Cost",
 			cell: ({ row }) => (
 				<div className="font-medium tabular-nums">
-					₹{row.original.metadata.defaultCost.toLocaleString()}
+					{formatCurrency(row.original.metadata.defaultCost)}
 				</div>
 			),
 		},
+
 		{
-			accessorKey: "bookingType",
-			header: "Booking Type",
-			cell: () => (
-				<Badge variant="outline" className="font-normal">
-					Wedding
+			accessorKey: "isSystem",
+			header: "Variant",
+			cell: ({ row }) => (
+				<Badge
+					variant={row.original.isSystem ? "secondary" : "outline"}
+					className="uppercase"
+				>
+					{row.original.isSystem ? "System" : "Custom"}
 				</Badge>
 			),
 		},
+
 		{
 			id: "deliverables",
 			header: "Deliverables",

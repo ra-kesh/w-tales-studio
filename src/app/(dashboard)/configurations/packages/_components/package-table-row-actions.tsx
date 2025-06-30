@@ -10,7 +10,13 @@ import {
 
 interface PackageType {
 	id: number;
-	label: string;
+	key: string;
+	type: string;
+	value: string; //–– your “label”
+	organizationId: string;
+	isSystem: boolean;
+	createdAt: string;
+	updatedAt: string;
 	metadata: {
 		defaultCost: string;
 		defaultDeliverables?: {

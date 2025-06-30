@@ -100,14 +100,6 @@ export function PackageTable({ data, onEdit, onDelete }: PackageTableProps) {
 			<PackageTableToolbar table={table} />
 			<div className="rounded-md border">
 				<Table>
-					<colgroup>
-						<col style={{ width: "5%" }} />
-						<col style={{ width: "20%" }} />
-						<col style={{ width: "20%" }} />
-						<col style={{ width: "20%" }} />
-						<col style={{ width: "30%" }} />
-						<col style={{ width: "5%" }} />
-					</colgroup>
 					<TableHeader>
 						{table.getHeaderGroups().map((headerGroup) => (
 							<TableRow key={headerGroup.id}>
