@@ -8,7 +8,11 @@ export function OpenPackageSheet() {
 
 	return (
 		<div>
-			<Button onClick={() => setParams({ createPackage: true })}>
+			<Button
+				size="sm"
+				className="bg-indigo-600  font-semibold text-white  hover:bg-indigo-500 cursor-pointer"
+				onClick={() => setParams({ createPackage: true })}
+			>
 				Add Package
 			</Button>
 		</div>
