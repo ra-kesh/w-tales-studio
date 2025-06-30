@@ -1,5 +1,15 @@
 "use client";
 
+import { format } from "date-fns";
+import { CheckCircle, Clock, Loader2, Mail, Trash } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { useState } from "react";
+import { toast } from "sonner";
+import CopyButton from "@/components/copy-button";
+import CreateOrganizationDialog from "@/components/create-organisation-dialog";
+import InviteMemberDialog from "@/components/invite-member-dialog";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
 	Card,
 	CardContent,
@@ -8,24 +18,14 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-
-import { Button } from "@/components/ui/button";
-
-import { Badge } from "@/components/ui/badge";
-import InviteMemberDialog from "@/components/invite-member-dialog";
-import type { ActiveOrganization } from "@/types/auth";
-import CreateOrganizationDialog from "@/components/create-organisation-dialog";
-import { CheckCircle, Clock, Loader2, Mail, Trash } from "lucide-react";
-import { format } from "date-fns";
-import { useState } from "react";
 import { authClient } from "@/lib/auth/auth-client";
-import { toast } from "sonner";
-import { usePathname, useRouter } from "next/navigation";
-import CopyButton from "@/components/copy-button";
+import type { ActiveOrganization } from "@/types/auth";
 
 export function TeamInvites({
 	activeOrganization,
-}: { activeOrganization: ActiveOrganization | null }) {
+}: {
+	activeOrganization: ActiveOrganization | null;
+}) {
 	const [isRevoking, setIsRevoking] = useState<string[]>([]);
 
 	if (!activeOrganization) {
@@ -146,7 +146,7 @@ export function TeamInvites({
 											</Button>
 											<div>
 												<CopyButton
-													textToCopy={`${process.env.NODE_ENV === "development" ? "http://localhost:3000" : "https://wtp.rakyesh.com"}/sign-in?redirect=/accept-invitation/${invitation.id}`}
+													textToCopy={`${process.env.NODE_ENV === "development" ? "http://localhost:3000" : "https://studsol.com"}/sign-in?redirect=/accept-invitation/${invitation.id}`}
 												/>
 											</div>
 										</div>

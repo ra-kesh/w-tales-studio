@@ -1,7 +1,7 @@
 import React from "react";
 
 const wtp = () => {
-	return <div>wtp</div>;
+	return <div>Wedding tales studio solutions</div>;
 };
 
 export default wtp;
