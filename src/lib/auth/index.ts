@@ -79,11 +79,17 @@ const options = {
 					}),
 				});
 			},
-			allowUserToCreateOrganization: true,
+			allowUserToCreateOrganization: false,
 		}),
 		nextCookies(),
 		multiSession(),
 		oneTap(),
+		admin({
+			adminUserIds: [
+				"CjPJYdx1f6Sv56bKksTXH0LOzfdRQKbN",
+				"IBK8WyEDfhPGjzmmt5TLSQ4Xe2TqEElK",
+			],
+		}),
 	],
 	account: {
 		accountLinking: {
