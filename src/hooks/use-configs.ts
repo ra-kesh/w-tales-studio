@@ -47,9 +47,12 @@ interface PackageMetadata {
 // biome-ignore lint/suspicious/noExplicitAny: <explanation>
 export type ConfigOption<Meta = any> = {
 	id: number;
-	value: string; // the config.key
-	label: string; // the config.value
-	metadata?: Meta; // optional metadata
+	isSystem: boolean;
+	value: string;
+	label: string;
+	metadata?: Meta;
+	createdAt?: string;
+	updatedAt?: string;
 };
 
 /**
@@ -72,6 +75,9 @@ export function useConfigs<ConfigOption>(type: ConfigTypeKey) {
 				value: config.key,
 				label: config.value,
 				metadata: config.metadata as PackageMetadata,
+				isSystem: config.isSystem,
+				createdAt: config.createdAt,
+				updatedAt: config.updatedAt,
 			})),
 	});
 }

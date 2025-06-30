@@ -1,19 +1,19 @@
 "use client";
 
+import { X } from "lucide-react";
 import React from "react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import {
 	Sheet,
 	SheetContent,
 	SheetHeader,
 	SheetTitle,
 } from "@/components/ui/sheet";
-import { Button } from "@/components/ui/button";
-import { X } from "lucide-react";
 import { useBookingTypesParams } from "@/hooks/use-booking-types-params";
-import { BookingTypeForm } from "./booking-type-form";
 import { useCreateBookingTypeMutation } from "@/hooks/use-configs";
+import { BookingTypeForm } from "./booking-type-form";
 import type { BookingFormValues } from "./booking-type-form-schema";
-import { toast } from "sonner";
 
 export function BookingTypeCreateSheet() {
 	const { setParams, createBookingType } = useBookingTypesParams();

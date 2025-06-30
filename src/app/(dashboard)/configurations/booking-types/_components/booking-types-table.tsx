@@ -15,6 +15,7 @@ import {
 	useReactTable,
 	type VisibilityState,
 } from "@tanstack/react-table";
+import { da } from "date-fns/locale";
 import * as React from "react";
 import {
 	Table,
@@ -25,12 +26,16 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
-import { useBookingTypesColumns } from "./booking-types-table-columns";
+import { useBookingTypeColumns } from "./booking-types-table-columns";
 import { BookingTypesTableToolbar } from "./booking-types-table-toolbar";
 
-interface BookingType {
+export interface BookingType {
 	id: number;
 	value: string;
+	label: string;
+	isSystem: boolean;
+	createdAt: string;
+	updatedAt: string;
 	metadata: Record<string, any>; // Adjust as needed
 }
 
@@ -64,7 +69,9 @@ export function BookingTypesTable({
 		[data, onEdit, onDelete],
 	);
 
-	const columns = useBookingTypesColumns();
+	console.log({ dataWithActions });
+
+	const columns = useBookingTypeColumns();
 
 	const table = useReactTable({
 		data: dataWithActions,

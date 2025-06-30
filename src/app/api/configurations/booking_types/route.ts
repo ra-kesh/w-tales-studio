@@ -1,10 +1,10 @@
-import { BookingSchema } from "@/app/(dashboard)/configurations/_components/booking-type-form-schema";
+import { and, eq } from "drizzle-orm";
+import { NextResponse } from "next/server";
+import { BookingSchema } from "@/app/(dashboard)/configurations/booking-types/_components/booking-type-form-schema";
 import { getServerSession } from "@/lib/dal";
 import { db } from "@/lib/db/drizzle";
 import { configurations } from "@/lib/db/schema";
 import { generateKey } from "@/lib/utils";
-import { and, eq } from "drizzle-orm";
-import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
 	const { session } = await getServerSession();

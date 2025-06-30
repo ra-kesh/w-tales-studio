@@ -3,13 +3,12 @@
 import { Suspense } from "react";
 import { ShootCreateSheet } from "@/app/(dashboard)/shoots/_components/shoot-create-sheet";
 import { ClientEditSheet } from "./clients/_components/client-edit-sheet";
-import { BookingTypeCreateSheet } from "./configurations/_components/booking-type-create-sheet";
-import { BookingTypeEditSheet } from "./configurations/_components/booking-type-edit-sheet";
 import { DeliverableStatusCreateSheet } from "./configurations/_components/deliverable-status-create-sheet";
 import { DeliverableStatusEditSheet } from "./configurations/_components/deliverable-status-edit-sheet";
-
 import { TaskStatusCreateSheet } from "./configurations/_components/task-status-create-sheet";
 import { TaskStatusEditSheet } from "./configurations/_components/task-status-edit-sheet";
+import { BookingTypeCreateSheet } from "./configurations/booking-types/_components/booking-type-create-sheet";
+import { BookingTypeEditSheet } from "./configurations/booking-types/_components/booking-type-edit-sheet";
 import { PackageCreateSheet } from "./configurations/packages/_components/package-create-sheet";
 import { PackageEditSheet } from "./configurations/packages/_components/package-edit-sheet";
 import { CrewCreateSheet } from "./crews/_components/crew-create-sheet";

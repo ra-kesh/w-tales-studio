@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/card";
 import { useOnboarding } from "@/hooks/use-onboarding";
 import { cn } from "@/lib/utils";
-import { OpenPackageSheet } from "../../configurations/_components/open-package-sheet";
+import { OpenPackageSheet } from "../../configurations/packages/_components/open-package-sheet";
 
 interface Step {
 	id: string;

@@ -1,9 +1,8 @@
 "use client";
 
-import { BookingTypesTable } from "../_components/booking-types-table";
-
-import { useBookingTypes } from "@/hooks/use-configs";
 import { useBookingTypesParams } from "@/hooks/use-booking-types-params";
+import { useBookingTypes } from "@/hooks/use-configs";
+import { BookingTypesTable } from "./_components/booking-types-table";
 
 export default function BookingTypesConfigs() {
 	const { data: bookingTypes = [] } = useBookingTypes();

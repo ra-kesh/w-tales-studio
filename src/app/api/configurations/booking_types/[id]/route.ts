@@ -1,13 +1,13 @@
+import { and, eq, not } from "drizzle-orm";
 import { NextResponse } from "next/server";
+import {
+	type BookingMetadata,
+	BookingSchema,
+} from "@/app/(dashboard)/configurations/booking-types/_components/booking-type-form-schema";
 import { getServerSession } from "@/lib/dal";
 import { db } from "@/lib/db/drizzle";
 import { configurations } from "@/lib/db/schema";
-import { and, eq, not } from "drizzle-orm";
 import { generateKey } from "@/lib/utils";
-import {
-	BookingMetadata,
-	BookingSchema,
-} from "@/app/(dashboard)/configurations/_components/booking-type-form-schema";
 
 export async function PUT(
 	request: Request,
@@ -65,7 +65,8 @@ export async function PUT(
 			const existingMetadata =
 				(existingConfig.metadata as BookingMetadata | null) || {};
 
-			const newMetadata: BookingMetadata = validatedData.metadata ?? existingMetadata;
+			const newMetadata: BookingMetadata =
+				validatedData.metadata ?? existingMetadata;
 
 			// Check for conflicts with other booking types (excluding the current one)
 			const conflictingConfig = await tx.query.configurations.findFirst({
