@@ -1,12 +1,10 @@
+import { and, eq, not } from "drizzle-orm";
 import { NextResponse } from "next/server";
+import { TaskStatusSchema } from "@/app/(dashboard)/configurations/_components/task-status-form-schema";
 import { getServerSession } from "@/lib/dal";
 import { db } from "@/lib/db/drizzle";
 import { configurations } from "@/lib/db/schema";
-import { and, eq, not } from "drizzle-orm";
 import { generateKey } from "@/lib/utils";
-import {
-	TaskStatusFormValues,
-} from "@/app/(dashboard)/configurations/_components/task-status-form-schema";
 
 export async function PUT(
 	request: Request,
@@ -31,7 +29,7 @@ export async function PUT(
 	const taskStatusId = Number.parseInt(id, 10);
 	const body = await request.json();
 
-	const validation = TaskStatusFormValues.safeParse(body);
+	const validation = TaskStatusSchema.safeParse(body);
 
 	if (!validation.success) {
 		return NextResponse.json(
@@ -54,6 +52,10 @@ export async function PUT(
 
 			if (!existingConfig) {
 				throw new Error("Task status not found or access denied");
+			}
+
+			if (existingConfig.isSystem) {
+				throw new Error("Cannot update a system deliverable status");
 			}
 			const newKey = validatedData.value
 				? generateKey(validatedData.value)
@@ -140,6 +142,26 @@ export async function DELETE(
 	const { id } = await params;
 
 	const taskStatusId = Number.parseInt(id, 10);
+
+	const existing = await db.query.configurations.findFirst({
+		where: and(
+			eq(configurations.id, taskStatusId),
+			eq(configurations.organizationId, userOrganizationId),
+			eq(configurations.type, "task_status"),
+		),
+	});
+	if (!existing) {
+		return NextResponse.json(
+			{ message: "Task status not found" },
+			{ status: 404 },
+		);
+	}
+	if (existing.isSystem) {
+		return NextResponse.json(
+			{ message: "Cannot delete a system task status" },
+			{ status: 403 },
+		);
+	}
 
 	try {
 		const [deletedConfig] = await db

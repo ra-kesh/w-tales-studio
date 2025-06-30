@@ -61,22 +61,33 @@ Since the `config_type` enum already contains all necessary types, the strategy 
     *   **Completed:** `src/hooks/use-configs.ts` has been updated with task status queries and mutations.
     *   **Completed:** `src/app/(dashboard)/configurations/_components/task-priority-form-schema.ts` has been created.
     *   **Completed:** `src/hooks/use-configs.ts` has been updated with task priority queries and mutations.
-    *   **Completed:** Frontend forms and sheets for `deliverable_status` have been implemented, including:
+    *   **Completed:** Frontend for `deliverable_status` has been implemented, including:
         *   `src/app/(dashboard)/configurations/_components/deliverable-status-form.tsx`
         *   `src/app/(dashboard)/configurations/_components/deliverable-status-create-sheet.tsx`
         *   `src/app/(dashboard)/configurations/_components/deliverable-status-edit-sheet.tsx`
+        *   `src/app/(dashboard)/configurations/_components/deliverable-status-table.tsx`
+        *   `src/app/(dashboard)/configurations/_components/deliverable-status-table-columns.tsx`
+        *   `src/app/(dashboard)/configurations/_components/deliverable-status-table-toolbar.tsx`
+        *   `src/app/(dashboard)/configurations/deliverable-status/page.tsx`
+        *   `src/app/(dashboard)/configurations/deliverable-status/deliverable-status.tsx`
         *   `src/hooks/use-deliverable-status-params.ts`
         *   `src/app/(dashboard)/configurations/_components/open-deliverable-status-sheet.tsx`
-    *   **Completed:** Frontend forms and sheets for `task_status` have been implemented, including:
+        *   `src/app/(dashboard)/configurations/layout.tsx` (updated with link to deliverable status page)
+    *   **Completed:** Frontend for `task_status` has been implemented, including:
         *   `src/app/(dashboard)/configurations/_components/task-status-form.tsx`
         *   `src/app/(dashboard)/configurations/_components/task-status-create-sheet.tsx`
         *   `src/app/(dashboard)/configurations/_components/task-status-edit-sheet.tsx`
+        *   `src/app/(dashboard)/configurations/_components/task-status-table.tsx`
+        *   `src/app/(dashboard)/configurations/_components/task-status-table-columns.tsx`
+        *   `src/app/(dashboard)/configurations/_components/task-status-table-toolbar.tsx`
+        *   `src/app/(dashboard)/configurations/task-status/page.tsx`
+        *   `src/app/(dashboard)/configurations/task-status/task-status.tsx`
         *   `src/hooks/use-task-status-params.ts`
         *   `src/app/(dashboard)/configurations/_components/open-task-status-sheet.tsx`
+        *   `src/app/(dashboard)/configurations/layout.tsx` (updated with link to task status page)
     *   **Completed:** Frontend forms and sheets for `task_priority` have been implemented, including:
         *   `src/app/(dashboard)/configurations/_components/task-priority-form.tsx`
         *   `src/app/(dashboard)/configurations/_components/task-priority-create-sheet.tsx`
         *   `src/app/(dashboard)/configurations/_components/task-priority-edit-sheet.tsx`
         *   `src/hooks/use-task-priority-params.ts`
-        *   `src/app/(dashboard)/configurations/_components/open-task-priority-sheet.tsx`
     *   **Completed:** `src/app/(dashboard)/global-sheet.tsx` has been updated to include `DeliverableStatusCreateSheet`, `DeliverableStatusEditSheet`, `TaskStatusCreateSheet`, `TaskStatusEditSheet`, `TaskPriorityCreateSheet`, and `TaskPriorityEditSheet`.

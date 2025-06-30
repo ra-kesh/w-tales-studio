@@ -1,12 +1,10 @@
+import { and, eq, not } from "drizzle-orm";
 import { NextResponse } from "next/server";
+import { TaskPrioritySchema } from "@/app/(dashboard)/configurations/_components/task-priority-form-schema";
 import { getServerSession } from "@/lib/dal";
 import { db } from "@/lib/db/drizzle";
 import { configurations } from "@/lib/db/schema";
-import { and, eq, not } from "drizzle-orm";
 import { generateKey } from "@/lib/utils";
-import {
-	TaskPriorityFormValues,
-} from "@/app/(dashboard)/configurations/_components/task-priority-form-schema";
 
 export async function PUT(
 	request: Request,
@@ -31,7 +29,7 @@ export async function PUT(
 	const taskPriorityId = Number.parseInt(id, 10);
 	const body = await request.json();
 
-	const validation = TaskPriorityFormValues.safeParse(body);
+	const validation = TaskPrioritySchema.safeParse(body);
 
 	if (!validation.success) {
 		return NextResponse.json(
