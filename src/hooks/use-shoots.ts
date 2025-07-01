@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import type { ShootsResponse } from "@/types/shoots";
 import { useSearchParams } from "next/navigation";
+import type { ShootsResponse } from "@/types/shoots";
 
 export async function fetchShoots(
 	searchParams: URLSearchParams,

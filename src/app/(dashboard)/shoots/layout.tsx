@@ -1,18 +1,18 @@
-import { getServerSession } from "@/lib/dal";
 import {
 	dehydrate,
 	HydrationBoundary,
 	MutationCache,
 	QueryClient,
 } from "@tanstack/react-query";
+import { Suspense } from "react";
+import { getServerSession } from "@/lib/dal";
 import {
+	type BookingStats as BookingStatsType,
 	getMinimalBookings,
 	getShoots,
 	getShootsStats,
 	type ShootStats as ShootsStatsType,
-	type BookingStats as BookingStatsType,
 } from "@/lib/db/queries";
-import { Suspense } from "react";
 import { ShootsStats } from "./_components/shoot-stats";
 
 const ShootLayout = async ({ children }: { children: React.ReactNode }) => {
@@ -46,7 +46,7 @@ const ShootLayout = async ({ children }: { children: React.ReactNode }) => {
 	});
 
 	await queryClient.prefetchQuery({
-		queryKey: ["bookings", "shoot", "list"],
+		queryKey: ["bookings", "shoot", "list", ""],
 		queryFn: () => getShoots(session?.session.activeOrganizationId as string),
 	});
 
