@@ -1,29 +1,31 @@
 "use client";
 
 import {
+	Suspense,
+	useMemo,
+	unstable_ViewTransition as ViewTransition,
+} from "react";
+import { DataTableSkeleton } from "@/components/data-table/data-table-skeleton";
+import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
+import {
 	ResizableHandle,
 	ResizablePanel,
 	ResizablePanelGroup,
 } from "@/components/ui/resizable";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useBookingTable } from "@/hooks/use-booking-table";
-import { useBookingListColumns } from "./_components/booking-list-columns";
-import { BookingListPagination } from "./_components/booking-list-pagination";
-import {
-	Suspense,
-	unstable_ViewTransition as ViewTransition,
-	useMemo,
-} from "react";
 import { useBookings } from "@/hooks/use-bookings";
 import { BookingTable } from "../../_components/booking-table/booking-table";
-import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
-import { DataTableSkeleton } from "@/components/data-table/data-table-skeleton";
+import { useBookingListColumns } from "./_components/booking-list-columns";
+import { BookingListPagination } from "./_components/booking-list-pagination";
 
 const BookingDetailLayout = ({ children }: { children: React.ReactNode }) => {
+	const { data, isPending } = useBookings();
+
 	const columns = useBookingListColumns();
-	const { data, isLoading } = useBookings();
 
 	const defaultData = useMemo(() => [], []);
+
 	const { table } = useBookingTable({
 		data: data?.data ?? defaultData,
 		pageCount: data?.pageCount ?? 0,
@@ -49,7 +51,7 @@ const BookingDetailLayout = ({ children }: { children: React.ReactNode }) => {
 						<ResizablePanel defaultSize={30} minSize={28}>
 							<div className="py-6">
 								<DataTableToolbar table={table} className="my-2" />
-								{isLoading ? (
+								{isPending ? (
 									<DataTableSkeleton
 										columnCount={1}
 										filterCount={0}
