@@ -1,21 +1,21 @@
-import { getServerSession } from "@/lib/dal";
 import {
 	dehydrate,
 	HydrationBoundary,
 	MutationCache,
 	QueryClient,
 } from "@tanstack/react-query";
+import { Suspense } from "react";
+import { getServerSession } from "@/lib/dal";
 import {
+	type BookingStats as BookingStatsType,
+	type ExpenseStats as ExpenseStatsType,
+	getConfigs,
+	getExpenseStats,
+	getExpenses,
 	getMinimalBookings,
 	getShoots,
 	getShootsStats,
-	type ExpenseStats as ExpenseStatsType,
-	type BookingStats as BookingStatsType,
-	getExpenses,
-	getExpenseStats,
-	getConfigs,
 } from "@/lib/db/queries";
-import { Suspense } from "react";
 import { ExpensesStats } from "./_components/expense-stats";
 
 const ExpenseLayout = async ({ children }: { children: React.ReactNode }) => {
@@ -49,7 +49,7 @@ const ExpenseLayout = async ({ children }: { children: React.ReactNode }) => {
 	});
 
 	await queryClient.prefetchQuery({
-		queryKey: ["expenses"],
+		queryKey: ["expenses", ""],
 		queryFn: () => getExpenses(session?.session.activeOrganizationId as string),
 	});
 

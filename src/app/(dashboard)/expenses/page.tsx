@@ -1,19 +1,19 @@
 "use client";
 
-import { useExpenses } from "@/hooks/use-expenses";
-import { useExpenseColumns } from "./_components/expense-table-columns";
-import { ExpenseTable } from "./_components/expense-table";
 import React from "react";
+import { DataTableSkeleton } from "@/components/data-table/data-table-skeleton";
+import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
 import { useBookingTable } from "@/hooks/use-booking-table";
 import { useMinimalBookings } from "@/hooks/use-bookings";
-import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
-import { OpenExpenseSheet } from "./_components/open-expense-sheet";
-import { DataTableSkeleton } from "@/components/data-table/data-table-skeleton";
-import { ExpenseTablePagination } from "./_components/expense-table-pagination";
 import { useConfigs } from "@/hooks/use-configs";
+import { useExpenses } from "@/hooks/use-expenses";
+import { ExpenseTable } from "./_components/expense-table";
+import { useExpenseColumns } from "./_components/expense-table-columns";
+import { ExpenseTablePagination } from "./_components/expense-table-pagination";
+import { OpenExpenseSheet } from "./_components/open-expense-sheet";
 
 export default function Expenses() {
-	const { data, isLoading } = useExpenses();
+	const { data, isPending } = useExpenses();
 
 	const {
 		data: minimalBookingsResponse,
@@ -53,7 +53,7 @@ export default function Expenses() {
 					<OpenExpenseSheet />
 				</DataTableToolbar>
 			)}
-			{isLoading ? (
+			{isPending ? (
 				<DataTableSkeleton
 					columnCount={4}
 					filterCount={0}

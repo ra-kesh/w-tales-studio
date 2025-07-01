@@ -1,32 +1,33 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { Checkbox } from "@/components/ui/checkbox";
-import type { Expense } from "@/lib/db/schema";
-import { ExpenseTableRowActions } from "./expense-table-row-actions";
 import { format } from "date-fns";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
-	FileIcon,
-	DollarSign,
 	Calendar,
-	Tag,
-	Users,
-	FileText,
-	TextIcon,
-	CameraIcon,
 	CalendarIcon,
+	CameraIcon,
 	CircleDashed,
+	DollarSign,
+	FileIcon,
+	FileText,
+	Tag,
+	TextIcon,
+	Users,
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import type { Expense } from "@/lib/db/schema";
 import { DataTableColumnHeader } from "../../tasks/_components/task-table-column-header";
+import { ExpenseTableRowActions } from "./expense-table-row-actions";
 
 export const useExpenseColumns = ({
 	categoryOptions,
 	minimalBookings,
 	isMininmalBookingLoading,
 }: {
+	categoryOptions: Array<{ label: string; value: string }>;
 	minimalBookings: Array<{ id: string | number; name: string }>;
 	isMininmalBookingLoading: boolean;
 }) => {
