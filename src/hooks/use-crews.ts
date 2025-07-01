@@ -1,6 +1,6 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import type { Crew } from "@/lib/db/schema";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import type { Crew } from "@/lib/db/schema";
 
 interface CrewsResponse {
 	data: (Crew & {
@@ -55,7 +55,7 @@ export function useCrews(page?: number, limit?: number) {
 	return useQuery({
 		queryKey: ["crews", { page, limit }],
 		queryFn: () => fetchCrews(page, limit),
-		placeholderData: { data: [], total: 0, page: 1, limit: 10 },
+		// placeholderData: { data: [], total: 0, page: 1, limit: 10 },
 	});
 }
 
