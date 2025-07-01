@@ -1,17 +1,17 @@
-import { getServerSession } from "@/lib/dal";
-import { BookingStats } from "./_components/booking-stats";
 import {
 	dehydrate,
 	HydrationBoundary,
 	QueryClient,
 } from "@tanstack/react-query";
+import { Suspense } from "react";
+import { getServerSession } from "@/lib/dal";
 import {
+	type BookingStats as BookingStatsType,
 	getBookings,
 	getBookingsStats,
 	getConfigs,
-	type BookingStats as BookingStatsType,
 } from "@/lib/db/queries";
-import { Suspense } from "react";
+import { BookingStats } from "./_components/booking-stats";
 
 const BookingLayout = async ({ children }: { children: React.ReactNode }) => {
 	const { session } = await getServerSession();
@@ -38,7 +38,7 @@ const BookingLayout = async ({ children }: { children: React.ReactNode }) => {
 
 	if (userOrganizationId) {
 		await queryClient.prefetchQuery({
-			queryKey: ["bookings", "list"],
+			queryKey: ["bookings", "list", ""],
 			queryFn: () => getBookings(userOrganizationId),
 		});
 
