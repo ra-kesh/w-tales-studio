@@ -16,6 +16,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useBookingTable } from "@/hooks/use-booking-table";
 import { useBookings } from "@/hooks/use-bookings";
 import { BookingTable } from "../../_components/booking-table/booking-table";
+import { BookingDetailsSkeleton } from "./_components/booking-details-skeleton";
 import { useBookingListColumns } from "./_components/booking-list-columns";
 import { BookingListPagination } from "./_components/booking-list-pagination";
 
@@ -67,7 +68,9 @@ const BookingDetailLayout = ({ children }: { children: React.ReactNode }) => {
 						</ResizablePanel>
 						<ResizableHandle withHandle />
 						<ResizablePanel defaultSize={70} minSize={65}>
-							<Suspense fallback={<div>Loading...</div>}>{children}</Suspense>
+							<Suspense fallback={<BookingDetailsSkeleton />}>
+								{children}
+							</Suspense>
 						</ResizablePanel>
 					</ResizablePanelGroup>
 				</TooltipProvider>

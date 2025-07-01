@@ -1,30 +1,31 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { CheckSquare, Camera, Image, Edit, Info, XIcon } from "lucide-react";
+import { Camera, CheckSquare, Edit, Image, Info, XIcon } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { BookingOverview } from "./booking-overview";
-import { BookingShoots } from "./booking-shoots";
-import { BookingDeliverables } from "./booking-deliverables";
-import { BookingTasks } from "./booking-tasks";
+import { useEffect, useRef, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useBookingDetail } from "@/hooks/use-bookings";
 import {
 	CustomTabsContent,
 	CustomTabsList,
 	CustomTabsTrigger,
 	Tabs,
 } from "@/components/ui/tabs";
-import Link from "next/link";
+import { useBookingDetail } from "@/hooks/use-bookings";
+import { BookingDeliverables } from "./booking-deliverables";
+import { BookingDetailsSkeleton } from "./booking-details-skeleton";
+import { BookingOverview } from "./booking-overview";
+import { BookingShoots } from "./booking-shoots";
+import { BookingTasks } from "./booking-tasks";
 
 export function BookingDetails({ id }: { id: string }) {
 	const headerRef = useRef<HTMLDivElement>(null);
 	const [headerHeight, setHeaderHeight] = useState(0);
 	const router = useRouter();
 
-	const { data: booking, isLoading } = useBookingDetail(id);
+	const { data: booking, isPending } = useBookingDetail(id);
 
 	// This effect is crucial for the layout to work.
 	useEffect(() => {
@@ -43,12 +44,8 @@ export function BookingDetails({ id }: { id: string }) {
 	const handleClose = () => router.push("/bookings");
 	const handleEdit = () => router.push(`/bookings/edit/${id}`);
 
-	if (isLoading || !booking) {
-		return (
-			<div className="flex h-full flex-1 items-center justify-center">
-				<div>Loading...</div>
-			</div>
-		);
+	if (isPending || !booking) {
+		return <BookingDetailsSkeleton />;
 	}
 
 	return (
@@ -70,9 +67,9 @@ export function BookingDetails({ id }: { id: string }) {
 								variant={"link"}
 								type="button"
 								className="font-semibold cursor-pointer"
-								onClick={router.back}
+								onClick={handleClose}
 							>
-								Back
+								Close
 							</Button>
 
 							<Link
@@ -95,30 +92,14 @@ export function BookingDetails({ id }: { id: string }) {
 					{/* Client Details Grid */}
 					<div className="rounded-lg bg-muted/40 w-full">
 						<div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-3 p-4">
-							{/* <div className="space-y-1">
+							<div className="space-y-1">
 								<p className="text-xs font-medium text-muted-foreground">
-									Bride Name
+									Booking Type
 								</p>
 								<p className="text-sm font-medium">
-									{booking.clients.brideName || "Not specified"}
+									{booking.bookingTypeValue}
 								</p>
-							</div> */}
-							{/* <div className="space-y-1">
-								<p className="text-xs font-medium text-muted-foreground">
-									Groom Name
-								</p>
-								<p className="text-sm font-medium">
-									{booking.clients.groomName || "Not specified"}
-								</p>
-							</div> */}
-							{/* <div className="space-y-1">
-								<p className="text-xs font-medium text-muted-foreground">
-									Email address
-								</p>
-								<p className="text-sm font-medium">
-									{booking.clients.email || "Not provided"}
-								</p>
-							</div> */}
+							</div>
 							<div className="space-y-1">
 								<p className="text-xs font-medium text-muted-foreground">
 									Package Type
@@ -135,14 +116,6 @@ export function BookingDetails({ id }: { id: string }) {
 									₹{Number(booking.packageCost).toLocaleString()}
 								</p>
 							</div>
-							{/* <div className="space-y-1">
-								<p className="text-xs font-medium text-muted-foreground">
-									Phone number
-								</p>
-								<p className="text-sm font-medium">
-									{booking.clients.phoneNumber || "Not provided"}
-								</p>
-							</div> */}
 						</div>
 					</div>
 				</div>
