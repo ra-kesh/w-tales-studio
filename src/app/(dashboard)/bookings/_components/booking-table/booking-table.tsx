@@ -1,23 +1,20 @@
 "use client";
 
-import * as React from "react";
 import { type ColumnDef, flexRender, type Table } from "@tanstack/react-table";
-
+import { format } from "date-fns";
+import { Calendar, Clock, MapPin } from "lucide-react";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
+import * as React from "react";
+import { Badge } from "@/components/ui/badge";
 import {
-	Table as UITable,
 	TableBody,
 	TableCell,
 	TableHead,
 	TableHeader,
 	TableRow,
+	Table as UITable,
 } from "@/components/ui/table";
-
-import { useParams, useRouter, useSearchParams } from "next/navigation";
 import type { Booking, Shoot } from "@/lib/db/schema";
-import { format } from "date-fns";
-import { Clock, MapPin } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface BookingTableProps extends React.ComponentProps<"div"> {
@@ -38,10 +35,8 @@ export function BookingTable({
 	const currentBookingId = params?.id;
 
 	const handleRowClick = (id: number) => {
-		router.prefetch(`/bookings/${id}`);
-		currentBookingId
-			? router.push(`/bookings/${id}?${searchParams.toString()}`)
-			: router.push(`/bookings/${id}`);
+		router.prefetch(`/bookings/${id}?${searchParams.toString() ?? null}`);
+		router.push(`/bookings/${id}?${searchParams.toString()}`);
 	};
 
 	return (
