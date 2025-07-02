@@ -1,17 +1,15 @@
 "use client";
 
-import React, { use } from "react";
+import React from "react";
+import NewBookingButton from "@/components/button/new-booking";
+import { DataTableSkeleton } from "@/components/data-table/data-table-skeleton";
+import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
+import { useBookingTable } from "@/hooks/use-booking-table";
+import { useBookings } from "@/hooks/use-bookings";
+import { usePackageTypes } from "@/hooks/use-configs";
 import { BookingTable } from "../_components/booking-table/booking-table";
 import { useBookingColumns } from "../_components/booking-table/booking-table-columns";
-import { useBookingTable } from "@/hooks/use-booking-table";
-
-import { useBookings } from "@/hooks/use-bookings";
-import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { DataTableSkeleton } from "@/components/data-table/data-table-skeleton";
 import { BookingTablePagination } from "../_components/booking-table/booking-table-pagination";
-import { usePackageTypes } from "@/hooks/use-configs";
 
 type Params = Promise<{ slug: string }>;
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
@@ -20,12 +18,12 @@ export default function Bookings(props: {
 	params: Params;
 	searchParams: SearchParams;
 }) {
-	const { data: packageTypes, isLoading: isPackageTypesLoading } =
+	const { data, isPending } = useBookings();
+
+	const { data: packageTypes, isPending: isPackageTypesLoading } =
 		usePackageTypes();
 
 	const columns = useBookingColumns({ packageTypes, isPackageTypesLoading });
-
-	const { data, isLoading } = useBookings();
 
 	const defaultData = React.useMemo(() => [], []);
 
@@ -45,22 +43,9 @@ export default function Bookings(props: {
 	return (
 		<div className="flex-1 min-w-0 py-6">
 			<DataTableToolbar table={table} className="my-2">
-				<Link
-					href={{
-						pathname: "/bookings/add",
-						query: { tab: "details" },
-					}}
-					prefetch={true}
-				>
-					<Button
-						size="sm"
-						className="bg-indigo-600  font-semibold text-white  hover:bg-indigo-500 cursor-pointer"
-					>
-						New Booking
-					</Button>
-				</Link>
+				<NewBookingButton />
 			</DataTableToolbar>
-			{isLoading ? (
+			{isPending ? (
 				<DataTableSkeleton
 					columnCount={7}
 					filterCount={0}

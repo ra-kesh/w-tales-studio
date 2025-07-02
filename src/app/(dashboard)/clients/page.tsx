@@ -1,17 +1,17 @@
 "use client";
 
-import { useClients } from "@/hooks/use-clients";
-import { useClientColumns } from "./_components/client-table-columns";
-import { ClientTable } from "./_components/client-table";
 import React from "react";
-import { useBookingTable } from "@/hooks/use-booking-table";
-import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
 import { DataTableSkeleton } from "@/components/data-table/data-table-skeleton";
-import { ClientTablePagination } from "./_components/client-table-pagination";
+import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
+import { useBookingTable } from "@/hooks/use-booking-table";
+import { useClients } from "@/hooks/use-clients";
 import type { ClientBookingRow } from "@/lib/db/queries";
+import { ClientTable } from "./_components/client-table";
+import { useClientColumns } from "./_components/client-table-columns";
+import { ClientTablePagination } from "./_components/client-table-pagination";
 
 export default function Clients() {
-	const { data, isLoading } = useClients();
+	const { data, isPending } = useClients();
 
 	const columns = useClientColumns();
 	const defaultData = React.useMemo<ClientBookingRow[]>(() => [], []);
@@ -32,7 +32,7 @@ export default function Clients() {
 	return (
 		<div className="flex-1 min-w-0 py-6">
 			<DataTableToolbar table={table} className="my-2" />
-			{isLoading ? (
+			{isPending ? (
 				<DataTableSkeleton
 					columnCount={7}
 					filterCount={0}

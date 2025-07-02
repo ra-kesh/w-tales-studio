@@ -1,17 +1,17 @@
-import { getServerSession } from "@/lib/dal";
 import {
 	dehydrate,
 	HydrationBoundary,
 	MutationCache,
 	QueryClient,
 } from "@tanstack/react-query";
+import { Suspense } from "react";
+import { getServerSession } from "@/lib/dal";
 import {
-	getMinimalBookings,
 	type ClientStats as ClientStatsType,
 	getClientStats,
 	getClients,
+	getMinimalBookings,
 } from "@/lib/db/queries";
-import { Suspense } from "react";
 import { ClientsStats } from "./_components/client-stats";
 
 const ClientLayout = async ({ children }: { children: React.ReactNode }) => {
@@ -45,7 +45,7 @@ const ClientLayout = async ({ children }: { children: React.ReactNode }) => {
 	});
 
 	await queryClient.prefetchQuery({
-		queryKey: ["clients"],
+		queryKey: ["clients", ""],
 		queryFn: () => getClients(session?.session.activeOrganizationId as string),
 	});
 

@@ -1,10 +1,10 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { Checkbox } from "@/components/ui/checkbox";
-import type { ReceivedPaymentRow } from "@/types/payments";
-import { formatCurrency, formatDate } from "@/lib/utils";
 import { Book } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { formatCurrency, formatDate } from "@/lib/utils";
+import type { ReceivedPaymentRow } from "@/types/payments";
 import { DataTableColumnHeader } from "../../tasks/_components/task-table-column-header";
 
 export const useReceivedPaymentsColumns = () => {
@@ -14,12 +14,7 @@ export const useReceivedPaymentsColumns = () => {
 			header: ({ table }) => <Checkbox /* ... */ />,
 			cell: ({ row }) => <Checkbox /* ... */ />,
 		},
-		{
-			accessorKey: "description",
-			header: ({ column }) => (
-				<DataTableColumnHeader column={column} title="Description" />
-			),
-		},
+
 		{
 			accessorKey: "amount",
 			header: ({ column }) => (
@@ -32,7 +27,7 @@ export const useReceivedPaymentsColumns = () => {
 			header: ({ column }) => (
 				<DataTableColumnHeader column={column} title="Date Paid" />
 			),
-			cell: ({ row }) => formatDate(row.original.paidOn),
+			cell: ({ row }) => formatDate(row.original.paidOn ?? ""),
 		},
 		{
 			accessorKey: "booking",
@@ -44,6 +39,13 @@ export const useReceivedPaymentsColumns = () => {
 				icon: Book,
 			},
 			enableColumnFilter: true,
+		},
+		{
+			accessorKey: "description",
+			header: ({ column }) => (
+				<DataTableColumnHeader column={column} title="Description" />
+			),
+			cell: ({ row }) => row.original.description ?? "N/a",
 		},
 		// Add actions column here if needed
 	];

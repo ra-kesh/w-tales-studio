@@ -1,9 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
-import type { Task } from "@/lib/db/schema";
 import { useSearchParams } from "next/navigation";
+import type { Task } from "@/lib/db/schema";
+import type { TaskWithRelations } from "@/types/task";
 
 interface TasksResponse {
-	data: Task[];
+	data: TaskWithRelations[];
 	total: number;
 	pageCount: number;
 	limit: number;
