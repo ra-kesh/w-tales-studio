@@ -19,11 +19,11 @@ export default async function CrewsPage() {
 
 	return (
 		<div className="h-full flex-1 flex flex-col p-6">
-			<Suspense fallback={<div>Loading...</div>}>
-				<HydrationBoundary state={dehydrate(queryClient)}>
-					<Crews />
-				</HydrationBoundary>
-			</Suspense>
+			{/* <Suspense fallback={<div>Loading...</div>}> */}
+			<HydrationBoundary state={dehydrate(queryClient)}>
+				<Crews />
+			</HydrationBoundary>
+			{/* </Suspense> */}
 		</div>
 	);
 }
