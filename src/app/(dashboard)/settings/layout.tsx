@@ -6,7 +6,6 @@ import { Suspense } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { SimpleTabsList, SimpleTabsTrigger } from "@/components/ui/tabs";
 import { authClient, useSession } from "@/lib/auth/auth-client";
-import { getServerSession } from "@/lib/dal";
 import { cn } from "@/lib/utils";
 
 interface SettingsLayoutProps {
