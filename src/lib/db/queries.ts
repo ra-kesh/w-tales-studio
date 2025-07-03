@@ -3197,13 +3197,12 @@ interface DashboardParams {
 	operationsInterval: string;
 }
 
-// MODIFIED: getDashboardData now uses the central filter
 export async function getDashboardData(params: DashboardParams) {
 	const { organizationId, interval, operationsInterval } = params;
 
-	console.log({ operationsInterval });
+	// console.log({ operationsInterval });
 
-	console.log({ organizationId, interval });
+	// console.log({ organizationId, interval });
 
 	const [kpis, bookingAnalytics, expenseAnalytics, actionItems, operations] =
 		await Promise.all([
