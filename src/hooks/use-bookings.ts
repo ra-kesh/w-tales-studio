@@ -1,13 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
-import type { Booking, Shoot } from "@/lib/db/schema";
+import { useSearchParams } from "next/navigation";
+import { useMemo } from "react";
 import type {
 	BookingFormValues,
 	Participant,
 } from "@/app/(dashboard)/bookings/_components/booking-form/booking-form-schema";
 import type { BookingStats } from "@/lib/db/queries";
-import { useSearchParams } from "next/navigation";
+import type { Booking, Shoot } from "@/lib/db/schema";
 import type { BookingDetail } from "@/types/booking";
-import { useMemo } from "react";
 
 interface BookingResponse {
 	data: (Booking & { shoots: Shoot[] })[];
@@ -93,20 +93,6 @@ export function useBookingDetail(id: string) {
 		enabled: !!id,
 	});
 }
-
-// export function useBookingFormData(bookingId: string) {
-// 	const { data: booking, isLoading, error } = useBookingDetail(bookingId);
-
-// 	const formattedData = booking
-// 		? transformBookingToFormData(booking)
-// 		: undefined;
-
-// 	return {
-// 		data: formattedData,
-// 		isLoading,
-// 		error,
-// 	};
-// }
 
 export function useBookingFormData(bookingId: string) {
 	const { data: booking, isLoading, error } = useBookingDetail(bookingId);

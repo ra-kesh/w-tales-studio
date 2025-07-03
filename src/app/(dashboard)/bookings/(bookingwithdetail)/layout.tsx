@@ -3,7 +3,6 @@ import {
 	HydrationBoundary,
 	QueryClient,
 } from "@tanstack/react-query";
-import { Suspense } from "react";
 import { getServerSession } from "@/lib/dal";
 import {
 	type BookingStats as BookingStatsType,
@@ -50,14 +49,12 @@ const BookingLayout = async ({ children }: { children: React.ReactNode }) => {
 
 	return (
 		<div>
-			{/* <Suspense fallback={<div>Loading...</div>}> */}
 			<BookingStats stats={bookingsStats} />
 			<HydrationBoundary state={dehydrate(queryClient)}>
 				<div className="flex flex-col  mx-auto  px-4  sm:px-6 lg:px-8 lg:mx-0 lg:max-w-none">
 					{children}
 				</div>
 			</HydrationBoundary>
-			{/* </Suspense> */}
 		</div>
 	);
 };

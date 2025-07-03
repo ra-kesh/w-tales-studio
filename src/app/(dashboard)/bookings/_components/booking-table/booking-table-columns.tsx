@@ -89,7 +89,15 @@ export const useBookingColumns = ({
 				<DataTableColumnHeader column={column} title="Package" />
 			),
 			cell: ({ row }) => {
-				return <span className="text-md ">{row.original.packageType}</span>;
+				return (
+					<span className="text-md ">
+						{
+							packageTypes?.find(
+								(packageType) => packageType.value === row.original.packageType,
+							)?.label
+						}
+					</span>
+				);
 			},
 			meta: {
 				label: "Package",
