@@ -5,6 +5,7 @@ import { DataTableSkeleton } from "@/components/data-table/data-table-skeleton";
 import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
 import { useBookingTable } from "@/hooks/use-booking-table";
 import { useClients } from "@/hooks/use-clients";
+import { usePackageTypes } from "@/hooks/use-configs";
 import type { ClientBookingRow } from "@/lib/db/queries";
 import { ClientTable } from "./_components/client-table";
 import { useClientColumns } from "./_components/client-table-columns";
@@ -13,7 +14,10 @@ import { ClientTablePagination } from "./_components/client-table-pagination";
 export default function Clients() {
 	const { data, isPending } = useClients();
 
-	const columns = useClientColumns();
+	const { data: packageTypes, isPending: isPackageTypesLoading } =
+		usePackageTypes();
+
+	const columns = useClientColumns({ packageTypes, isPackageTypesLoading });
 	const defaultData = React.useMemo<ClientBookingRow[]>(() => [], []);
 
 	const { table } = useBookingTable<ClientBookingRow>({

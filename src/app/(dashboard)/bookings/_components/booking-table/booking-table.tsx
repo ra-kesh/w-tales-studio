@@ -16,10 +16,13 @@ import {
 } from "@/components/ui/table";
 import type { Booking, Shoot } from "@/lib/db/schema";
 import { cn } from "@/lib/utils";
+import type { Participant } from "../booking-form/booking-form-schema";
 
 interface BookingTableProps extends React.ComponentProps<"div"> {
-	table: Table<Booking & { shoots: Shoot[] }>;
-	columns: ColumnDef<Booking & { shoots: Shoot[] }>[];
+	table: Table<Booking & { shoots: Shoot[]; participants: Participant[] }>;
+	columns: ColumnDef<
+		Booking & { shoots: Shoot[]; participants: Participant[] }
+	>[];
 }
 
 export function BookingTable({
