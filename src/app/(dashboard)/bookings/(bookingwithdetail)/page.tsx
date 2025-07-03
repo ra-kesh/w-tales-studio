@@ -1,5 +1,6 @@
 "use client";
 
+import { da } from "date-fns/locale";
 import React from "react";
 import NewBookingButton from "@/components/button/new-booking";
 import { DataTableSkeleton } from "@/components/data-table/data-table-skeleton";

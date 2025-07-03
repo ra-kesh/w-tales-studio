@@ -10,7 +10,7 @@ import type { Booking, Shoot } from "@/lib/db/schema";
 import type { BookingDetail } from "@/types/booking";
 
 interface BookingResponse {
-	data: (Booking & { shoots: Shoot[] })[];
+	data: (Booking & { shoots: Shoot[]; participants: Participant[] })[];
 	total: number;
 	pageCount: number;
 	stats: BookingStats;
@@ -160,51 +160,3 @@ export function transformBookingToFormData(
 		})),
 	};
 }
-
-// export function transformBookingToFormData(
-// 	booking: BookingDetail,
-// ): BookingFormValues {
-// 	return {
-// 		bookingName: booking.name,
-// 		bookingType: booking.bookingType,
-// 		packageType: booking.packageType,
-// 		packageCost: booking.packageCost,
-// 		clientName: booking.clients.name,
-// 		brideName: booking.clients.brideName,
-// 		groomName: booking.clients.groomName,
-// 		relation: booking.clients.relation,
-// 		phone: booking.clients.phoneNumber,
-// 		email: booking.clients.email as string,
-// 		address: booking.clients.address,
-// 		note: booking.note ?? "",
-
-// 		shoots: booking.shoots.map((shoot) => ({
-// 			title: shoot.title ?? "",
-// 			date: shoot.date ?? "",
-// 			time: shoot.time ?? "",
-// 			location: (shoot.location as string) ?? "",
-// 			crews: shoot.shootsAssignments?.map((assignment) =>
-// 				assignment.crew.id.toString(),
-// 			),
-// 		})),
-
-// 		deliverables: booking.deliverables.map((item) => ({
-// 			title: item.title ?? "",
-// 			cost: item.cost || "0.00",
-// 			quantity: item.quantity.toString() ?? "",
-// 			dueDate: (item.dueDate as string) ?? "",
-// 		})),
-
-// 		payments: booking.receivedAmounts.map((payment) => ({
-// 			amount: payment.amount,
-// 			description: (payment.description as string) ?? "",
-// 			date: (payment.paidOn as string) ?? "",
-// 		})),
-
-// 		scheduledPayments: booking.paymentSchedules.map((schedule) => ({
-// 			amount: schedule.amount ?? "",
-// 			description: (schedule.description as string) ?? "",
-// 			dueDate: (schedule.dueDate as string) ?? "",
-// 		})),
-// 	};
-// }
