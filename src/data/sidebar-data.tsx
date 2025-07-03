@@ -8,6 +8,7 @@ import {
 	Frame,
 	GalleryVerticalEnd,
 	HelpCircleIcon,
+	Home,
 	LayoutDashboardIcon,
 	PieChart,
 	SearchIcon,
@@ -16,9 +17,8 @@ import {
 	SettingsIcon,
 	SquareTerminal,
 	UsersIcon,
-	Home,
-	WalletIcon,
 	Wallet2Icon,
+	WalletIcon,
 } from "lucide-react";
 
 export const sidebarData = {
@@ -44,19 +44,19 @@ export const sidebarData = {
 			title: "Home",
 			url: "/home",
 			icon: Home,
-			isActive: true,
+			// isActive: true,
 		},
 		{
 			title: "Dashboard",
 			url: "/dashboard",
 			icon: LayoutDashboardIcon,
-			isActive: true,
+			// isActive: true,
 		},
 		{
 			title: "Bookings",
 			url: "/bookings",
 			icon: CameraIcon,
-			isActive: true,
+			// isActive: true,
 			items: [
 				{
 					title: "Shoots",
@@ -85,19 +85,19 @@ export const sidebarData = {
 			title: "Payments",
 			url: "/payments",
 			icon: Wallet2Icon,
-			isActive: true,
+			// isActive: true,
 		},
 		{
 			title: "Crews",
 			url: "/crews",
 			icon: UsersIcon,
-			isActive: true,
+			// isActive: true,
 		},
 		{
 			title: "Configurations",
 			url: "/configurations",
 			icon: Settings2Icon,
-			isActive: true,
+			// isActive: true,
 		},
 	],
 	navSecondary: [
