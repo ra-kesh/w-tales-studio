@@ -1,14 +1,23 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { Checkbox } from "@/components/ui/checkbox";
-import { ClientTableRowActions } from "./client-table-row-actions";
-import { formatCurrency } from "@/lib/utils";
-import type { ClientBookingRow } from "@/lib/db/queries";
-import { DataTableColumnHeader } from "../../tasks/_components/task-table-column-header";
 import { TextIcon } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import type { ClientBookingRow } from "@/lib/db/queries";
+import { formatCurrency } from "@/lib/utils";
+import type { PackageMetadata } from "../../configurations/packages/_components/package-form-schema";
+import { DataTableColumnHeader } from "../../tasks/_components/task-table-column-header";
+import { ClientTableRowActions } from "./client-table-row-actions";
 
-export const useClientColumns = () => {
+export const useClientColumns = ({
+	packageTypes,
+	isPackageTypesLoading,
+}: {
+	packageTypes:
+		| { id: number; value: string; label: string; metadata: PackageMetadata }[]
+		| undefined;
+	isPackageTypesLoading: boolean;
+}) => {
 	const columns: ColumnDef<ClientBookingRow>[] = [
 		{
 			id: "select",
@@ -61,7 +70,13 @@ export const useClientColumns = () => {
 			accessorKey: "packageType",
 			header: "Package Type",
 			cell: ({ row }) => (
-				<div className="capitalize">{row.getValue("packageType")}</div>
+				<span className="text-md ">
+					{
+						packageTypes?.find(
+							(packageType) => packageType.value === row.original.packageType,
+						)?.label
+					}
+				</span>
 			),
 		},
 

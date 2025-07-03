@@ -3,11 +3,10 @@ import {
 	HydrationBoundary,
 	QueryClient,
 } from "@tanstack/react-query";
-import { Crews } from "./crews";
-import { getServerSession } from "@/lib/dal";
 import { Suspense } from "react";
-
+import { getServerSession } from "@/lib/dal";
 import { getCrews } from "@/lib/db/queries";
+import { Crews } from "./crews";
 
 export default async function CrewsPage() {
 	const { session } = await getServerSession();
@@ -20,11 +19,11 @@ export default async function CrewsPage() {
 
 	return (
 		<div className="h-full flex-1 flex flex-col p-6">
-			<Suspense fallback={<div>Loading...</div>}>
-				<HydrationBoundary state={dehydrate(queryClient)}>
-					<Crews />
-				</HydrationBoundary>
-			</Suspense>
+			{/* <Suspense fallback={<div>Loading...</div>}> */}
+			<HydrationBoundary state={dehydrate(queryClient)}>
+				<Crews />
+			</HydrationBoundary>
+			{/* </Suspense> */}
 		</div>
 	);
 }

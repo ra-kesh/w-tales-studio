@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import type { PackageMetadata } from "@/app/(dashboard)/configurations/packages/_components/package-form-schema";
 import { DataTableColumnHeader } from "@/app/(dashboard)/tasks/_components/task-table-column-header";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -24,6 +25,7 @@ import {
 } from "@/components/ui/tooltip";
 import type { Booking, Client, Shoot } from "@/lib/db/schema";
 import { cn, formatDate } from "@/lib/utils";
+import type { Participant } from "../booking-form/booking-form-schema";
 import { BookingTableRowActions } from "./booking-table-row-actions";
 
 export const useBookingColumns = ({
@@ -35,7 +37,9 @@ export const useBookingColumns = ({
 		| undefined;
 	isPackageTypesLoading: boolean;
 }) => {
-	const columns: ColumnDef<Booking & { shoots: Shoot[] }>[] = [
+	const columns: ColumnDef<
+		Booking & { shoots: Shoot[]; participants: Participant[] }
+	>[] = [
 		{
 			id: "select",
 			header: ({ table }) => (
@@ -89,7 +93,15 @@ export const useBookingColumns = ({
 				<DataTableColumnHeader column={column} title="Package" />
 			),
 			cell: ({ row }) => {
-				return <span className="text-md ">{row.original.packageType}</span>;
+				return (
+					<span className="text-md ">
+						{
+							packageTypes?.find(
+								(packageType) => packageType.value === row.original.packageType,
+							)?.label
+						}
+					</span>
+				);
 			},
 			meta: {
 				label: "Package",
@@ -194,60 +206,68 @@ export const useBookingColumns = ({
 			),
 			cell: ({ cell }) => formatDate(cell.getValue<Date>()),
 			meta: {
-				label: "Created At",
+				label: "Created",
 				variant: "dateRange",
 				icon: CalendarIcon,
 			},
 			enableColumnFilter: true,
 		},
+
 		{
-			accessorKey: "clients",
-			header: () => (
-				<div className="flex items-center gap-1">
-					<Users className="h-4 w-4" />
-					<span>Contact</span>
-				</div>
+			id: "participants",
+			accessorKey: "participants",
+			header: ({ column }) => (
+				<DataTableColumnHeader column={column} title="Clients" />
 			),
 			cell: ({ row }) => {
-				const clients = row.getValue("clients") as Client;
-				if (!clients)
-					return <div className="text-muted-foreground">No contact info</div>;
+				const participants =
+					(row.getValue("participants") as Participant[]) || [];
+
+				if (!participants.length) {
+					return <div className="text-muted-foreground">No participants</div>;
+				}
+
+				// 1) define your display priority
+
+				// only show up to 2 badges inline
+				const MAX_VISIBLE = 2;
+				const visible = participants.slice(0, MAX_VISIBLE);
+				const hiddenCount = participants.length - visible.length;
 
 				return (
-					<div className="space-y-1">
-						<TooltipProvider>
-							<Tooltip>
-								<TooltipTrigger asChild>
-									<div className="flex items-center gap-1.5 text-sm">
-										<Phone className="h-3.5 w-3.5 text-muted-foreground" />
-										<span className="font-medium tabular-nums">
-											{clients.phoneNumber || "N/A"}
-										</span>
-									</div>
-								</TooltipTrigger>
-								<TooltipContent side="top">
-									<p>Call client</p>
-								</TooltipContent>
-							</Tooltip>
-						</TooltipProvider>
+					<div className="flex flex-wrap items-center gap-1">
+						{visible.map(({ id, role, client }) => (
+							<Badge key={id} variant="secondary" className="capitalize">
+								{client.name}
+							</Badge>
+						))}
 
-						<TooltipProvider>
-							<Tooltip>
-								<TooltipTrigger asChild>
-									<div className="flex items-center gap-1.5 text-xs">
-										<Mail className="h-3 w-3 text-muted-foreground" />
-										<span className="truncate max-w-[180px]">
-											{clients.email || "N/A"}
-										</span>
-									</div>
-								</TooltipTrigger>
-								<TooltipContent side="top">
-									<p>Email client</p>
-								</TooltipContent>
-							</Tooltip>
-						</TooltipProvider>
+						{hiddenCount > 0 && (
+							<TooltipProvider>
+								<Tooltip>
+									<TooltipTrigger asChild>
+										<Badge variant="outline">+{hiddenCount} more</Badge>
+									</TooltipTrigger>
+									<TooltipContent side="top">
+										<div className="space-y-1">
+											{participants.map(({ id, role, client }) => (
+												<div key={id} className="text-sm">
+													{client.name}
+												</div>
+											))}
+										</div>
+									</TooltipContent>
+								</Tooltip>
+							</TooltipProvider>
+						)}
 					</div>
 				);
+			},
+			enableSorting: false,
+			enableColumnFilter: false,
+			meta: {
+				label: "Participants",
+				icon: Users,
 			},
 		},
 		{

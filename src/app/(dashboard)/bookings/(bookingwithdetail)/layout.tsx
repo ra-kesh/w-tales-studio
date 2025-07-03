@@ -1,17 +1,16 @@
-import { getServerSession } from "@/lib/dal";
-import { BookingStats } from "./_components/booking-stats";
 import {
 	dehydrate,
 	HydrationBoundary,
 	QueryClient,
 } from "@tanstack/react-query";
+import { getServerSession } from "@/lib/dal";
 import {
+	type BookingStats as BookingStatsType,
 	getBookings,
 	getBookingsStats,
 	getConfigs,
-	type BookingStats as BookingStatsType,
 } from "@/lib/db/queries";
-import { Suspense } from "react";
+import { BookingStats } from "./_components/booking-stats";
 
 const BookingLayout = async ({ children }: { children: React.ReactNode }) => {
 	const { session } = await getServerSession();
@@ -38,7 +37,7 @@ const BookingLayout = async ({ children }: { children: React.ReactNode }) => {
 
 	if (userOrganizationId) {
 		await queryClient.prefetchQuery({
-			queryKey: ["bookings", "list"],
+			queryKey: ["bookings", "list", ""],
 			queryFn: () => getBookings(userOrganizationId),
 		});
 
@@ -50,14 +49,12 @@ const BookingLayout = async ({ children }: { children: React.ReactNode }) => {
 
 	return (
 		<div>
-			<Suspense fallback={<div>Loading...</div>}>
-				<BookingStats stats={bookingsStats} />
-				<HydrationBoundary state={dehydrate(queryClient)}>
-					<div className="flex flex-col  mx-auto  px-4  sm:px-6 lg:px-8 lg:mx-0 lg:max-w-none">
-						{children}
-					</div>
-				</HydrationBoundary>
-			</Suspense>
+			<BookingStats stats={bookingsStats} />
+			<HydrationBoundary state={dehydrate(queryClient)}>
+				<div className="flex flex-col  mx-auto  px-4  sm:px-6 lg:px-8 lg:mx-0 lg:max-w-none">
+					{children}
+				</div>
+			</HydrationBoundary>
 		</div>
 	);
 };

@@ -1,19 +1,18 @@
 "use client";
 
-import { useShootColumns } from "./_components/shoots-table-columns";
 import React from "react";
-import { ShootTable } from "./_components/shoots-table";
-import { useShoots } from "@/hooks/use-shoots";
+import { DataTableSkeleton } from "@/components/data-table/data-table-skeleton";
+import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
 import { useBookingTable } from "@/hooks/use-booking-table";
 import { useMinimalBookings } from "@/hooks/use-bookings";
-import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
-
+import { useShoots } from "@/hooks/use-shoots";
 import { OpenShootsSheet } from "./_components/open-shoots-sheet";
-import { DataTableSkeleton } from "@/components/data-table/data-table-skeleton";
+import { ShootTable } from "./_components/shoots-table";
+import { useShootColumns } from "./_components/shoots-table-columns";
 import { ShootsTablePagination } from "./_components/shoots-table-pagination";
 
 export default function Shoots() {
-	const { data, isLoading } = useShoots();
+	const { data, isPending } = useShoots();
 
 	const {
 		data: minimalBookingsResponse,
@@ -50,7 +49,7 @@ export default function Shoots() {
 					<OpenShootsSheet />
 				</DataTableToolbar>
 			)}
-			{isLoading ? (
+			{isPending ? (
 				<DataTableSkeleton
 					columnCount={4}
 					filterCount={0}

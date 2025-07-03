@@ -23,9 +23,6 @@ const DashboardLayout = async ({ children }: { children: React.ReactNode }) => {
 		throw redirect("/sign-in");
 	});
 
-	// console.log("deviceSessions", deviceSessions);
-	// console.log("session", session);
-
 	return (
 		<SidebarProvider>
 			<AppSidebar

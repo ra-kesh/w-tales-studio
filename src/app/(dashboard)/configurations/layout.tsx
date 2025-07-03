@@ -45,7 +45,7 @@ const SettingsLayout = ({ children }: SettingsLayoutProps) => {
 						</SimpleTabsTrigger>
 					))}
 				</SimpleTabsList>
-				<Suspense>{children}</Suspense>
+				<Suspense fallback={<div>loading...</div>}>{children}</Suspense>
 			</div>
 		</div>
 	);

@@ -13,18 +13,20 @@ export const dynamic = "force-dynamic";
 export default async function DashboardPage({
 	searchParams,
 }: {
-	searchParams: { interval?: string; operationsInterval?: string };
+	searchParams: Promise<{ interval?: string; operationsInterval?: string }>;
 }) {
 	const { session } = await getServerSession();
 	const userOrganizationId = session?.session.activeOrganizationId;
 	const queryClient = new QueryClient();
 
-	const interval = searchParams.interval || "all";
-	const operationsInterval = searchParams.operationsInterval || "7d";
+	const { interval, operationsInterval } = await searchParams;
+
+	const safeInterval = interval ?? "all";
+	const safeOperationsInterval = operationsInterval ?? "7d";
 
 	const filters = {
-		interval,
-		operationsInterval,
+		interval: safeInterval,
+		operationsInterval: safeOperationsInterval,
 	};
 
 	if (userOrganizationId) {
@@ -35,7 +37,8 @@ export default async function DashboardPage({
 			queryFn: () =>
 				getDashboardData({
 					organizationId: userOrganizationId,
-					...filters,
+					interval: filters.interval,
+					operationsInterval: filters.operationsInterval,
 				}),
 		});
 	}

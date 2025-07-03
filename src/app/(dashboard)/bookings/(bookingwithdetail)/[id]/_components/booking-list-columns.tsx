@@ -1,14 +1,14 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { Checkbox } from "@/components/ui/checkbox";
-import type { Booking } from "@/lib/db/schema";
-import { Badge } from "@/components/ui/badge";
 import { Text } from "lucide-react";
 import { DataTableColumnHeader } from "@/app/(dashboard)/tasks/_components/task-table-column-header";
+import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import type { Booking, Shoot } from "@/lib/db/schema";
 
 export const useBookingListColumns = () => {
-	const columns: ColumnDef<Pick<Booking, "id" | "name" | "bookingType">>[] = [
+	const columns: ColumnDef<Booking & { shoots: Shoot[] }>[] = [
 		{
 			id: "select",
 			header: ({ table }) => (

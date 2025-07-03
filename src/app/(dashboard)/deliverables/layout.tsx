@@ -1,23 +1,25 @@
-import { getServerSession } from "@/lib/dal";
 import {
 	dehydrate,
 	HydrationBoundary,
 	MutationCache,
 	QueryClient,
 } from "@tanstack/react-query";
-import {
-	getMinimalBookings,
-	getDeliverables,
-	type DeliverableStats as DeliverableStatsType,
-	getDeliverablesStats,
-	getConfigs,
-} from "@/lib/db/queries";
 import { Suspense } from "react";
+import { getServerSession } from "@/lib/dal";
+import {
+	type DeliverableStats as DeliverableStatsType,
+	getConfigs,
+	getDeliverables,
+	getDeliverablesStats,
+	getMinimalBookings,
+} from "@/lib/db/queries";
 import { DeliverableStats } from "./_components/deliverable-stats";
 
 const DeliverableLayout = async ({
 	children,
-}: { children: React.ReactNode }) => {
+}: {
+	children: React.ReactNode;
+}) => {
 	const { session } = await getServerSession();
 
 	const userOrganizationId = session?.session.activeOrganizationId as string;
@@ -54,7 +56,7 @@ const DeliverableLayout = async ({
 	});
 
 	await queryClient.prefetchQuery({
-		queryKey: ["bookings", "deliverable", "list"],
+		queryKey: ["bookings", "deliverable", "list", ""],
 		queryFn: () =>
 			getDeliverables(session?.session.activeOrganizationId as string),
 	});
@@ -70,14 +72,14 @@ const DeliverableLayout = async ({
 
 	return (
 		<div>
-			<Suspense fallback={<div>Loading...</div>}>
-				<DeliverableStats stats={deliverableStats} />
-				<HydrationBoundary state={dehydrate(queryClient)}>
-					<div className="flex flex-col  mx-auto  px-4  sm:px-6 lg:px-8 lg:mx-0 lg:max-w-none">
-						{children}
-					</div>
-				</HydrationBoundary>
-			</Suspense>
+			{/* <Suspense fallback={<div>Loading...</div>}> */}
+			<DeliverableStats stats={deliverableStats} />
+			<HydrationBoundary state={dehydrate(queryClient)}>
+				<div className="flex flex-col  mx-auto  px-4  sm:px-6 lg:px-8 lg:mx-0 lg:max-w-none">
+					{children}
+				</div>
+			</HydrationBoundary>
+			{/* </Suspense> */}
 		</div>
 	);
 };

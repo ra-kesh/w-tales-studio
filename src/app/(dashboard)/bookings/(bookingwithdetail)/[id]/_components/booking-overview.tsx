@@ -1,15 +1,14 @@
 "use client";
 
-import { CheckCircle2, Clock, AlertCircle, FileText } from "lucide-react";
 import { format } from "date-fns";
+import { AlertCircle, CheckCircle2, Clock, FileText } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
-
+import type { BookingDetail } from "@/types/booking";
+import { Expenses } from "./booking-financials/expenses";
 import { ReceivedPayments } from "./booking-financials/received-payments";
 import { UpcomingPayments } from "./booking-financials/upcoming-payments";
-import { Expenses } from "./booking-financials/expenses";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { BookingDetail } from "@/types/booking";
-import { Card, CardContent } from "@/components/ui/card";
 
 interface BookingOverviewProps {
 	booking: BookingDetail;

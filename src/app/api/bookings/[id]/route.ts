@@ -1,5 +1,9 @@
+import { and, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
+import { BookingSchema } from "@/app/(dashboard)/bookings/_components/booking-form/booking-form-schema";
+import { getServerSession } from "@/lib/dal";
 import { db } from "@/lib/db/drizzle";
+import { getBookingDetail } from "@/lib/db/queries";
 import {
 	bookingParticipants,
 	bookings,
@@ -10,10 +14,6 @@ import {
 	shoots,
 	shootsAssignments,
 } from "@/lib/db/schema";
-import { and, eq } from "drizzle-orm";
-import { getServerSession } from "@/lib/dal";
-import { getBookingDetail } from "@/lib/db/queries";
-import { BookingSchema } from "@/app/(dashboard)/bookings/_components/booking-form/booking-form-schema";
 
 export async function GET(
 	request: Request,
@@ -252,8 +252,10 @@ export async function PUT(
 		);
 	}
 
+	const { id } = await params;
+
 	// parse bookingId
-	const bookingId = Number.parseInt(params.id, 10);
+	const bookingId = Number.parseInt(id, 10);
 	if (Number.isNaN(bookingId)) {
 		return NextResponse.json(
 			{ message: "Invalid booking id" },

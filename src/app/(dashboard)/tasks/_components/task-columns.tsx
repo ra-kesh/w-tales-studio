@@ -1,18 +1,6 @@
 "use client";
 
-import { Checkbox } from "@/components/ui/checkbox";
 import type { ColumnDef } from "@tanstack/react-table";
-import { DataTableColumnHeader } from "./task-table-column-header";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import {
-	type Task,
-	type TasksAssignment,
-	type Crew,
-	tasks,
-} from "@/lib/db/schema";
-import { useTaskConfigs } from "@/hooks/use-configs";
-import { TaskTableRowActions } from "./task-table-row-actions";
 import { format } from "date-fns";
 import {
 	ArrowUpDown,
@@ -22,21 +10,14 @@ import {
 	CircleDashed,
 	TextIcon,
 } from "lucide-react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useTaskConfigs } from "@/hooks/use-configs";
 
-type TaskWithRelations = Task & {
-	booking: { name: string };
-	tasksAssignments: Array<
-		TasksAssignment & {
-			crew: Crew & {
-				member?: {
-					user?: {
-						name?: string | null;
-					} | null;
-				} | null;
-			};
-		}
-	>;
-};
+import type { TaskWithRelations } from "@/types/task";
+import { DataTableColumnHeader } from "./task-table-column-header";
+import { TaskTableRowActions } from "./task-table-row-actions";
 
 export function useTaskColumns({
 	statusOptions,

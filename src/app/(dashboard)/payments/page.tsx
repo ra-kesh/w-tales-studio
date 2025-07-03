@@ -1,24 +1,23 @@
 "use client";
 
 import React from "react";
+import { DataTableSkeleton } from "@/components/data-table/data-table-skeleton";
 import {
 	CustomTabsContent,
 	CustomTabsList,
 	CustomTabsTrigger,
 	Tabs,
 } from "@/components/ui/tabs";
-import { useReceivedPayments, usePaymentSchedules } from "@/hooks/use-payments";
-
-import { DataTableSkeleton } from "@/components/data-table/data-table-skeleton";
+import { useBookingTable } from "@/hooks/use-booking-table";
+import { usePaymentSchedules, useReceivedPayments } from "@/hooks/use-payments";
+import { PaymentsTable } from "./_component/payment-table";
 import { useReceivedPaymentsColumns } from "./_component/received-payments-columns";
 import { useScheduledPaymentsColumns } from "./_component/scheduled-payments-columns";
-import { PaymentsTable } from "./_component/payment-table";
-import { useBookingTable } from "@/hooks/use-booking-table";
 
 export default function PaymentsPage() {
-	const { data: receivedData, isLoading: isReceivedLoading } =
+	const { data: receivedData, isPending: isReceivedLoading } =
 		useReceivedPayments();
-	const { data: scheduledData, isLoading: isScheduledLoading } =
+	const { data: scheduledData, isPending: isScheduledLoading } =
 		usePaymentSchedules();
 
 	const receivedColumns = useReceivedPaymentsColumns();
