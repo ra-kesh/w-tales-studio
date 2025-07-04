@@ -1,4 +1,3 @@
-import { createAuthClient } from "better-auth/react";
 import {
 	adminClient,
 	customSessionClient,
@@ -7,12 +6,34 @@ import {
 	organizationClient,
 	usernameClient,
 } from "better-auth/client/plugins";
+import { createAuthClient } from "better-auth/react";
 import { toast } from "sonner";
 import type { auth } from ".";
+import {
+	ac,
+	crew,
+	hr,
+	manager,
+	member,
+	owner,
+	post_production_manager,
+	studio_admin,
+} from "./permission";
 
 export const authClient = createAuthClient({
 	plugins: [
-		organizationClient(),
+		organizationClient({
+			ac,
+			roles: {
+				hr,
+				manager,
+				member,
+				crew,
+				owner,
+				post_production_manager,
+				admin: studio_admin,
+			},
+		}),
 		usernameClient(),
 		adminClient(),
 		multiSessionClient(),

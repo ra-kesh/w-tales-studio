@@ -1,15 +1,15 @@
 "use client";
 
+import type { ColumnDef } from "@tanstack/react-table";
+import { UserIcon } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { UserIcon } from "lucide-react";
-import type { ColumnDef } from "@tanstack/react-table";
+import type { Crew, Member } from "@/lib/db/schema";
 import { CrewTableRowActions } from "./crew-table-row-actions";
-import type { Crew } from "@/lib/db/schema";
 
 export function useCrewColumns<TData>() {
-	const columns: ColumnDef<Crew>[] = [
+	const columns: ColumnDef<Crew & { member: Member }>[] = [
 		{
 			id: "select",
 			header: ({ table }) => (
@@ -72,10 +72,10 @@ export function useCrewColumns<TData>() {
 			},
 		},
 		{
-			accessorKey: "role",
+			accessorKey: "member.role",
 			header: "Role",
 			cell: ({ row }) => {
-				const role = row.getValue("role") as string;
+				const role = row.original.member.role as string;
 				return role ? <div className="font-medium">{role}</div> : "—";
 			},
 		},

@@ -1,7 +1,17 @@
 "use client";
 
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Check, ChevronsUpDown, Loader2, Plus, X } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { Button } from "@/components/ui/button";
+import {
+	Command,
+	CommandEmpty,
+	CommandGroup,
+	CommandInput,
+	CommandItem,
+	CommandList,
+} from "@/components/ui/command";
 import {
 	Form,
 	FormControl,
@@ -12,29 +22,19 @@ import {
 	FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Check, ChevronsUpDown, Plus, X, Loader2 } from "lucide-react";
-import { cn } from "@/lib/utils";
-import {
-	Command,
-	CommandEmpty,
-	CommandGroup,
-	CommandInput,
-	CommandItem,
-	CommandList,
-} from "@/components/ui/command";
 import {
 	Popover,
 	PopoverContent,
 	PopoverTrigger,
 } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useOrganizationMembers } from "@/hooks/use-members";
+import { cn } from "@/lib/utils";
 import {
-	CrewSchema,
 	type CrewFormValues,
+	CrewSchema,
 	defaultCrew,
 } from "./crew-form-schema";
-import { useOrganizationMembers } from "@/hooks/use-members";
 
 interface CrewFormProps {
 	defaultValues?: CrewFormValues;
@@ -260,33 +260,21 @@ export function CrewForm({
 						)}
 					/>
 
-					<FormField
-						control={form.control}
-						name="role"
-						render={({ field }) => (
-							<FormItem>
-								<FormLabel>Role</FormLabel>
-								<FormControl>
-									<Input placeholder="e.g. Lead Photographer" {...field} />
-								</FormControl>
-								<FormMessage />
-							</FormItem>
-						)}
-					/>
-
-					<FormField
-						control={form.control}
-						name="specialization"
-						render={({ field }) => (
-							<FormItem>
-								<FormLabel>Specialization</FormLabel>
-								<FormControl>
-									<Input placeholder="e.g. Candid, Drone" {...field} />
-								</FormControl>
-								<FormMessage />
-							</FormItem>
-						)}
-					/>
+					<div className="col-span-2">
+						<FormField
+							control={form.control}
+							name="specialization"
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>Specialization</FormLabel>
+									<FormControl>
+										<Input placeholder="e.g. Candid, Drone" {...field} />
+									</FormControl>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
+					</div>
 
 					<div className="col-span-2 space-y-4">
 						<div className="flex items-center justify-between">

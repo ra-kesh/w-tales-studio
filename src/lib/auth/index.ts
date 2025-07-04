@@ -16,6 +16,16 @@ import { members } from "../db/schema";
 import { reactInvitationEmail } from "../email/invitation";
 import { resend } from "../email/resend";
 import { reactResetPasswordEmail } from "../email/resetPassword";
+import {
+	ac,
+	crew,
+	hr,
+	manager,
+	member,
+	owner,
+	post_production_manager,
+	studio_admin,
+} from "./permission";
 
 const from = process.env.BETTER_AUTH_EMAIL || "mail@updates.rakyesh.com";
 const to = process.env.TEST_EMAIL || "";
@@ -60,6 +70,16 @@ const options = {
 		username(),
 		admin(),
 		organization({
+			ac,
+			roles: {
+				hr,
+				manager,
+				member,
+				crew,
+				owner,
+				post_production_manager,
+				admin: studio_admin,
+			},
 			async sendInvitationEmail(data) {
 				await resend.emails.send({
 					from,
