@@ -1,14 +1,33 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 import { UserIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useSession } from "@/lib/auth/auth-client";
 import type { Crew, Member } from "@/lib/db/schema";
+import { EditMemberRolesDialog } from "../../settings/_components/edit-member-roles";
 import { CrewTableRowActions } from "./crew-table-row-actions";
 
 export function useCrewColumns<TData>() {
+	const { data: session } = useSession();
+
+	const queryClient = useQueryClient();
+
+	const isCurrentUserOwnerOrAdmin =
+		session?.roles.includes("owner") || session?.roles.includes("admin");
+
+	const router = useRouter();
+
+	const handleRolesUpdate = () => {
+		router.refresh();
+		queryClient.invalidateQueries({ queryKey: ["crews"] });
+		queryClient.refetchQueries({ queryKey: ["crews"] });
+	};
+
 	const columns: ColumnDef<Crew & { member: Member }>[] = [
 		{
 			id: "select",
@@ -75,8 +94,40 @@ export function useCrewColumns<TData>() {
 			accessorKey: "member.role",
 			header: "Role",
 			cell: ({ row }) => {
-				const role = row.original.member.role as string;
-				return role ? <div className="font-medium">{role}</div> : "—";
+				const isThisMemberOwner = row.original.member.role.includes("owner");
+				return row.original.member.role ? (
+					<div className="flex items-center space-x-2">
+						<div className="font-medium  space-x-2">
+							{row.original.member.role.split(",").map((role) => {
+								return (
+									<>
+										<Badge
+											key={role}
+											variant={role === "owner" ? "default" : "secondary"}
+										>
+											{role.charAt(0).toUpperCase() + role.slice(1)}
+										</Badge>
+									</>
+								);
+							})}
+						</div>
+						{isThisMemberOwner ? (
+							<div className="w-10" /> // Placeholder for alignment
+						) : (
+							<EditMemberRolesDialog
+								memberId={row.original.member.id}
+								memberName={row.original.member.user.name}
+								currentRoles={row.original.member.role
+									.split(",")
+									.filter((role) => role !== "member")}
+								onRolesUpdate={handleRolesUpdate}
+								isDisabled={!isCurrentUserOwnerOrAdmin}
+							/>
+						)}
+					</div>
+				) : (
+					"—"
+				);
 			},
 		},
 		{

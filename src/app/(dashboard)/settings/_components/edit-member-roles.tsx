@@ -47,7 +47,7 @@ export function EditMemberRolesDialog({
 		try {
 			await authClient.organization.updateMemberRole({
 				memberId,
-				role: selectedRoles as (
+				role: selectedRoles.concat("member") as (
 					| "admin"
 					| "manager"
 					| "post_production_manager"
