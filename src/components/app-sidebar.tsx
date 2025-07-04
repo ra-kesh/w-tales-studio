@@ -11,6 +11,7 @@ import {
 	SidebarRail,
 } from "@/components/ui/sidebar";
 import { sidebarData } from "@/data/sidebar-data";
+import { useFilteredSidebar } from "@/hooks/use-filtered-sidebar";
 import type { ActiveOrganization, Session } from "@/types/auth";
 import { NavSecondary } from "./nav-secondary";
 
@@ -40,6 +41,8 @@ export function AppSidebar({
 	session: Session | null;
 	activeOrganization: ActiveOrganization | null;
 }) {
+	const { navMain, navSecondary } = useFilteredSidebar();
+
 	return (
 		<Sidebar variant="inset" collapsible="icon">
 			<SidebarHeader>
@@ -50,8 +53,8 @@ export function AppSidebar({
 				</div>
 			</SidebarHeader>
 			<SidebarContent>
-				<NavMain items={sidebarData.navMain} />
-				<NavSecondary items={sidebarData.navSecondary} className="mt-auto" />
+				<NavMain items={navMain} />
+				<NavSecondary items={navSecondary} className="mt-auto" />
 			</SidebarContent>
 
 			{/* <SidebarFooter>
