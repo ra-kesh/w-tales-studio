@@ -131,7 +131,9 @@ export function OrganizationSettings(props: {
 													<EditMemberRolesDialog
 														memberId={member.id}
 														memberName={member.user.name}
-														currentRoles={member.role.split(",")}
+														currentRoles={member.role
+															.split(",")
+															.filter((role) => role !== "member")}
 														onRolesUpdate={handleRolesUpdate}
 														isDisabled={!isCurrentUserOwnerOrAdmin}
 													/>
