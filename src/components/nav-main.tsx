@@ -1,7 +1,8 @@
 "use client";
 
 import { ChevronRight, type LucideIcon } from "lucide-react";
-
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
 	SidebarGroup,
 	SidebarGroupLabel,
@@ -12,7 +13,6 @@ import {
 	SidebarMenuSubButton,
 	SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
-import Link from "next/link";
 
 export function NavMain({
 	items,
@@ -21,7 +21,6 @@ export function NavMain({
 		title: string;
 		url: string;
 		icon?: LucideIcon;
-		isActive?: boolean;
 		items?: {
 			title: string;
 			url: string;
@@ -29,13 +28,16 @@ export function NavMain({
 		}[];
 	}[];
 }) {
+	const pathname = usePathname();
+	const isUrlActive = (url: string) => pathname.includes(url);
+
 	return (
 		<SidebarGroup>
 			<SidebarGroupLabel>Platform</SidebarGroupLabel>
 			<SidebarMenu>
 				{items.map((item) => (
 					<SidebarMenuItem key={item.title}>
-						<SidebarMenuButton asChild>
+						<SidebarMenuButton asChild isActive={isUrlActive(item.url)}>
 							<Link prefetch={true} href={item.url} className="font-medium">
 								{item.icon && <item.icon className="size-4" />}
 								{item.title}
@@ -45,7 +47,7 @@ export function NavMain({
 							<SidebarMenuSub>
 								{item.items.map((item) => (
 									<SidebarMenuSubItem key={item.title}>
-										<SidebarMenuSubButton asChild isActive={item.isActive}>
+										<SidebarMenuSubButton asChild isActive={isUrlActive(item.url)}>
 											<Link prefetch={true} href={item.url}>
 												{item.title}
 											</Link>
