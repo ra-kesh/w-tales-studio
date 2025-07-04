@@ -103,7 +103,7 @@ export function useCrewColumns<TData>() {
 									<>
 										<Badge
 											key={role}
-											variant={role === "owner" ? "default" : "secondary"}
+											variant={role === "owner" ? "secondary" : "outline"}
 										>
 											{role.charAt(0).toUpperCase() + role.slice(1)}
 										</Badge>
