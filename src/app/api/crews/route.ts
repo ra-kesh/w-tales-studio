@@ -1,10 +1,13 @@
-import { NextResponse } from "next/server";
+import { and, eq, or } from "drizzle-orm";
 import { headers } from "next/headers";
-import { db } from "@/lib/db/drizzle";
-import { crews, bookings, members, users } from "@/lib/db/schema";
+import { NextResponse } from "next/server";
+import { ZodError } from "zod";
+import { CrewSchema } from "@/app/(dashboard)/crews/_components/crew-form-schema";
 import { auth } from "@/lib/auth";
-import { count, eq, and } from "drizzle-orm";
 import { getServerSession } from "@/lib/dal";
+import { db } from "@/lib/db/drizzle";
+import { getCrews } from "@/lib/db/queries";
+import { crews } from "@/lib/db/schema";
 
 export async function GET(request: Request) {
 	const { session } = await getServerSession();
@@ -22,52 +25,9 @@ export async function GET(request: Request) {
 	}
 
 	try {
-		const { searchParams } = new URL(request.url);
-		const page = Number.parseInt(searchParams.get("page") || "1", 10);
-		const limit = Number.parseInt(searchParams.get("limit") || "10", 10);
-		const offset = (page - 1) * limit;
+		const result = await getCrews(userOrganizationId);
 
-		const [crewData, totalData] = await Promise.all([
-			db.query.crews.findMany({
-				where: eq(crews.organizationId, userOrganizationId),
-				with: {
-					member: {
-						with: {
-							user: {
-								columns: {
-									name: true,
-									email: true,
-									image: true,
-								},
-							},
-						},
-					},
-				},
-				orderBy: (crews, { desc }) => [
-					desc(crews.updatedAt),
-					desc(crews.createdAt),
-				],
-
-				// limit,
-				// offset,
-			}),
-			db
-				.select({ count: count() })
-				.from(crews)
-				.where(eq(crews.organizationId, userOrganizationId)),
-		]);
-
-		const total = totalData[0].count;
-
-		return NextResponse.json(
-			{
-				data: crewData,
-				total,
-				// page,
-				// limit,
-			},
-			{ status: 200 },
-		);
+		return NextResponse.json(result, { status: 200 });
 	} catch (error: unknown) {
 		console.error("Error fetching crews:", error);
 		const errorMessage =
@@ -96,54 +56,52 @@ export async function POST(request: Request) {
 		);
 	}
 
+	const canCreate = await auth.api.hasPermission({
+		headers: await headers(),
+		body: {
+			permissions: {
+				crew: ["create"],
+			},
+		},
+	});
+
+	if (!canCreate) {
+		return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+	}
+
 	try {
 		const body = await request.json();
-		const {
-			memberId,
-			name,
-			email,
-			phoneNumber,
-			equipment,
-			role,
-			specialization,
-		} = body;
 
-		// Validate required fields based on schema constraints
-		if (!memberId && !name) {
-			return NextResponse.json(
-				{ message: "Either memberId or name must be provided" },
-				{ status: 400 },
-			);
-		}
+		const validatedData = CrewSchema.parse(body);
 
-		// If memberId is provided, verify the member exists and belongs to the organization
-		if (memberId) {
-			const memberExists = await db.query.members.findFirst({
-				where: (members, { eq, and }) =>
-					and(
-						eq(members.id, memberId),
-						eq(members.organizationId, userOrganizationId),
-					),
+		const { name, email, phoneNumber, equipment, role, specialization } =
+			validatedData;
+
+		if (email || phoneNumber) {
+			const existingCrew = await db.query.crews.findFirst({
+				where: or(
+					email ? eq(crews.email, email) : undefined,
+					phoneNumber ? eq(crews.phoneNumber, phoneNumber) : undefined,
+				),
 			});
 
-			if (!memberExists) {
-				return NextResponse.json(
-					{ message: "Invalid member ID" },
-					{ status: 400 },
-				);
+			if (existingCrew) {
+				const message =
+					existingCrew.email === email
+						? "A crew member with this email already exists."
+						: "A crew member with this phone number already exists.";
+				return NextResponse.json({ message }, { status: 409 });
 			}
 		}
-
 		const newCrew = await db
 			.insert(crews)
 			.values({
 				organizationId: userOrganizationId,
-				memberId: memberId || null,
 				name: name || null,
 				email: email || null,
 				phoneNumber: phoneNumber || null,
 				equipment: equipment || [],
-				role: role || null,
+				role: role || "crew",
 				specialization: specialization || null,
 				status: "available", // Default status
 			})
@@ -151,9 +109,12 @@ export async function POST(request: Request) {
 
 		return NextResponse.json(newCrew[0], { status: 201 });
 	} catch (error: unknown) {
-		console.error("Error creating crew member:", error);
+		if (error instanceof ZodError) {
+			return NextResponse.json({ errors: error.errors }, { status: 400 });
+		}
 		const errorMessage =
 			error instanceof Error ? error.message : "Unknown error";
+		console.error("Error creating crew:", error);
 		return NextResponse.json(
 			{ message: "Internal server error", error: errorMessage },
 			{ status: 500 },

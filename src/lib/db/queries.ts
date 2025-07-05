@@ -1527,23 +1527,39 @@ export async function getCrews(organizationId: string) {
 		throw new Error("Organization ID is required");
 	}
 
-	return db.query.crews.findMany({
-		where: eq(crews.organizationId, organizationId),
-		with: {
-			member: {
-				with: {
-					user: {
-						columns: {
-							name: true,
-							email: true,
-							image: true,
+	const [crewData, totalData] = await Promise.all([
+		db.query.crews.findMany({
+			where: eq(crews.organizationId, organizationId),
+			with: {
+				member: {
+					with: {
+						user: {
+							columns: {
+								name: true,
+								email: true,
+								image: true,
+							},
 						},
 					},
 				},
 			},
-		},
-		orderBy: [desc(crews.updatedAt), desc(crews.createdAt)],
-	});
+			orderBy: (crews, { desc }) => [
+				desc(crews.updatedAt),
+				desc(crews.createdAt),
+			],
+		}),
+		db
+			.select({ count: count() })
+			.from(crews)
+			.where(eq(crews.organizationId, organizationId)),
+	]);
+
+	const total = totalData[0].count;
+
+	return {
+		data: crewData,
+		total,
+	};
 }
 
 // Add this type definition for your new stats object

@@ -12,6 +12,7 @@ export default async function CrewsPage() {
 	const { session } = await getServerSession();
 
 	const queryClient = new QueryClient();
+
 	await queryClient.prefetchQuery({
 		queryKey: ["crews"],
 		queryFn: () => getCrews(session?.session.activeOrganizationId as string),
@@ -19,11 +20,9 @@ export default async function CrewsPage() {
 
 	return (
 		<div className="h-full flex-1 flex flex-col p-6">
-			{/* <Suspense fallback={<div>Loading...</div>}> */}
 			<HydrationBoundary state={dehydrate(queryClient)}>
 				<Crews />
 			</HydrationBoundary>
-			{/* </Suspense> */}
 		</div>
 	);
 }
