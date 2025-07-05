@@ -141,6 +141,7 @@ export async function PATCH(request: Request) {
 
 	try {
 		const body = await request.json();
+
 		const {
 			id,
 			memberId,

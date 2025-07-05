@@ -93,7 +93,7 @@ export function useCrewColumns<TData>() {
 				const { member, role: crewRole } = row.original;
 
 				if (member) {
-					const systemRoles = member.role.split(",").filter(Boolean);
+					const systemRoles = member.role.split(",");
 					const isThisMemberOwner = systemRoles.includes("owner");
 
 					return (
@@ -114,7 +114,7 @@ export function useCrewColumns<TData>() {
 								<EditMemberRolesDialog
 									memberId={member.id}
 									memberName={member.user.name}
-									currentRoles={systemRoles}
+									currentRoles={systemRoles.filter((role) => role !== "member")}
 									onRolesUpdate={handleRolesUpdate}
 									isDisabled={!isCurrentUserOwnerOrAdmin}
 								/>
