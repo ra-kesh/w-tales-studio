@@ -125,14 +125,14 @@ export const manager = ac.newRole({
 });
 
 export const post_production_manager = ac.newRole({
-	dashboard: ["read"],
+	// dashboard: ["read"],
 	shoot: ["read", "list"], // Read-only access to see shoot context
 	deliverable: ["create", "read", "update", "list", "assign_crew"],
 	task: ["create", "read", "update", "list", "assign_crew"],
 });
 
 export const hr = ac.newRole({
-	dashboard: ["read"],
+	// dashboard: ["read"],
 	shoot: ["read", "list"],
 	deliverable: ["read", "list"],
 	task: ["read", "list"],
