@@ -66,7 +66,10 @@ export async function POST(request: Request) {
 	});
 
 	if (!canCreate) {
-		return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+		return NextResponse.json(
+			{ message: "You are not authorized to add new crew" },
+			{ status: 403 },
+		);
 	}
 
 	try {
@@ -139,20 +142,31 @@ export async function PATCH(request: Request) {
 		);
 	}
 
+	const canUpdate = await auth.api.hasPermission({
+		headers: await headers(),
+		body: {
+			permissions: {
+				crew: ["update"],
+			},
+		},
+	});
+
+	if (!canUpdate) {
+		return NextResponse.json(
+			{ message: "You are not authorized to update crew detail" },
+			{ status: 403 },
+		);
+	}
+
 	try {
 		const body = await request.json();
 
-		const {
-			id,
-			memberId,
-			name,
-			email,
-			phoneNumber,
-			equipment,
-			role,
-			specialization,
-			status,
-		} = body;
+		const validatedData = CrewSchema.parse(body);
+
+		const { name, email, phoneNumber, equipment, status, specialization } =
+			validatedData;
+
+		const { id } = body;
 
 		if (!id) {
 			return NextResponse.json(
@@ -171,41 +185,25 @@ export async function PATCH(request: Request) {
 			return NextResponse.json({ message: "Crew not found" }, { status: 404 });
 		}
 
-		// If memberId is being updated, verify the new member exists and belongs to the organization
-		if (memberId && memberId !== existingCrew.memberId) {
-			const memberExists = await db.query.members.findFirst({
-				where: (members, { eq, and }) =>
-					and(
-						eq(members.id, memberId),
-						eq(members.organizationId, userOrganizationId),
-					),
-			});
-
-			if (!memberExists) {
+		if (existingCrew.memberId) {
+			if (name || email) {
 				return NextResponse.json(
-					{ message: "Invalid member ID" },
+					{
+						message:
+							"Cannot update name or email of a crew profile linked to an organization member.",
+					},
 					{ status: 400 },
 				);
 			}
 		}
 
-		// Ensure at least name or memberId is present
-		if (!memberId && !name && !existingCrew.name && !existingCrew.memberId) {
-			return NextResponse.json(
-				{ message: "Either name or memberId must be provided" },
-				{ status: 400 },
-			);
-		}
-
 		const updatedCrew = await db
 			.update(crews)
 			.set({
-				memberId: memberId ?? existingCrew.memberId,
 				name: name ?? existingCrew.name,
 				email: email ?? existingCrew.email,
 				phoneNumber: phoneNumber ?? existingCrew.phoneNumber,
 				equipment: equipment ?? existingCrew.equipment,
-				role: role ?? existingCrew.role,
 				specialization: specialization ?? existingCrew.specialization,
 				status: status ?? existingCrew.status,
 				updatedAt: new Date(),
@@ -247,6 +245,22 @@ export async function DELETE(request: Request) {
 	if (!userOrganizationId) {
 		return NextResponse.json(
 			{ message: "User not associated with an organization" },
+			{ status: 403 },
+		);
+	}
+
+	const canDelete = await auth.api.hasPermission({
+		headers: await headers(),
+		body: {
+			permissions: {
+				crew: ["delete"],
+			},
+		},
+	});
+
+	if (!canDelete) {
+		return NextResponse.json(
+			{ message: "You are not authorized to delete crew" },
 			{ status: 403 },
 		);
 	}
