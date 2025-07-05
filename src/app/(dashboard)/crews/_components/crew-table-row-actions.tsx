@@ -13,9 +13,10 @@ import {
 import { useCrewParams } from "@/hooks/use-crew-params";
 import { useDeleteCrewMutation } from "@/hooks/use-crews";
 import type { Crew } from "@/lib/db/schema";
+import type { CrewWithMember } from "@/types/crew";
 
 interface CrewTableRowActionsProps {
-	row: Row<Crew & { memberName?: string | null; memberEmail?: string | null }>;
+	row: Row<CrewWithMember>;
 }
 
 export function CrewTableRowActions({ row }: CrewTableRowActionsProps) {

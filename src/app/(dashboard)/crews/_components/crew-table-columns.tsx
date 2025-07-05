@@ -3,12 +3,11 @@
 import { useQueryClient } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 import { UserIcon } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useSession } from "@/lib/auth/auth-client";
-import type { Crew, Member } from "@/lib/db/schema";
+import type { CrewWithMember } from "@/types/crew";
 import { EditMemberRolesDialog } from "../../settings/_components/edit-member-roles";
 import { CrewTableRowActions } from "./crew-table-row-actions";
 
@@ -20,15 +19,11 @@ export function useCrewColumns<TData>() {
 	const isCurrentUserOwnerOrAdmin =
 		session?.roles.includes("owner") || session?.roles.includes("admin");
 
-	const router = useRouter();
-
 	const handleRolesUpdate = () => {
-		router.refresh();
 		queryClient.invalidateQueries({ queryKey: ["crews"] });
-		queryClient.refetchQueries({ queryKey: ["crews"] });
 	};
 
-	const columns: ColumnDef<Crew & { member: Member }>[] = [
+	const columns: ColumnDef<CrewWithMember>[] = [
 		{
 			id: "select",
 			header: ({ table }) => (
@@ -51,25 +46,24 @@ export function useCrewColumns<TData>() {
 			enableHiding: false,
 		},
 		{
-			accessorKey: "member",
+			accessorKey: "name",
 			header: "Name",
 			filterFn: (row, id, value) => {
-				const member = row.getValue("member");
-
-				const name = member?.user?.name || row.original.name;
-				const email = member?.user?.email || row.original.email;
+				const { name, email, member } = row.original;
+				const displayName = member?.user?.name || name;
+				const displayEmail = member?.user?.email || email;
 
 				const searchValue = (value as string).toLowerCase();
 				return (
-					name?.toLowerCase().includes(searchValue) ||
-					email?.toLowerCase().includes(searchValue) ||
+					displayName?.toLowerCase().includes(searchValue) ||
+					displayEmail?.toLowerCase().includes(searchValue) ||
 					false
 				);
 			},
 			cell: ({ row }) => {
-				const member = row.getValue("member");
-				const name = member?.user?.name || row.original.name;
-				const email = member?.user?.email || row.original.email;
+				const { name, email, member } = row.original;
+				const displayName = member?.user?.name || name;
+				const displayEmail = member?.user?.email || email;
 				const image = member?.user?.image;
 
 				return (
@@ -81,9 +75,11 @@ export function useCrewColumns<TData>() {
 							</AvatarFallback>
 						</Avatar>
 						<div>
-							<div className="font-medium">{name}</div>
-							{email && (
-								<div className="text-sm text-muted-foreground">{email}</div>
+							<div className="font-medium">{displayName}</div>
+							{displayEmail && (
+								<div className="text-sm text-muted-foreground">
+									{displayEmail}
+								</div>
 							)}
 						</div>
 					</div>
@@ -91,43 +87,51 @@ export function useCrewColumns<TData>() {
 			},
 		},
 		{
-			accessorKey: "member.role",
+			id: "roles",
 			header: "Role",
 			cell: ({ row }) => {
-				const isThisMemberOwner = row.original.member.role.includes("owner");
-				return row.original.member.role ? (
-					<div className="flex items-center space-x-2">
-						<div className="font-medium  space-x-2">
-							{row.original.member.role.split(",").map((role) => {
-								return (
-									<>
-										<Badge
-											key={role}
-											variant={role === "owner" ? "secondary" : "outline"}
-										>
-											{role.charAt(0).toUpperCase() + role.slice(1)}
-										</Badge>
-									</>
-								);
-							})}
+				const { member, role: crewRole } = row.original;
+
+				if (member) {
+					const systemRoles = member.role.split(",").filter(Boolean);
+					const isThisMemberOwner = systemRoles.includes("owner");
+
+					return (
+						<div className="flex items-center space-x-2">
+							<div className="flex flex-wrap gap-1">
+								{systemRoles.map((role) => (
+									<Badge
+										key={role}
+										variant={role === "owner" ? "default" : "secondary"}
+									>
+										{role.charAt(0).toUpperCase() + role.slice(1)}
+									</Badge>
+								))}
+							</div>
+							{isThisMemberOwner ? (
+								<div className="w-10" />
+							) : (
+								<EditMemberRolesDialog
+									memberId={member.id}
+									memberName={member.user.name}
+									currentRoles={systemRoles}
+									onRolesUpdate={handleRolesUpdate}
+									isDisabled={!isCurrentUserOwnerOrAdmin}
+								/>
+							)}
 						</div>
-						{isThisMemberOwner ? (
-							<div className="w-10" /> // Placeholder for alignment
-						) : (
-							<EditMemberRolesDialog
-								memberId={row.original.member.id}
-								memberName={row.original.member.user.name}
-								currentRoles={row.original.member.role
-									.split(",")
-									.filter((role) => role !== "member")}
-								onRolesUpdate={handleRolesUpdate}
-								isDisabled={!isCurrentUserOwnerOrAdmin}
-							/>
-						)}
-					</div>
-				) : (
-					"—"
-				);
+					);
+				}
+
+				if (crewRole) {
+					return (
+						<Badge variant="outline">
+							{crewRole.charAt(0).toUpperCase() + crewRole.slice(1)}
+						</Badge>
+					);
+				}
+
+				return <span className="text-muted-foreground">—</span>;
 			},
 		},
 		{
