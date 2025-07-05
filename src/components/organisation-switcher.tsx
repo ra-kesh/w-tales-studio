@@ -1,13 +1,13 @@
 "use client";
 
-import * as React from "react";
 import {
+	AlertCircle,
 	ChevronsUpDown,
 	GalleryVerticalEnd,
-	Plus,
 	Loader2,
-	AlertCircle,
+	Plus,
 } from "lucide-react";
+import * as React from "react";
 
 import {
 	DropdownMenu,
@@ -23,10 +23,10 @@ import {
 	SidebarMenuItem,
 	useSidebar,
 } from "@/components/ui/sidebar";
-import type { Organization } from "@/lib/db/schema";
-import type { ActiveOrganization, Session } from "@/types/auth";
 import { organization, useListOrganizations } from "@/lib/auth/auth-client";
+import type { Organization } from "@/lib/db/schema";
 import { cn } from "@/lib/utils";
+import type { ActiveOrganization, Session } from "@/types/auth";
 
 interface OrganisationSwitcherProps {
 	session: Session | null;

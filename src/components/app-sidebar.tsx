@@ -57,12 +57,12 @@ export function AppSidebar({
 				<NavSecondary items={navSecondary} className="mt-auto" />
 			</SidebarContent>
 
-			{/* <SidebarFooter>
-				<OrganisationSwitcher
+			<SidebarFooter>
+				{/* <OrganisationSwitcher
 					session={session}
 					activeOrganization={activeOrganization}
-				/>
-			</SidebarFooter> */}
+				/> */}
+			</SidebarFooter>
 			<SidebarRail />
 		</Sidebar>
 	);

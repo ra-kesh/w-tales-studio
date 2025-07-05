@@ -5,7 +5,7 @@ export const ShootSchema = z.object({
 	bookingId: z.string().min(1, { message: "Booking is required" }),
 	crewMembers: z.array(z.string()).optional(),
 	date: z.string().min(1, { message: "Date is required" }),
-	time: z.string().min(1, { message: "Time is required" }),
+	time: z.string().optional(),
 	location: z.string().min(1, { message: "Location is required" }),
 	notes: z.string().optional(),
 });
