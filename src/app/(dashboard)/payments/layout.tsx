@@ -4,6 +4,7 @@ import {
 	QueryClient,
 } from "@tanstack/react-query";
 import { Suspense } from "react";
+import { Protected } from "@/app/restricted-to-roles";
 import {
 	fetchPaymentSchedules,
 	fetchReceivedPayments,
@@ -49,15 +50,15 @@ export default async function PaymentsLayout({
 	]);
 
 	return (
-		<div>
-			{/* <Suspense fallback={<div>Loading...</div>}> */}
-			<PaymentsStats stats={stats} />
-			<HydrationBoundary state={dehydrate(queryClient)}>
-				<div className="mx-auto flex flex-col px-4 sm:px-6 lg:px-8 lg:mx-0 lg:max-w-none">
-					{children}
-				</div>
-			</HydrationBoundary>
-			{/* </Suspense> */}
-		</div>
+		<Protected permissions={{ payments: ["read"] }}>
+			<div>
+				<PaymentsStats stats={stats} />
+				<HydrationBoundary state={dehydrate(queryClient)}>
+					<div className="mx-auto flex flex-col px-4 sm:px-6 lg:px-8 lg:mx-0 lg:max-w-none">
+						{children}
+					</div>
+				</HydrationBoundary>
+			</div>
+		</Protected>
 	);
 }

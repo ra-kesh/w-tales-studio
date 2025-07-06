@@ -5,6 +5,7 @@ import {
 	QueryClient,
 } from "@tanstack/react-query";
 import { Suspense } from "react";
+import { Protected } from "@/app/restricted-to-roles";
 import { getServerSession } from "@/lib/dal";
 import {
 	type DeliverableStats as DeliverableStatsType,
@@ -71,16 +72,16 @@ const DeliverableLayout = async ({
 	});
 
 	return (
-		<div>
-			{/* <Suspense fallback={<div>Loading...</div>}> */}
-			<DeliverableStats stats={deliverableStats} />
-			<HydrationBoundary state={dehydrate(queryClient)}>
-				<div className="flex flex-col  mx-auto  px-4  sm:px-6 lg:px-8 lg:mx-0 lg:max-w-none">
-					{children}
-				</div>
-			</HydrationBoundary>
-			{/* </Suspense> */}
-		</div>
+		<Protected permissions={{ deliverables: ["read"] }}>
+			<div>
+				<DeliverableStats stats={deliverableStats} />
+				<HydrationBoundary state={dehydrate(queryClient)}>
+					<div className="flex flex-col  mx-auto  px-4  sm:px-6 lg:px-8 lg:mx-0 lg:max-w-none">
+						{children}
+					</div>
+				</HydrationBoundary>
+			</div>
+		</Protected>
 	);
 };
 

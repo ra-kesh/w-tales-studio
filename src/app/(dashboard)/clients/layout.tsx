@@ -13,6 +13,7 @@ import {
 	getMinimalBookings,
 } from "@/lib/db/queries";
 import { ClientsStats } from "./_components/client-stats";
+import { Protected } from "@/app/restricted-to-roles";
 
 const ClientLayout = async ({ children }: { children: React.ReactNode }) => {
 	const { session } = await getServerSession();
@@ -56,16 +57,18 @@ const ClientLayout = async ({ children }: { children: React.ReactNode }) => {
 	});
 
 	return (
-		<div>
-			{/* <Suspense fallback={<div>Loading...</div>}> */}
-			<ClientsStats stats={clientStats} />
-			<HydrationBoundary state={dehydrate(queryClient)}>
-				<div className="flex flex-col  mx-auto  px-4  sm:px-6 lg:px-8 lg:mx-0 lg:max-w-none">
-					{children}
-				</div>
-			</HydrationBoundary>
-			{/* </Suspense> */}
-		</div>
+		<Protected permissions={{ clients: ["read"] }}>
+			<div>
+				{/* <Suspense fallback={<div>Loading...</div>}> */}
+				<ClientsStats stats={clientStats} />
+				<HydrationBoundary state={dehydrate(queryClient)}>
+					<div className="flex flex-col  mx-auto  px-4  sm:px-6 lg:px-8 lg:mx-0 lg:max-w-none">
+						{children}
+					</div>
+				</HydrationBoundary>
+				{/* </Suspense> */}
+			</div>
+		</Protected>
 	);
 };
 

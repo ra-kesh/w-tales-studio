@@ -16,6 +16,7 @@ import {
 	type TaskStats as TasksStatsType,
 } from "@/lib/db/queries";
 import { TasksStats } from "./_components/taks-shoot";
+import { Protected } from "@/app/restricted-to-roles";
 
 const TaskLayout = async ({ children }: { children: React.ReactNode }) => {
 	const { session } = await getServerSession();
@@ -77,16 +78,18 @@ const TaskLayout = async ({ children }: { children: React.ReactNode }) => {
 	});
 
 	return (
-		<div>
-			{/* <Suspense fallback={<div>Loading...</div>}> */}
-			<TasksStats stats={tasksStats} />
-			<HydrationBoundary state={dehydrate(queryClient)}>
-				<div className="flex flex-col  mx-auto  px-4  sm:px-6 lg:px-8 lg:mx-0 lg:max-w-none">
-					{children}
-				</div>
-			</HydrationBoundary>
-			{/* </Suspense> */}
-		</div>
+		<Protected permissions={{ tasks: ["read"] }}>
+			<div>
+				{/* <Suspense fallback={<div>Loading...</div>}> */}
+				<TasksStats stats={tasksStats} />
+				<HydrationBoundary state={dehydrate(queryClient)}>
+					<div className="flex flex-col  mx-auto  px-4  sm:px-6 lg:px-8 lg:mx-0 lg:max-w-none">
+						{children}
+					</div>
+				</HydrationBoundary>
+				{/* </Suspense> */}
+			</div>
+		</Protected>
 	);
 };
 
