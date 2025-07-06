@@ -28,6 +28,7 @@ const DashboardLayout = async ({ children }: { children: React.ReactNode }) => {
 			<AppSidebar
 				session={JSON.parse(JSON.stringify(session))}
 				activeOrganization={JSON.parse(JSON.stringify(organization))}
+				sessions={JSON.parse(JSON.stringify(deviceSessions))}
 			/>
 			<SidebarInset>
 				<SiteHeader sessions={JSON.parse(JSON.stringify(deviceSessions))} />

@@ -18,12 +18,10 @@ export function useFilteredSidebar() {
 			requiredPermission: any,
 			userRoles: string[],
 		): boolean => {
-			// If there are no roles, there are no permissions.
 			if (userRoles.length === 0) {
 				return false;
 			}
 
-			// Check each role the user has.
 			for (const role of userRoles) {
 				// Use the CORRECT function path as you pointed out.
 				const hasAccess = authClient.organization.checkRolePermission({

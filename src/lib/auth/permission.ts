@@ -35,6 +35,13 @@ const statement = {
 	payment: ["create", "read", "update", "delete", "list"],
 	crew: ["create", "read", "update", "delete", "list"],
 	configuration: ["create", "read", "update", "delete", "list"],
+	studio: [
+		"view_studio",
+		"change_logo",
+		"change_name",
+		"view_invites",
+		"create_invites",
+	],
 } as const;
 
 export const ac = createAccessControl(statement);
@@ -67,6 +74,13 @@ export const owner = ac.newRole({
 	crew: ["create", "read", "update", "delete", "list"],
 
 	configuration: ["create", "read", "update", "delete", "list"],
+	studio: [
+		"view_studio",
+		"change_logo",
+		"change_name",
+		"view_invites",
+		"create_invites",
+	],
 	...ownerAc.statements,
 });
 
@@ -97,6 +111,13 @@ export const studio_admin = ac.newRole({
 	payment: ["create", "read", "update", "delete", "list"],
 	configuration: ["create", "read", "update", "delete", "list"],
 	crew: ["create", "read", "update", "delete", "list"],
+	studio: [
+		"view_studio",
+		"change_logo",
+		"change_name",
+		"view_invites",
+		"create_invites",
+	],
 
 	...adminAc.statements,
 });

@@ -101,7 +101,6 @@ export function SiteHeader({ sessions }: { sessions: Session[] }) {
 				</div>
 				<div className="flex items-center space-x-2">
 					<NewActionSwitcher />
-					<NavUser sessions={sessions} />
 				</div>
 			</div>
 		</header>
