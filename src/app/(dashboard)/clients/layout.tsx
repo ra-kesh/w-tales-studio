@@ -5,6 +5,7 @@ import {
 	QueryClient,
 } from "@tanstack/react-query";
 import { Suspense } from "react";
+import { Protected } from "@/app/restricted-to-roles";
 import { getServerSession } from "@/lib/dal";
 import {
 	type ClientStats as ClientStatsType,
@@ -13,7 +14,6 @@ import {
 	getMinimalBookings,
 } from "@/lib/db/queries";
 import { ClientsStats } from "./_components/client-stats";
-import { Protected } from "@/app/restricted-to-roles";
 
 const ClientLayout = async ({ children }: { children: React.ReactNode }) => {
 	const { session } = await getServerSession();
@@ -57,7 +57,7 @@ const ClientLayout = async ({ children }: { children: React.ReactNode }) => {
 	});
 
 	return (
-		<Protected permissions={{ clients: ["read"] }}>
+		<Protected permissions={{ client: ["read"] }}>
 			<div>
 				{/* <Suspense fallback={<div>Loading...</div>}> */}
 				<ClientsStats stats={clientStats} />

@@ -16,12 +16,14 @@ export async function Protected({
 	fallback,
 	redirectPath = "/not-found",
 }: ProtectedProps) {
-	const hasAccess = await auth.api.userHasPermission({
+	const hasAccess = await auth.api.hasPermission({
 		headers: await headers(),
 		body: {
 			permissions,
 		},
 	});
+
+	console.log({ hasAccess });
 
 	if (hasAccess.success) {
 		return <>{children}</>;

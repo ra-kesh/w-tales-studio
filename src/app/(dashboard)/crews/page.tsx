@@ -3,7 +3,7 @@ import {
 	HydrationBoundary,
 	QueryClient,
 } from "@tanstack/react-query";
-import { Suspense } from "react";
+import { Protected } from "@/app/restricted-to-roles";
 import { getServerSession } from "@/lib/dal";
 import { getCrews } from "@/lib/db/queries";
 import { Crews } from "./crews";
@@ -19,10 +19,12 @@ export default async function CrewsPage() {
 	});
 
 	return (
-		<div className="h-full flex-1 flex flex-col p-6">
-			<HydrationBoundary state={dehydrate(queryClient)}>
-				<Crews />
-			</HydrationBoundary>
-		</div>
+		<Protected permissions={{ crew: ["read"] }}>
+			<div className="h-full flex-1 flex flex-col p-6">
+				<HydrationBoundary state={dehydrate(queryClient)}>
+					<Crews />
+				</HydrationBoundary>
+			</div>
+		</Protected>
 	);
 }

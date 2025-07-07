@@ -72,7 +72,7 @@ const DeliverableLayout = async ({
 	});
 
 	return (
-		<Protected permissions={{ deliverables: ["read"] }}>
+		<Protected permissions={{ deliverable: ["read"] }}>
 			<div>
 				<DeliverableStats stats={deliverableStats} />
 				<HydrationBoundary state={dehydrate(queryClient)}>

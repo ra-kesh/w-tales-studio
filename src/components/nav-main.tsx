@@ -13,6 +13,7 @@ import type { NavSection } from "@/data/sidebar-data";
 
 export function NavMain({ sections }: { sections: NavSection[] }) {
 	const pathname = usePathname();
+
 	const isUrlActive = (url: string) => pathname.includes(url);
 
 	return (

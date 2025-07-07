@@ -70,7 +70,7 @@ const ExpenseLayout = async ({ children }: { children: React.ReactNode }) => {
 	});
 
 	return (
-		<Protected permissions={{ expenses: ["read"] }}>
+		<Protected permissions={{ expense: ["read"] }}>
 			<div>
 				<ExpensesStats stats={expenseStats} />
 				<HydrationBoundary state={dehydrate(queryClient)}>

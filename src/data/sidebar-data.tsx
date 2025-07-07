@@ -105,13 +105,13 @@ export const sidebarData: SidebarData = {
 			items: [
 				{
 					title: "Configurations",
-					url: "/configurations/packages",
+					url: "/configurations",
 					icon: Settings2Icon,
 					permission: { configuration: ["list"] },
 				},
 				{
 					title: "Settings",
-					url: "/settings/profile",
+					url: "/settings",
 					icon: SettingsIcon,
 				},
 			],

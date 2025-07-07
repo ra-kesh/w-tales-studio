@@ -50,7 +50,7 @@ export default async function PaymentsLayout({
 	]);
 
 	return (
-		<Protected permissions={{ payments: ["read"] }}>
+		<Protected permissions={{ payment: ["read"] }}>
 			<div>
 				<PaymentsStats stats={stats} />
 				<HydrationBoundary state={dehydrate(queryClient)}>

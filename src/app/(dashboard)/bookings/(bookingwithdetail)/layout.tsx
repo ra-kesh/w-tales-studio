@@ -3,6 +3,7 @@ import {
 	HydrationBoundary,
 	QueryClient,
 } from "@tanstack/react-query";
+import { Protected } from "@/app/restricted-to-roles";
 import { getServerSession } from "@/lib/dal";
 import {
 	type BookingStats as BookingStatsType,
@@ -11,7 +12,6 @@ import {
 	getConfigs,
 } from "@/lib/db/queries";
 import { BookingStats } from "./_components/booking-stats";
-import { Protected } from "@/app/restricted-to-roles";
 
 const BookingLayout = async ({ children }: { children: React.ReactNode }) => {
 	const { session } = await getServerSession();
@@ -49,7 +49,7 @@ const BookingLayout = async ({ children }: { children: React.ReactNode }) => {
 	}
 
 	return (
-		<Protected permissions={{ bookings: ["read"] }}>
+		<Protected permissions={{ booking: ["read"] }}>
 			<div>
 				<BookingStats stats={bookingsStats} />
 				<HydrationBoundary state={dehydrate(queryClient)}>
