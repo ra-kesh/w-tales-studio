@@ -34,7 +34,10 @@ const statement = {
 	expense: ["create", "read", "update", "delete", "list"],
 	payment: ["create", "read", "update", "delete", "list"],
 	crew: ["create", "read", "update", "delete", "list"],
-	configuration: ["create", "read", "update", "delete", "list"],
+	package_type_config: ["create", "read", "update", "delete", "list"],
+	booking_type_config: ["create", "read", "update", "delete", "list"],
+	deliverable_status_config: ["create", "read", "update", "delete", "list"],
+	task_status_config: ["create", "read", "update", "delete", "list"],
 	studio: [
 		"view_studio",
 		"change_logo",
@@ -73,7 +76,10 @@ export const owner = ac.newRole({
 	payment: ["create", "read", "update", "delete", "list"],
 	crew: ["create", "read", "update", "delete", "list"],
 
-	configuration: ["create", "read", "update", "delete", "list"],
+	package_type_config: ["create", "read", "update", "delete", "list"],
+	booking_type_config: ["create", "read", "update", "delete", "list"],
+	deliverable_status_config: ["create", "read", "update", "delete", "list"],
+	task_status_config: ["create", "read", "update", "delete", "list"],
 	studio: [
 		"view_studio",
 		"change_logo",
@@ -109,7 +115,10 @@ export const studio_admin = ac.newRole({
 	],
 	expense: ["create", "read", "update", "delete", "list"],
 	payment: ["create", "read", "update", "delete", "list"],
-	configuration: ["create", "read", "update", "delete", "list"],
+	package_type_config: ["create", "read", "update", "delete", "list"],
+	booking_type_config: ["create", "read", "update", "delete", "list"],
+	deliverable_status_config: ["create", "read", "update", "delete", "list"],
+	task_status_config: ["create", "read", "update", "delete", "list"],
 	crew: ["create", "read", "update", "delete", "list"],
 	studio: [
 		"view_studio",
