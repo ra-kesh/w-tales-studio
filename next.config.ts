@@ -9,20 +9,20 @@ const nextConfig: NextConfig = {
 		ignoreBuildErrors: true,
 	},
 	devIndicators: false,
-	// async redirects() {
-	// 	return [
-	// 		{
-	// 			source: "/configurations",
-	// 			destination: "/configurations/packages",
-	// 			permanent: true,
-	// 		},
-	// 		{
-	// 			source: "/settings",
-	// 			destination: "/settings/profile",
-	// 			permanent: true,
-	// 		},
-	// 	];
-	// },
+	async redirects() {
+		return [
+			{
+				source: "/configurations",
+				destination: "/configurations/packages",
+				permanent: true,
+			},
+			{
+				source: "/settings",
+				destination: "/settings/profile",
+				permanent: true,
+			},
+		];
+	},
 	images: {
 		domains: [
 			"studio.com",
