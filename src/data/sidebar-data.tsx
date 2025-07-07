@@ -127,7 +127,7 @@ export const sidebarData: SidebarData = {
 		},
 		{
 			title: "Configurations",
-			url: "/configurations",
+			url: "/configurations/packages",
 			icon: Settings2Icon,
 			permission: { configuration: ["list"] },
 		},
@@ -135,15 +135,13 @@ export const sidebarData: SidebarData = {
 	navSecondary: [
 		{
 			title: "Settings",
-			url: "/settings",
+			url: "/settings/profile",
 			icon: SettingsIcon,
-			// Public for all logged-in users
 		},
 		{
 			title: "Get Help",
 			url: "#",
 			icon: HelpCircleIcon,
-			// Public for all logged-in users
 		},
 	],
 };
