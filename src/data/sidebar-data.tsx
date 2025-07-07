@@ -5,7 +5,6 @@ import {
 	DockIcon,
 	HelpCircleIcon,
 	Home,
-	ImageIcon,
 	LayoutDashboardIcon,
 	ListTodoIcon,
 	PackageIcon,
@@ -15,129 +14,110 @@ import {
 	UsersIcon,
 	Wallet2Icon,
 } from "lucide-react";
-import type { ac } from "@/lib/auth/permission";
 
-// Define a recursive type for our navigation items that includes permissions
 export interface NavItemWithPermissions {
 	title: string;
 	url: string;
 	icon: LucideIcon;
-	items?: NavItemWithPermissions[];
 	permission?: any;
 }
 
+export interface NavSection {
+	label: string | null; // Label can be null for items without a heading
+	items: NavItemWithPermissions[];
+}
+
 interface SidebarData {
-	navMain: NavItemWithPermissions[];
+	navMain: NavSection[];
 	navSecondary: NavItemWithPermissions[];
 }
 
 export const sidebarData: SidebarData = {
 	navMain: [
 		{
-			title: "Home",
-			url: "/home",
-			icon: Home,
-			// No permission key means it's visible to everyone
+			label: null,
+			items: [
+				{ title: "Home", url: "/home", icon: Home },
+				{
+					title: "Dashboard",
+					url: "/dashboard",
+					icon: LayoutDashboardIcon,
+					permission: { dashboard: ["read"] },
+				},
+			],
 		},
 		{
-			title: "Dashboard",
-			url: "/dashboard",
-			icon: LayoutDashboardIcon,
-			permission: { dashboard: ["read"] },
+			label: "Platform",
+			items: [
+				{
+					title: "Bookings",
+					url: "/bookings",
+					icon: DockIcon,
+					permission: { booking: ["list"] },
+				},
+				{
+					title: "Shoots",
+					url: "/shoots",
+					icon: CameraIcon,
+					permission: { shoot: ["list"] },
+				},
+				{
+					title: "Deliverables",
+					url: "/deliverables",
+					icon: PackageIcon,
+					permission: { deliverable: ["list"] },
+				},
+				{
+					title: "Tasks",
+					url: "/tasks",
+					icon: ListTodoIcon,
+					permission: { task: ["list"] },
+				},
+				{
+					title: "Expenses",
+					url: "/expenses",
+					icon: BanknoteIcon,
+					permission: { expense: ["list"] },
+				},
+				{
+					title: "Payments",
+					url: "/payments",
+					icon: Wallet2Icon,
+					permission: { payment: ["list"] },
+				},
+				{
+					title: "Clients",
+					url: "/clients",
+					icon: SquareUserRoundIcon,
+					permission: { client: ["list"] },
+				},
+				{
+					title: "Crews",
+					url: "/crews",
+					icon: UsersIcon,
+					permission: { crew: ["list"] },
+				},
+			],
 		},
+
 		{
-			title: "Bookings",
-			url: "/bookings",
-			icon: DockIcon,
-			permission: { booking: ["list"] },
-			// items: [
-			// 	{
-			// 		title: "Shoots",
-			// 		url: "/shoots",
-			// 		icon: CameraIcon, // Icons for sub-items can be useful
-			// 		permission: { shoot: ["list"] },
-			// 	},
-			// 	{
-			// 		title: "Deliverables",
-			// 		url: "/deliverables",
-			// 		icon: CameraIcon,
-			// 		permission: { deliverable: ["list"] },
-			// 	},
-			// 	{
-			// 		title: "Tasks",
-			// 		url: "/tasks",
-			// 		icon: CameraIcon,
-			// 		permission: { task: ["list"] },
-			// 	},
-			// 	{
-			// 		title: "Expenses",
-			// 		url: "/expenses",
-			// 		icon: CameraIcon,
-			// 		permission: { expense: ["list"] },
-			// 	},
-			// 	{
-			// 		title: "Clients",
-			// 		url: "/clients",
-			// 		icon: CameraIcon,
-			// 		permission: { client: ["list"] },
-			// 	},
-			// ],
-		},
-		{
-			title: "Shoots",
-			url: "/shoots",
-			icon: CameraIcon, // Icons for sub-items can be useful
-			permission: { shoot: ["list"] },
-		},
-		{
-			title: "Deliverables",
-			url: "/deliverables",
-			icon: PackageIcon,
-			permission: { deliverable: ["list"] },
-		},
-		{
-			title: "Tasks",
-			url: "/tasks",
-			icon: ListTodoIcon,
-			permission: { task: ["list"] },
-		},
-		{
-			title: "Expenses",
-			url: "/expenses",
-			icon: BanknoteIcon,
-			permission: { expense: ["list"] },
-		},
-		{
-			title: "Clients",
-			url: "/clients",
-			icon: SquareUserRoundIcon,
-			permission: { client: ["list"] },
-		},
-		{
-			title: "Payments",
-			url: "/payments",
-			icon: Wallet2Icon,
-			permission: { payment: ["list"] },
-		},
-		{
-			title: "Crews",
-			url: "/crews",
-			icon: UsersIcon,
-			permission: { crew: ["list"] },
-		},
-		{
-			title: "Configurations",
-			url: "/configurations/packages",
-			icon: Settings2Icon,
-			permission: { configuration: ["list"] },
+			label: "System",
+			items: [
+				{
+					title: "Configurations",
+					url: "/configurations/packages",
+					icon: Settings2Icon,
+					permission: { configuration: ["list"] },
+				},
+				{
+					title: "Settings",
+					url: "/settings/profile",
+					icon: SettingsIcon,
+				},
+			],
 		},
 	],
 	navSecondary: [
-		{
-			title: "Settings",
-			url: "/settings/profile",
-			icon: SettingsIcon,
-		},
 		{
 			title: "Get Help",
 			url: "#",

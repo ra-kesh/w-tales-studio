@@ -43,24 +43,18 @@ export function AppSidebar({
 	session: Session | null;
 	activeOrganization: ActiveOrganization | null;
 }) {
-	const { navMain, navSecondary } = useFilteredSidebar();
-
+	const { navMainSections, navSecondary } = useFilteredSidebar();
 	return (
 		<Sidebar variant="inset" collapsible="icon">
 			<SidebarHeader>
-				{/* <div className="grid flex-1 text-left text-md leading-tight pl-2">
-					<span className="truncate font-bold">
-						{activeOrganization?.name ?? "Personal Studio"}
-					</span>
-				</div> */}
 				<OrganisationSwitcher
 					session={session}
 					activeOrganization={activeOrganization}
 				/>
 			</SidebarHeader>
-			<SidebarContent>
-				<NavMain items={navMain} />
-				<NavSecondary items={navSecondary} className="mt-auto" />
+			<SidebarContent className="gap-0">
+				<NavMain sections={navMainSections} />
+				{/* <NavSecondary items={navSecondary} className="mt-auto" /> */}
 			</SidebarContent>
 
 			<SidebarFooter>

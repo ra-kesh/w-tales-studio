@@ -1,5 +1,9 @@
 import * as React from "react";
-import { type NavItemWithPermissions, sidebarData } from "@/data/sidebar-data";
+import {
+	type NavItemWithPermissions,
+	type NavSection,
+	sidebarData,
+} from "@/data/sidebar-data";
 import { authClient, useSession } from "@/lib/auth/auth-client";
 
 export function useFilteredSidebar() {
@@ -7,70 +11,53 @@ export function useFilteredSidebar() {
 	const roles = session?.roles ?? [];
 
 	const filteredSidebar = React.useMemo(() => {
-		/**
-		 * Checks if a user has permission for a specific action based on their array of roles.
-		 * It iterates through each role and returns true if any of them grant access.
-		 * @param requiredPermission The permission object from the sidebar item.
-		 * @param userRoles The array of roles the current user has.
-		 * @returns {boolean} - True if the user has permission, false otherwise.
-		 */
 		const checkUserPermissions = (
 			requiredPermission: any,
 			userRoles: string[],
 		): boolean => {
-			if (userRoles.length === 0) {
-				return false;
-			}
+			if (!requiredPermission) return true;
+			if (userRoles.length === 0) return false;
 
 			for (const role of userRoles) {
-				// Use the CORRECT function path as you pointed out.
-				const hasAccess = authClient.organization.checkRolePermission({
-					role, // Pass the single role string here.
-					permissions: requiredPermission,
-				});
-
-				// If any role grants access, we can stop and return true immediately.
-				if (hasAccess) {
+				if (
+					authClient.organization.checkRolePermission({
+						role,
+						permissions: requiredPermission,
+					})
+				) {
 					return true;
 				}
 			}
-
-			// If the loop completes without finding a permissive role, return false.
 			return false;
 		};
 
-		const filterItems = (
+		const filterSections = (sections: NavSection[]): NavSection[] => {
+			return sections
+				.map((section) => {
+					const visibleItems = section.items.filter((item) =>
+						checkUserPermissions(item.permission, roles),
+					);
+
+					if (visibleItems.length === 0) {
+						return null;
+					}
+
+					return { ...section, items: visibleItems };
+				})
+				.filter((section): section is NavSection => section !== null);
+		};
+
+		const filterSecondaryItems = (
 			items: NavItemWithPermissions[],
 		): NavItemWithPermissions[] => {
-			return items
-				.map((item) => {
-					if (!item.permission) {
-						return item;
-					}
-
-					// Check permissions using our new, correct helper function.
-					const hasAccess = checkUserPermissions(item.permission, roles);
-
-					// If the item has sub-items, filter them recursively.
-					if (item.items && item.items.length > 0) {
-						const filteredSubItems = filterItems(item.items);
-
-						// Show the parent only if it has visible children.
-						if (filteredSubItems.length > 0) {
-							return { ...item, items: filteredSubItems };
-						}
-						return null; // Hide parent if all children are hidden.
-					}
-
-					// If no sub-items, return the item only if the user has access.
-					return hasAccess ? item : null;
-				})
-				.filter((item): item is NavItemWithPermissions => item !== null);
+			return items.filter((item) =>
+				checkUserPermissions(item.permission, roles),
+			);
 		};
 
 		return {
-			navMain: filterItems(sidebarData.navMain),
-			navSecondary: filterItems(sidebarData.navSecondary),
+			navMainSections: filterSections(sidebarData.navMain),
+			navSecondary: filterSecondaryItems(sidebarData.navSecondary),
 		};
 	}, [roles]);
 
