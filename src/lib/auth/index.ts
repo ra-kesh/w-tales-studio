@@ -18,6 +18,7 @@ import { resend } from "../email/resend";
 import { reactResetPasswordEmail } from "../email/resetPassword";
 import {
 	ac,
+	appRoles,
 	crew,
 	hr,
 	manager,
@@ -71,15 +72,7 @@ const options = {
 		admin(),
 		organization({
 			ac,
-			roles: {
-				hr,
-				manager,
-				member,
-				crew,
-				owner,
-				post_production_manager,
-				admin: studio_admin,
-			},
+			roles: appRoles,
 			async sendInvitationEmail(data) {
 				await resend.emails.send({
 					from,

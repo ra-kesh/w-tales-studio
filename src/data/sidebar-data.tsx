@@ -19,7 +19,9 @@ export interface NavItemWithPermissions {
 	title: string;
 	url: string;
 	icon: LucideIcon;
-	permission?: any;
+	permissions?: {
+		[key: string]: string[];
+	};
 }
 
 export interface NavSection {
@@ -42,7 +44,7 @@ export const sidebarData: SidebarData = {
 					title: "Dashboard",
 					url: "/dashboard",
 					icon: LayoutDashboardIcon,
-					permission: { dashboard: ["read"] },
+					permissions: { dashboard: ["read"] },
 				},
 			],
 		},
@@ -53,49 +55,49 @@ export const sidebarData: SidebarData = {
 					title: "Bookings",
 					url: "/bookings",
 					icon: DockIcon,
-					permission: { booking: ["list"] },
+					permissions: { booking: ["list"] },
 				},
 				{
 					title: "Shoots",
 					url: "/shoots",
 					icon: CameraIcon,
-					permission: { shoot: ["list"] },
+					permissions: { shoot: ["list"] },
 				},
 				{
 					title: "Deliverables",
 					url: "/deliverables",
 					icon: PackageIcon,
-					permission: { deliverable: ["list"] },
+					permissions: { deliverable: ["list"] },
 				},
 				{
 					title: "Tasks",
 					url: "/tasks",
 					icon: ListTodoIcon,
-					permission: { task: ["list"] },
+					permissions: { task: ["list"] },
 				},
 				{
 					title: "Expenses",
 					url: "/expenses",
 					icon: BanknoteIcon,
-					permission: { expense: ["list"] },
+					permissions: { expense: ["list"] },
 				},
 				{
 					title: "Payments",
 					url: "/payments",
 					icon: Wallet2Icon,
-					permission: { payment: ["list"] },
+					permissions: { payment: ["list"] },
 				},
 				{
 					title: "Clients",
 					url: "/clients",
 					icon: SquareUserRoundIcon,
-					permission: { client: ["list"] },
+					permissions: { client: ["list"] },
 				},
 				{
 					title: "Crews",
 					url: "/crews",
 					icon: UsersIcon,
-					permission: { crew: ["list"] },
+					permissions: { crew: ["list"] },
 				},
 			],
 		},
@@ -107,7 +109,7 @@ export const sidebarData: SidebarData = {
 					title: "Configurations",
 					url: "/configurations",
 					icon: Settings2Icon,
-					permission: { configuration: ["list"] },
+					permissions: { configuration: ["list"] },
 				},
 				{
 					title: "Settings",

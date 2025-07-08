@@ -1,5 +1,7 @@
 "use client";
 
+import type { Row } from "@tanstack/react-table";
+import { MoreHorizontal, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
 	DropdownMenu,
@@ -10,10 +12,9 @@ import {
 	DropdownMenuShortcut,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Users } from "lucide-react";
-import type { Row } from "@tanstack/react-table";
+import { usePermissions } from "@/hooks/use-permissions";
 import { useTaskParams } from "@/hooks/use-task-params";
-import type { Task, TasksAssignment, Crew } from "@/lib/db/schema";
+import type { Crew, Task, TasksAssignment } from "@/lib/db/schema";
 
 interface DataTableRowActionsProps<TData> {
 	row: Row<
@@ -40,6 +41,8 @@ export function TaskTableRowActions<TData>({
 	const task = row.original;
 	const { setParams } = useTaskParams();
 
+	const { canCreateAndUpdateTask } = usePermissions();
+
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
@@ -53,11 +56,13 @@ export function TaskTableRowActions<TData>({
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="end" className="w-[200px]">
 				<DropdownMenuLabel>Actions</DropdownMenuLabel>
-				<DropdownMenuItem
-					onClick={() => setParams({ taskId: task.id.toString() })}
-				>
-					Edit task
-				</DropdownMenuItem>
+				{canCreateAndUpdateTask && (
+					<DropdownMenuItem
+						onClick={() => setParams({ taskId: task.id.toString() })}
+					>
+						Edit task
+					</DropdownMenuItem>
+				)}
 
 				<DropdownMenuSeparator />
 				<DropdownMenuItem className="text-destructive">

@@ -1,23 +1,26 @@
 "use client";
 
+import { X } from "lucide-react";
 import React from "react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import {
 	Sheet,
 	SheetContent,
 	SheetHeader,
 	SheetTitle,
 } from "@/components/ui/sheet";
-import { Button } from "@/components/ui/button";
-import { X } from "lucide-react";
-import { useExpenseParams } from "@/hooks/use-expense-params";
-import { ExpenseForm } from "./expense-form";
-import type { ExpenseFormValues } from "../expense-form-schema";
 import { useCreateExpenseMutation } from "@/hooks/use-expense-mutation";
-import { toast } from "sonner";
+import { useExpenseParams } from "@/hooks/use-expense-params";
+import { usePermissions } from "@/hooks/use-permissions";
+import type { ExpenseFormValues } from "../expense-form-schema";
+import { ExpenseForm } from "./expense-form";
 
 export function ExpenseCreateSheet() {
 	const { setParams, createExpense } = useExpenseParams();
-	const isOpen = Boolean(createExpense);
+	const { canCreateAndUpdateExpense } = usePermissions();
+
+	const isOpen = Boolean(createExpense) && canCreateAndUpdateExpense;
 
 	const createExpenseMutation = useCreateExpenseMutation();
 

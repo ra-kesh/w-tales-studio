@@ -1,23 +1,26 @@
 "use client";
 
+import { X } from "lucide-react";
 import React from "react";
-import { useShootsParams } from "@/hooks/use-shoots-params";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import {
 	Sheet,
 	SheetContent,
 	SheetHeader,
 	SheetTitle,
 } from "@/components/ui/sheet";
-import { Button } from "@/components/ui/button";
-import { X } from "lucide-react";
+import { usePermissions } from "@/hooks/use-permissions";
+import { useCreateShootMutation } from "@/hooks/use-shoot-mutation";
+import { useShootsParams } from "@/hooks/use-shoots-params";
 import { ShootForm } from "./shoot-form";
 import type { ShootFormValues } from "./shoot-form-schema";
-import { useCreateShootMutation } from "@/hooks/use-shoot-mutation";
-import { toast } from "sonner";
 
 export function ShootCreateSheet() {
 	const { setParams, createShoot } = useShootsParams();
-	const isOpen = Boolean(createShoot);
+	const { canCreateAndUpdateShoot } = usePermissions();
+
+	const isOpen = Boolean(createShoot) && canCreateAndUpdateShoot;
 
 	const createShootMutation = useCreateShootMutation();
 

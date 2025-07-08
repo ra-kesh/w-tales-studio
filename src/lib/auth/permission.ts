@@ -180,3 +180,14 @@ export const hr = ac.newRole({
 	expense: ["create", "read", "update", "delete", "list"],
 	payment: ["create", "read", "update", "delete", "list"],
 });
+
+export const appRoles = {
+	owner,
+	admin: studio_admin,
+	member,
+	manager,
+	post_production_manager,
+	hr,
+};
+
+export type AppRole = keyof typeof appRoles;

@@ -69,8 +69,6 @@ export function BookingTypesTable({
 		[data, onEdit, onDelete],
 	);
 
-	console.log({ dataWithActions });
-
 	const columns = useBookingTypeColumns();
 
 	const table = useReactTable({

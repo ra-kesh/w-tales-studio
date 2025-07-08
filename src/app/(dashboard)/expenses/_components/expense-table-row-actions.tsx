@@ -1,5 +1,7 @@
 "use client";
 
+import type { Row } from "@tanstack/react-table";
+import { MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
 	DropdownMenu,
@@ -8,9 +10,8 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal } from "lucide-react";
-import type { Row } from "@tanstack/react-table";
 import { useExpenseParams } from "@/hooks/use-expense-params";
+import { usePermissions } from "@/hooks/use-permissions";
 import type { Expense } from "@/lib/db/schema";
 
 type Expenserow = Expense & { booking: { name: string } };
@@ -24,6 +25,8 @@ export function ExpenseTableRowActions<TData>({
 }: ExpenseTableRowActionsProps<TData>) {
 	const { setParams } = useExpenseParams();
 
+	const { canCreateAndUpdateExpense } = usePermissions();
+
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
@@ -32,11 +35,13 @@ export function ExpenseTableRowActions<TData>({
 				</Button>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="end">
-				<DropdownMenuItem
-					onClick={() => setParams({ expenseId: row.original.id.toString() })}
-				>
-					Edit expense
-				</DropdownMenuItem>
+				{canCreateAndUpdateExpense && (
+					<DropdownMenuItem
+						onClick={() => setParams({ expenseId: row.original.id.toString() })}
+					>
+						Edit expense
+					</DropdownMenuItem>
+				)}
 				<DropdownMenuSeparator />
 				<DropdownMenuItem className="text-destructive">
 					Delete expense
