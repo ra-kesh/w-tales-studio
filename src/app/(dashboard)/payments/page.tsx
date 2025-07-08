@@ -2,6 +2,8 @@
 
 import React from "react";
 import { DataTableSkeleton } from "@/components/data-table/data-table-skeleton";
+import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
+import { Button } from "@/components/ui/button";
 import {
 	CustomTabsContent,
 	CustomTabsList,
@@ -10,6 +12,7 @@ import {
 } from "@/components/ui/tabs";
 import { useBookingTable } from "@/hooks/use-booking-table";
 import { usePaymentSchedules, useReceivedPayments } from "@/hooks/use-payments";
+import { OpenRecviedPaymentSheet } from "./_component/open-received-payments-sheet";
 import { PaymentsTable } from "./_component/payment-table";
 import { useReceivedPaymentsColumns } from "./_component/received-payments-columns";
 import { useScheduledPaymentsColumns } from "./_component/scheduled-payments-columns";
@@ -50,9 +53,9 @@ export default function PaymentsPage() {
 				</CustomTabsList>
 
 				<CustomTabsContent value="received" className="mt-6">
-					{/* <DataTableToolbar table={receivedTable}>
-						<Button size="sm">Add Received Payment</Button>
-					</DataTableToolbar> */}
+					<DataTableToolbar table={receivedTable}>
+						<OpenRecviedPaymentSheet />
+					</DataTableToolbar>
 					{isReceivedLoading ? (
 						<DataTableSkeleton columnCount={5} />
 					) : (
@@ -61,9 +64,9 @@ export default function PaymentsPage() {
 				</CustomTabsContent>
 
 				<CustomTabsContent value="scheduled" className="mt-6">
-					{/* <DataTableToolbar table={scheduledTable}>
+					<DataTableToolbar table={scheduledTable}>
 						<Button size="sm">Add Scheduled Payment</Button>
-					</DataTableToolbar> */}
+					</DataTableToolbar>
 					{isScheduledLoading ? (
 						<DataTableSkeleton columnCount={5} />
 					) : (

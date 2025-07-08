@@ -1,10 +1,16 @@
-// src/app/api/received-payments/route.ts
+import { and, eq } from "drizzle-orm";
+import { headers } from "next/headers";
 import { NextResponse } from "next/server";
+import { ZodError } from "zod";
+import { receivedPaymentFormSchema } from "@/app/(dashboard)/payments/_component/received-payment-form-schema";
+import { auth } from "@/lib/auth";
 import { getServerSession } from "@/lib/dal";
+import { db } from "@/lib/db/drizzle";
 import {
 	getReceivedPayments,
 	type ReceivedPaymentFilters,
 } from "@/lib/db/queries";
+import { bookings, receivedAmounts } from "@/lib/db/schema";
 
 export async function GET(request: Request) {
 	const { session } = await getServerSession();
@@ -48,6 +54,91 @@ export async function GET(request: Request) {
 			error instanceof Error ? error.message : "Unknown error";
 		return NextResponse.json(
 			{ message: "Internal server error", error: errorMessage },
+			{ status: 500 },
+		);
+	}
+}
+
+export async function POST(request: Request) {
+	const session = await auth.api.getSession({
+		headers: await headers(),
+	});
+
+	if (!session || !session.user) {
+		return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+	}
+
+	const activeOrganizationId = session.session.activeOrganizationId;
+
+	if (!activeOrganizationId) {
+		return NextResponse.json(
+			{ message: "User not associated with an organization" },
+			{ status: 403 },
+		);
+	}
+	// 2. Authorization: Check if the user has permission to create payments
+	const canCreatePayment = await auth.api.hasPermission({
+		headers: await headers(),
+		body: {
+			permissions: {
+				payment: ["create"],
+			},
+		},
+	});
+
+	if (!canCreatePayment) {
+		return NextResponse.json(
+			{ message: "You do not have permission to add payments." },
+			{ status: 403 },
+		);
+	}
+
+	try {
+		const body = await request.json();
+		// 3. Validation: Parse the request body with Zod
+		const validatedData = receivedPaymentFormSchema.parse(body);
+
+		const { bookingId, amount, description, paidOn } = validatedData;
+
+		// 4. Verification: Ensure the booking belongs to the user's organization
+		const bookingExists = await db.query.bookings.findFirst({
+			where: and(
+				eq(bookings.id, Number(bookingId)),
+				eq(bookings.organizationId, activeOrganizationId),
+			),
+		});
+
+		if (!bookingExists) {
+			return NextResponse.json(
+				{
+					message: "Booking not found or does not belong to this organization.",
+				},
+				{ status: 404 },
+			);
+		}
+
+		// 5. Database Insert: Create the new payment record
+		const newPayment = await db
+			.insert(receivedAmounts)
+			.values({
+				organizationId: activeOrganizationId,
+				bookingId: Number(bookingId),
+				amount,
+				description: description || null,
+				paidOn: paidOn,
+			})
+			.returning();
+
+		return NextResponse.json(newPayment[0], { status: 201 });
+	} catch (error) {
+		// Handle Zod validation errors specifically
+		if (error instanceof ZodError) {
+			return NextResponse.json({ errors: error.errors }, { status: 400 });
+		}
+		// Handle generic server errors
+		console.error("Error creating received payment:", error);
+		return NextResponse.json(
+			{ message: "Internal server error" },
 			{ status: 500 },
 		);
 	}

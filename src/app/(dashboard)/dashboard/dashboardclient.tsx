@@ -1,5 +1,8 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+import { parseAsString, useQueryState } from "nuqs";
+
 import {
 	Select,
 	SelectContent,
@@ -14,23 +17,17 @@ import {
 	Tabs,
 } from "@/components/ui/tabs";
 import { type DashboardData, useDashboardData } from "@/hooks/use-dashboard";
-import { parseAsString, useQueryState } from "nuqs";
-import { UpcomingWork } from "./_components/upcmingwork";
-import { OverdueWork } from "./_components/overduework";
-import { RecentBookingDashboard } from "./_components/recent-booking";
 import { ExpenseBreakdown } from "./_components/expense-breakdown";
+import { OverdueWork } from "./_components/overduework";
 import { PayementsAndClients } from "./_components/payment-activity";
+import { RecentBookingDashboard } from "./_components/recent-booking";
 import {
 	BookingStats,
 	KpiStats,
 	OverdueStats,
 	UpcomingStats,
 } from "./_components/stats";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
-import { authClient } from "@/lib/auth/auth-client";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { UpcomingWork } from "./_components/upcmingwork";
 
 export default function DashboardClient() {
 	const [interval, setInterval] = useQueryState(
@@ -91,82 +88,10 @@ export default function DashboardClient() {
 	const { kpis, actionItems, bookingAnalytics, operations, expenseAnalytics } =
 		data || emptyData;
 
-	const { data: activeOrganization } = authClient.useActiveOrganization();
-
 	return (
 		<>
 			<main>
-				<header className="relative isolate ">
-					<div
-						aria-hidden="true"
-						className="absolute inset-0 -z-10 overflow-hidden"
-					>
-						<div className="absolute top-full left-16 -mt-16 transform-gpu opacity-50 blur-3xl xl:left-1/2 xl:-ml-80">
-							<div
-								style={{
-									clipPath:
-										"polygon(100% 38.5%, 82.6% 100%, 60.2% 37.7%, 52.4% 32.1%, 47.5% 41.8%, 45.2% 65.6%, 27.5% 23.4%, 0.1% 35.3%, 17.9% 0%, 27.7% 23.4%, 76.2% 2.5%, 74.2% 56%, 100% 38.5%)",
-								}}
-								className="aspect-1154/678 w-[72.125rem] bg-linear-to-br from-[#FF80B5] to-[#9089FC]"
-							/>
-						</div>
-						<div className="absolute inset-x-0 bottom-0 h-px bg-gray-900/5" />
-					</div>
-
-					<div className="mx-auto  px-4 py-8 sm:px-6 lg:px-8">
-						<div className="mx-auto flex max-w-2xl items-center justify-between gap-x-8 lg:mx-0 lg:max-w-none">
-							<div className="flex items-center gap-x-6">
-								<Avatar className="rounded-full size-16 ring-1 ring-gray-950/10 p-2">
-									<AvatarImage
-										className="object-cover w-full h-full rounded-full"
-										src={activeOrganization?.logo || undefined}
-									/>
-									<AvatarFallback className="rounded-full">
-										{activeOrganization?.name?.charAt(0) || undefined}
-									</AvatarFallback>
-								</Avatar>
-
-								<h1>
-									<div className="text-sm/6 text-gray-500">Studio</div>
-									<div className="mt-1 text-base font-semibold text-gray-900">
-										{activeOrganization ? (
-											<p>{activeOrganization.name}</p>
-										) : (
-											<p>Organisation Not Available </p>
-										)}
-									</div>
-								</h1>
-							</div>
-							<div className="flex items-center gap-x-4">
-								<Button
-									variant={"link"}
-									type="button"
-									className="font-semibold cursor-pointer"
-									onClick={router.back}
-								>
-									Back
-								</Button>
-
-								<Link
-									href={{
-										pathname: "/bookings/add",
-										query: { tab: "details" },
-									}}
-									prefetch={true}
-								>
-									<Button
-										size="sm"
-										className="bg-indigo-600  font-semibold text-white  hover:bg-indigo-500 cursor-pointer"
-									>
-										New Booking
-									</Button>
-								</Link>
-							</div>
-						</div>
-					</div>
-				</header>
-
-				<div className="mx-auto  px-4 py-8 sm:px-6 lg:px-8">
+				<div className="mx-auto  px-4 py-6 sm:px-6 pt-0">
 					<div className="mx-auto grid max-w-2xl grid-cols-1 grid-rows-1 items-start gap-x-8 gap-y-6 lg:mx-0 lg:max-w-none lg:grid-cols-3">
 						<div className="lg:col-start-3 lg:row-end-1">
 							<div className="flex items-end justify-between mb-5">
