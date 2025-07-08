@@ -6,6 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import type { ReceivedPaymentRow } from "@/types/payments";
 import { DataTableColumnHeader } from "../../tasks/_components/task-table-column-header";
+import { ReceivedPaymentsRowActions } from "./received-payments-row-action";
 
 export const useReceivedPaymentsColumns = () => {
 	const columns: ColumnDef<ReceivedPaymentRow>[] = [
@@ -46,6 +47,10 @@ export const useReceivedPaymentsColumns = () => {
 				<DataTableColumnHeader column={column} title="Description" />
 			),
 			cell: ({ row }) => row.original.description ?? "N/a",
+		},
+		{
+			id: "actions",
+			cell: ({ row }) => <ReceivedPaymentsRowActions row={row} />,
 		},
 		// Add actions column here if needed
 	];

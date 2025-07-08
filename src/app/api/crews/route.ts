@@ -49,6 +49,7 @@ export async function POST(request: Request) {
 	}
 
 	const userOrganizationId = session.session.activeOrganizationId;
+
 	if (!userOrganizationId) {
 		return NextResponse.json(
 			{ message: "User not associated with an organization" },

@@ -30,8 +30,6 @@ export async function GET(request: Request) {
 		const page = Number.parseInt(searchParams.get("page") || "1", 10);
 		const limit = Number.parseInt(searchParams.get("perPage") || "10", 10);
 
-		// Add sort parsing here if needed in the future
-
 		const filters: ReceivedPaymentFilters = {
 			description: searchParams.get("description") || undefined,
 			paidOn: searchParams.get("paidOn") || undefined,
@@ -76,7 +74,6 @@ export async function POST(request: Request) {
 			{ status: 403 },
 		);
 	}
-	// 2. Authorization: Check if the user has permission to create payments
 	const canCreatePayment = await auth.api.hasPermission({
 		headers: await headers(),
 		body: {
@@ -100,7 +97,6 @@ export async function POST(request: Request) {
 
 		const { bookingId, amount, description, paidOn } = validatedData;
 
-		// 4. Verification: Ensure the booking belongs to the user's organization
 		const bookingExists = await db.query.bookings.findFirst({
 			where: and(
 				eq(bookings.id, Number(bookingId)),
@@ -117,25 +113,22 @@ export async function POST(request: Request) {
 			);
 		}
 
-		// 5. Database Insert: Create the new payment record
 		const newPayment = await db
 			.insert(receivedAmounts)
 			.values({
 				organizationId: activeOrganizationId,
 				bookingId: Number(bookingId),
 				amount,
-				description: description || null,
+				description: description || "",
 				paidOn: paidOn,
 			})
 			.returning();
 
 		return NextResponse.json(newPayment[0], { status: 201 });
 	} catch (error) {
-		// Handle Zod validation errors specifically
 		if (error instanceof ZodError) {
 			return NextResponse.json({ errors: error.errors }, { status: 400 });
 		}
-		// Handle generic server errors
 		console.error("Error creating received payment:", error);
 		return NextResponse.json(
 			{ message: "Internal server error" },
