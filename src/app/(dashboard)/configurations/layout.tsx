@@ -4,6 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Suspense } from "react";
 import { SimpleTabsList, SimpleTabsTrigger } from "@/components/ui/tabs";
+import { configTabs } from "@/data/tab-data";
+import { useFilteredTabs } from "@/hooks/use-filtered-tabs";
 import { cn } from "@/lib/utils";
 
 interface ConfigLayoutProps {
@@ -13,16 +15,7 @@ interface ConfigLayoutProps {
 const ConfigLayout = ({ children }: ConfigLayoutProps) => {
 	const pathname = usePathname();
 
-	const tabs = [
-		{ path: "/configurations/packages", label: "Package Types" },
-		{ path: "/configurations/booking-types", label: "Booking Types" },
-		{
-			path: "/configurations/deliverable-status",
-			label: "Deliverables Status",
-		},
-		{ path: "/configurations/task-status", label: "Task Status" },
-		// { path: "/configurations/task-priority", label: "Task Priority" },
-	];
+	const tabs = useFilteredTabs(configTabs);
 
 	return (
 		<div className="hidden h-full flex-1 flex-col space-y-8 p-6 pt-0 md:flex">

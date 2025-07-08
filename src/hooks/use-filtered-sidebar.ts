@@ -5,37 +5,33 @@ import {
 	sidebarData,
 } from "@/data/sidebar-data";
 import { authClient, useSession } from "@/lib/auth/auth-client";
+import type { AppRole } from "@/lib/auth/permission";
 
 export function useFilteredSidebar() {
 	const { data: session } = useSession();
-	const roles = session?.roles ?? [];
+	const userRoles = (session?.roles ?? []) as AppRole[];
 
 	const filteredSidebar = React.useMemo(() => {
 		const checkUserPermissions = (
-			requiredPermission: any,
-			userRoles: string[],
+			requiredPermission:
+				| {
+						[key: string]: string[];
+				  }
+				| undefined,
 		): boolean => {
 			if (!requiredPermission) return true;
 			if (userRoles.length === 0) return false;
-
-			for (const role of userRoles) {
-				if (
-					authClient.organization.checkRolePermission({
-						role,
-						permissions: requiredPermission,
-					})
-				) {
-					return true;
-				}
-			}
-			return false;
+			return authClient.organization.checkRolePermission({
+				role: userRoles.join(",") as AppRole,
+				permissions: requiredPermission,
+			});
 		};
 
 		const filterSections = (sections: NavSection[]): NavSection[] => {
 			return sections
 				.map((section) => {
 					const visibleItems = section.items.filter((item) =>
-						checkUserPermissions(item.permission, roles),
+						checkUserPermissions(item.permissions),
 					);
 
 					if (visibleItems.length === 0) {
@@ -50,16 +46,14 @@ export function useFilteredSidebar() {
 		const filterSecondaryItems = (
 			items: NavItemWithPermissions[],
 		): NavItemWithPermissions[] => {
-			return items.filter((item) =>
-				checkUserPermissions(item.permission, roles),
-			);
+			return items.filter((item) => checkUserPermissions(item.permissions));
 		};
 
 		return {
 			navMainSections: filterSections(sidebarData.navMain),
 			navSecondary: filterSecondaryItems(sidebarData.navSecondary),
 		};
-	}, [roles]);
+	}, [userRoles]);
 
 	return filteredSidebar;
 }
