@@ -6,6 +6,7 @@ import * as React from "react";
 import { useCrewParams } from "@/hooks/use-crew-params";
 import { useDeliverableParams } from "@/hooks/use-deliverable-params";
 import { useExpenseParams } from "@/hooks/use-expense-params";
+import { usePermissions } from "@/hooks/use-permissions";
 import { useShootsParams } from "@/hooks/use-shoots-params";
 import { useTaskParams } from "@/hooks/use-task-params";
 import { cn } from "@/lib/utils";
@@ -29,6 +30,16 @@ export default function NewActionSwitcher() {
 
 	const router = useRouter();
 
+	const {
+		canCreateAndUpdateBooking,
+		canCreateAndUpdateShoot,
+		canCreateAndUpdateDeliverable,
+		canCreateAndUpdateExpense,
+		canCreateAndUpdatePayment,
+		canCreateAndUpdateTask,
+		canCreateAndUpdateCrew,
+	} = usePermissions();
+
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
@@ -45,66 +56,83 @@ export default function NewActionSwitcher() {
 				</Button>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="end" className="w-[220px]">
-				<DropdownMenuItem
-					onSelect={() => {
-						setOpen(false);
-						router.prefetch("/bookings/add");
-						router.push(`/bookings/add`);
-					}}
-				>
-					Add New Booking
-				</DropdownMenuItem>
-				<DropdownMenuSeparator />
-				<DropdownMenuItem
-					onSelect={() => {
-						setOpen(false);
-						setShootParams({ createShoot: true });
-					}}
-				>
-					Add New Shoot
-				</DropdownMenuItem>
-				<DropdownMenuItem
-					onSelect={() => {
-						setOpen(false);
-						setDeliverablesParams({ createDeliverable: true });
-					}}
-				>
-					Add New Deliverables
-				</DropdownMenuItem>
-				<DropdownMenuItem
-					onSelect={() => {
-						setOpen(false);
-						setTaskParams({ createTask: true });
-					}}
-				>
-					Add New Tasks
-				</DropdownMenuItem>
-				<DropdownMenuSeparator />
-				<DropdownMenuItem
-					onSelect={() => {
-						setOpen(false);
-						// router.push(`/contacts/create`);
-					}}
-				>
-					Add New Payment
-				</DropdownMenuItem>
-				<DropdownMenuItem
-					onSelect={() => {
-						setOpen(false);
-						setExpenseParams({ createExpense: true });
-					}}
-				>
-					Add New Expenses
-				</DropdownMenuItem>
-				<DropdownMenuSeparator />
-				<DropdownMenuItem
-					onSelect={() => {
-						setOpen(false);
-						setCrewParams({ createCrew: true });
-					}}
-				>
-					Add New Crew
-				</DropdownMenuItem>
+				{canCreateAndUpdateBooking && (
+					<DropdownMenuItem
+						onSelect={() => {
+							setOpen(false);
+							router.prefetch("/bookings/add");
+							router.push(`/bookings/add`);
+						}}
+					>
+						Add New Booking
+					</DropdownMenuItem>
+				)}
+
+				{canCreateAndUpdateBooking && <DropdownMenuSeparator />}
+
+				{canCreateAndUpdateShoot && (
+					<DropdownMenuItem
+						onSelect={() => {
+							setOpen(false);
+							setShootParams({ createShoot: true });
+						}}
+					>
+						Add New Shoot
+					</DropdownMenuItem>
+				)}
+				{canCreateAndUpdateDeliverable && (
+					<DropdownMenuItem
+						onSelect={() => {
+							setOpen(false);
+							setDeliverablesParams({ createDeliverable: true });
+						}}
+					>
+						Add New Deliverables
+					</DropdownMenuItem>
+				)}
+				{canCreateAndUpdateTask && (
+					<DropdownMenuItem
+						onSelect={() => {
+							setOpen(false);
+							setTaskParams({ createTask: true });
+						}}
+					>
+						Add New Tasks
+					</DropdownMenuItem>
+				)}
+				{(canCreateAndUpdateExpense || canCreateAndUpdatePayment) && (
+					<DropdownMenuSeparator />
+				)}
+				{canCreateAndUpdatePayment && (
+					<DropdownMenuItem
+						onSelect={() => {
+							setOpen(false);
+						}}
+					>
+						Add New Payment
+					</DropdownMenuItem>
+				)}
+				{canCreateAndUpdateExpense && (
+					<DropdownMenuItem
+						onSelect={() => {
+							setOpen(false);
+							setExpenseParams({ createExpense: true });
+						}}
+					>
+						Add New Expenses
+					</DropdownMenuItem>
+				)}
+				{canCreateAndUpdateCrew && <DropdownMenuSeparator />}
+				{canCreateAndUpdateCrew && (
+					<DropdownMenuItem
+						onSelect={() => {
+							setOpen(false);
+							setCrewParams({ createCrew: true });
+						}}
+					>
+						Add New Crew
+					</DropdownMenuItem>
+				)}
 			</DropdownMenuContent>
 		</DropdownMenu>
 	);
