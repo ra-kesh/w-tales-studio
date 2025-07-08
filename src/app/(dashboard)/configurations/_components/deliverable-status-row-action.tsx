@@ -7,6 +7,7 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { usePermissions } from "@/hooks/use-permissions";
 import type { DeliverableStatusRow } from "./deliverable-status-table-columns";
 
 interface DeliverableStatusTableRowActions<TData> {
@@ -16,6 +17,8 @@ interface DeliverableStatusTableRowActions<TData> {
 export function DeliverableStatusTableRowActions<TData>({
 	row,
 }: DeliverableStatusTableRowActions<TData>) {
+	const { canCreateAndUpdateDeliverableStatus } = usePermissions();
+
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
@@ -28,15 +31,17 @@ export function DeliverableStatusTableRowActions<TData>({
 				</Button>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="end" className="w-[160px]">
-				<DropdownMenuItem
-					onClick={() => {
-						// @ts-ignore - we know id exists
-						row.original.id && row.original.onEdit(row.original.id);
-					}}
-				>
-					<Edit className="mr-2 h-4 w-4" />
-					Edit
-				</DropdownMenuItem>
+				{canCreateAndUpdateDeliverableStatus && (
+					<DropdownMenuItem
+						onClick={() => {
+							// @ts-ignore - we know id exists
+							row.original.id && row.original.onEdit(row.original.id);
+						}}
+					>
+						<Edit className="mr-2 h-4 w-4" />
+						Edit
+					</DropdownMenuItem>
+				)}
 				<DropdownMenuItem
 					onClick={() => {
 						// @ts-ignore - we know id exists

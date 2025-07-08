@@ -59,14 +59,12 @@ const ClientLayout = async ({ children }: { children: React.ReactNode }) => {
 	return (
 		<Protected permissions={{ client: ["read"] }}>
 			<div>
-				{/* <Suspense fallback={<div>Loading...</div>}> */}
 				<ClientsStats stats={clientStats} />
 				<HydrationBoundary state={dehydrate(queryClient)}>
 					<div className="flex flex-col  mx-auto  px-4  sm:px-6 lg:px-8 lg:mx-0 lg:max-w-none">
 						{children}
 					</div>
 				</HydrationBoundary>
-				{/* </Suspense> */}
 			</div>
 		</Protected>
 	);

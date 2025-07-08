@@ -1,26 +1,30 @@
 "use client";
 
+import { X } from "lucide-react";
 import React from "react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import {
 	Sheet,
 	SheetContent,
 	SheetHeader,
 	SheetTitle,
 } from "@/components/ui/sheet";
-import { X } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useDeliverableStatusParams } from "@/hooks/use-deliverable-status-params";
-import { DeliverableStatusForm } from "./deliverable-status-form";
 import {
 	useDeliverableStatusDetail,
 	useUpdateDeliverableStatusMutation,
 } from "@/hooks/use-configs";
+import { useDeliverableStatusParams } from "@/hooks/use-deliverable-status-params";
+import { usePermissions } from "@/hooks/use-permissions";
+import { DeliverableStatusForm } from "./deliverable-status-form";
 import type { DeliverableStatusFormValues } from "./deliverable-status-form-schema";
-import { toast } from "sonner";
 
 export function DeliverableStatusEditSheet() {
 	const { setParams, deliverableStatusId } = useDeliverableStatusParams();
-	const isOpen = Boolean(deliverableStatusId);
+	const { canCreateAndUpdateDeliverableStatus } = usePermissions();
+
+	const isOpen =
+		Boolean(deliverableStatusId) && canCreateAndUpdateDeliverableStatus;
 
 	const { data: deliverableStatusData, isLoading } = useDeliverableStatusDetail(
 		deliverableStatusId ?? "",

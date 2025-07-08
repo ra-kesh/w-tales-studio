@@ -14,6 +14,7 @@ import {
 	Tabs,
 } from "@/components/ui/tabs";
 import { useBookingDetail } from "@/hooks/use-bookings";
+import { usePermissions } from "@/hooks/use-permissions";
 import { BookingDeliverables } from "./booking-deliverables";
 import { BookingDetailsSkeleton } from "./booking-details-skeleton";
 import { BookingOverview } from "./booking-overview";
@@ -42,7 +43,8 @@ export function BookingDetails({ id }: { id: string }) {
 	];
 
 	const handleClose = () => router.push("/bookings");
-	const handleEdit = () => router.push(`/bookings/edit/${id}`);
+
+	const { canCreateAndUpdateBooking } = usePermissions();
 
 	if (isPending || !booking) {
 		return <BookingDetailsSkeleton />;
@@ -71,21 +73,22 @@ export function BookingDetails({ id }: { id: string }) {
 							>
 								Close
 							</Button>
-
-							<Link
-								href={{
-									pathname: `/bookings/edit/${id}`,
-									query: { tab: "details" },
-								}}
-								prefetch={true}
-							>
-								<Button
-									size="sm"
-									className="bg-indigo-600  font-semibold text-white  hover:bg-indigo-500 cursor-pointer"
+							{canCreateAndUpdateBooking && (
+								<Link
+									href={{
+										pathname: `/bookings/edit/${id}`,
+										query: { tab: "details" },
+									}}
+									prefetch={true}
 								>
-									Edit Booking
-								</Button>
-							</Link>
+									<Button
+										size="sm"
+										className="bg-indigo-600  font-semibold text-white  hover:bg-indigo-500 cursor-pointer"
+									>
+										Edit Booking
+									</Button>
+								</Link>
+							)}
 						</div>
 					</div>
 

@@ -1,5 +1,7 @@
 "use client";
 
+import type { Row } from "@tanstack/react-table";
+import { MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
 	DropdownMenu,
@@ -8,9 +10,8 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal } from "lucide-react";
-import type { Row } from "@tanstack/react-table";
 import { useDeliverableParams } from "@/hooks/use-deliverable-params";
+import { usePermissions } from "@/hooks/use-permissions";
 import type { DeliverableRowData } from "@/types/deliverables";
 
 interface DeliverableTableRowActionsProps<TData> {
@@ -22,6 +23,8 @@ export function DeliverableTableRowActions<TData>({
 }: DeliverableTableRowActionsProps<TData>) {
 	const { setParams } = useDeliverableParams();
 
+	const { canCreateAndUpdateDeliverable } = usePermissions();
+
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
@@ -30,13 +33,15 @@ export function DeliverableTableRowActions<TData>({
 				</Button>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="end">
-				<DropdownMenuItem
-					onClick={() =>
-						setParams({ deliverableId: row.original.id.toString() })
-					}
-				>
-					Edit deliverable
-				</DropdownMenuItem>
+				{canCreateAndUpdateDeliverable && (
+					<DropdownMenuItem
+						onClick={() =>
+							setParams({ deliverableId: row.original.id.toString() })
+						}
+					>
+						Edit deliverable
+					</DropdownMenuItem>
+				)}
 				<DropdownMenuSeparator />
 				<DropdownMenuItem className="text-destructive">
 					Delete deliverable

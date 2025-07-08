@@ -7,6 +7,7 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { usePermissions } from "@/hooks/use-permissions";
 
 interface PackageType {
 	id: number;
@@ -34,6 +35,8 @@ interface PackageTableRowActionsProps<TData> {
 export function PackageTableRowActions<TData>({
 	row,
 }: PackageTableRowActionsProps<TData>) {
+	const { canCreateAndUpdatePackageTypes } = usePermissions();
+
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
@@ -46,15 +49,17 @@ export function PackageTableRowActions<TData>({
 				</Button>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="end" className="w-[160px]">
-				<DropdownMenuItem
-					onClick={() => {
-						// @ts-ignore - we know id exists
-						row.original.id && row.original.onEdit(row.original.id);
-					}}
-				>
-					<Edit className="mr-2 h-4 w-4" />
-					Edit
-				</DropdownMenuItem>
+				{canCreateAndUpdatePackageTypes && (
+					<DropdownMenuItem
+						onClick={() => {
+							// @ts-ignore - we know id exists
+							row.original.id && row.original.onEdit(row.original.id);
+						}}
+					>
+						<Edit className="mr-2 h-4 w-4" />
+						Edit
+					</DropdownMenuItem>
+				)}
 				<DropdownMenuItem
 					onClick={() => {
 						// @ts-ignore - we know id exists

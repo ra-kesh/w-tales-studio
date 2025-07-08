@@ -8,6 +8,7 @@ import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
 import { useBookingTable } from "@/hooks/use-booking-table";
 import { useBookings } from "@/hooks/use-bookings";
 import { usePackageTypes } from "@/hooks/use-configs";
+import { usePermissions } from "@/hooks/use-permissions";
 import { BookingTable } from "../_components/booking-table/booking-table";
 import { useBookingColumns } from "../_components/booking-table/booking-table-columns";
 import { BookingTablePagination } from "../_components/booking-table/booking-table-pagination";
@@ -41,10 +42,12 @@ export default function Bookings(props: {
 		clearOnDefault: true,
 	});
 
+	const { canCreateAndUpdateBooking } = usePermissions();
+
 	return (
 		<div className="flex-1 min-w-0 py-6">
 			<DataTableToolbar table={table} className="my-2">
-				<NewBookingButton />
+				{canCreateAndUpdateBooking && <NewBookingButton />}
 			</DataTableToolbar>
 			{isPending ? (
 				<DataTableSkeleton

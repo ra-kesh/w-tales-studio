@@ -1,28 +1,30 @@
 "use client";
 
+import { XIcon } from "lucide-react";
 import React from "react";
-import { useShootsParams } from "@/hooks/use-shoots-params";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import {
 	Sheet,
 	SheetContent,
 	SheetHeader,
 	SheetTitle,
 } from "@/components/ui/sheet";
-import { XIcon } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useShootDetail } from "@/hooks/use-shoots";
-import { ShootForm } from "./shoot-form";
+import { usePermissions } from "@/hooks/use-permissions";
 import { useUpdateShootMutation } from "@/hooks/use-shoot-mutation";
+import { useShootDetail } from "@/hooks/use-shoots";
+import { useShootsParams } from "@/hooks/use-shoots-params";
+import { ShootForm } from "./shoot-form";
 import type { ShootFormValues } from "./shoot-form-schema";
-import { toast } from "sonner";
 
 export function ShootEditSheet() {
 	const { setParams, shootId } = useShootsParams();
 	const updateShootMutation = useUpdateShootMutation();
 
 	const { data: shoot, refetch, isLoading } = useShootDetail(shootId as string);
+	const { canCreateAndUpdateShoot } = usePermissions();
 
-	const isOpen = Boolean(shootId);
+	const isOpen = Boolean(shootId) && canCreateAndUpdateShoot;
 
 	const handleSubmit = async (data: ShootFormValues) => {
 		try {

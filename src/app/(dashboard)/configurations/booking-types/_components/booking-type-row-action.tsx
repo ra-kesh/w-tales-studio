@@ -7,6 +7,7 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { usePermissions } from "@/hooks/use-permissions";
 import type { BookingTypeRow } from "./booking-types-table-columns";
 
 interface BookingTypeTableRowActions<TData> {
@@ -16,6 +17,8 @@ interface BookingTypeTableRowActions<TData> {
 export function BookingTypeTableRowActions<TData>({
 	row,
 }: BookingTypeTableRowActions<TData>) {
+	const { canCreateAndUpdateBookingTypes } = usePermissions();
+
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
@@ -28,15 +31,17 @@ export function BookingTypeTableRowActions<TData>({
 				</Button>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="end" className="w-[160px]">
-				<DropdownMenuItem
-					onClick={() => {
-						// @ts-ignore - we know id exists
-						row.original.id && row.original.onEdit(row.original.id);
-					}}
-				>
-					<Edit className="mr-2 h-4 w-4" />
-					Edit
-				</DropdownMenuItem>
+				{canCreateAndUpdateBookingTypes && (
+					<DropdownMenuItem
+						onClick={() => {
+							// @ts-ignore - we know id exists
+							row.original.id && row.original.onEdit(row.original.id);
+						}}
+					>
+						<Edit className="mr-2 h-4 w-4" />
+						Edit
+					</DropdownMenuItem>
+				)}
 				<DropdownMenuItem
 					onClick={() => {
 						// @ts-ignore - we know id exists

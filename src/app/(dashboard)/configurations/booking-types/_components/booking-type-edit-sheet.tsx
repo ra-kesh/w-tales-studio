@@ -1,26 +1,29 @@
 "use client";
 
+import { X } from "lucide-react";
 import React from "react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import {
 	Sheet,
 	SheetContent,
 	SheetHeader,
 	SheetTitle,
 } from "@/components/ui/sheet";
-import { X } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { useBookingTypesParams } from "@/hooks/use-booking-types-params";
-import { BookingTypeForm } from "./booking-type-form";
 import {
 	useBookingTypeDetail,
 	useUpdateBookingTypeMutation,
 } from "@/hooks/use-configs";
+import { usePermissions } from "@/hooks/use-permissions";
+import { BookingTypeForm } from "./booking-type-form";
 import type { BookingFormValues } from "./booking-type-form-schema";
-import { toast } from "sonner";
 
 export function BookingTypeEditSheet() {
 	const { setParams, bookingTypeId } = useBookingTypesParams();
-	const isOpen = Boolean(bookingTypeId);
+	const { canCreateAndUpdateBookingTypes } = usePermissions();
+
+	const isOpen = Boolean(bookingTypeId) && canCreateAndUpdateBookingTypes;
 
 	const { data: bookingTypeData, isLoading } = useBookingTypeDetail(
 		bookingTypeId ?? "",

@@ -1,5 +1,3 @@
-"use client";
-
 import { Suspense } from "react";
 import { ShootCreateSheet } from "@/app/(dashboard)/shoots/_components/shoot-create-sheet";
 import { ClientEditSheet } from "./clients/_components/client-edit-sheet";

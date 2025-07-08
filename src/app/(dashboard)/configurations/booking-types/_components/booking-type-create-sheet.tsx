@@ -12,12 +12,15 @@ import {
 } from "@/components/ui/sheet";
 import { useBookingTypesParams } from "@/hooks/use-booking-types-params";
 import { useCreateBookingTypeMutation } from "@/hooks/use-configs";
+import { usePermissions } from "@/hooks/use-permissions";
 import { BookingTypeForm } from "./booking-type-form";
 import type { BookingFormValues } from "./booking-type-form-schema";
 
 export function BookingTypeCreateSheet() {
 	const { setParams, createBookingType } = useBookingTypesParams();
-	const isOpen = Boolean(createBookingType);
+	const { canCreateAndUpdateBookingTypes } = usePermissions();
+
+	const isOpen = Boolean(createBookingType) && canCreateAndUpdateBookingTypes;
 
 	const createBookingTypeMutation = useCreateBookingTypeMutation();
 
