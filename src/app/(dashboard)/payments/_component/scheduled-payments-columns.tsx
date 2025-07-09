@@ -6,6 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import type { ScheduledPaymentRow } from "@/types/payments";
 import { DataTableColumnHeader } from "../../tasks/_components/task-table-column-header";
+import { ScheduledPaymentsRowActions } from "./schedule-payment-row-action";
 
 export const useScheduledPaymentsColumns = ({
 	minimalBookings,
@@ -66,6 +67,7 @@ export const useScheduledPaymentsColumns = ({
 			cell: ({ row }) => formatCurrency(row.original.amount),
 		},
 		{
+			id: "dueDate",
 			accessorKey: "dueDate",
 			header: ({ column }) => (
 				<DataTableColumnHeader column={column} title="Due Date" />
@@ -87,7 +89,10 @@ export const useScheduledPaymentsColumns = ({
 			),
 			cell: ({ row }) => row.original.description ?? "N/a",
 		},
-		// Add actions column here if needed
+		{
+			id: "actions",
+			cell: ({ row }) => <ScheduledPaymentsRowActions row={row} />,
+		},
 	];
 	return columns;
 };

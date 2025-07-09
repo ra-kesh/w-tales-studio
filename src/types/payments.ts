@@ -39,3 +39,12 @@ export interface ReceivedPaymentDetail {
 		name: string;
 	};
 }
+
+export interface ScheduledPaymentDetail {
+	id: number;
+	bookingId: string;
+	amount: string;
+	description: string;
+	dueDate: string;
+	booking: { name: string };
+}

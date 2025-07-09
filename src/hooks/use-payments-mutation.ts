@@ -33,8 +33,6 @@ export function useCreateReceivedPaymentMutation() {
 	});
 }
 
-// --- UPDATE Mutation ---
-// The mutation function will expect the payment ID along with the form values.
 export function useUpdateReceivedPaymentMutation() {
 	const queryClient = useQueryClient();
 
@@ -74,8 +72,6 @@ export function useUpdateReceivedPaymentMutation() {
 	});
 }
 
-// --- DELETE Mutation ---
-// The mutation function will expect just the ID of the payment to delete.
 export function useDeleteReceivedPaymentMutation() {
 	const queryClient = useQueryClient();
 
@@ -103,36 +99,28 @@ export function useDeleteReceivedPaymentMutation() {
 }
 export function useCreateScheduledPaymentMutation() {
 	const queryClient = useQueryClient();
-
 	return useMutation({
 		mutationFn: async (data: ScheduledPaymentFormValues) => {
-			const response = await fetch("/api/payments/scheduled", {
+			const response = await fetch("/api/payment-schedules", {
 				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
+				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(data),
 			});
-
 			if (!response.ok) {
-				throw new Error("Failed to create scheduled payment");
+				const errorData = await response.json();
+				throw new Error(errorData.message || "Failed to schedule payment.");
 			}
-
 			return response.json();
 		},
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["payments", "scheduled"] });
-			toast.success("Scheduled payment created successfully");
+			queryClient.invalidateQueries({ queryKey: ["payment-schedules"] });
+			toast.success("Payment scheduled successfully!");
 		},
-		onError: (error) => {
-			toast.error(error.message || "Failed to create scheduled payment");
-		},
+		onError: (error: Error) => toast.error(error.message),
 	});
 }
-
 export function useUpdateScheduledPaymentMutation() {
 	const queryClient = useQueryClient();
-
 	return useMutation({
 		mutationFn: async ({
 			data,
@@ -142,28 +130,26 @@ export function useUpdateScheduledPaymentMutation() {
 			scheduledPaymentId: string;
 		}) => {
 			const response = await fetch(
-				`/api/payments/scheduled/${scheduledPaymentId}`,
+				`/api/payment-schedules/${scheduledPaymentId}`,
 				{
 					method: "PUT",
-					headers: {
-						"Content-Type": "application/json",
-					},
+					headers: { "Content-Type": "application/json" },
 					body: JSON.stringify(data),
 				},
 			);
-
 			if (!response.ok) {
-				throw new Error("Failed to update scheduled payment");
+				const errorData = await response.json();
+				throw new Error(errorData.message || "Failed to update payment.");
 			}
-
 			return response.json();
 		},
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["payments", "scheduled"] });
-			toast.success("Scheduled payment updated successfully");
+		onSuccess: (updatedData) => {
+			toast.success("Scheduled payment updated!");
+			queryClient.invalidateQueries({ queryKey: ["payment-schedules"] });
+			queryClient.invalidateQueries({
+				queryKey: ["scheduled-payment", updatedData.id],
+			});
 		},
-		onError: (error) => {
-			toast.error(error.message || "Failed to update scheduled payment");
-		},
+		onError: (error: Error) => toast.error(error.message),
 	});
 }

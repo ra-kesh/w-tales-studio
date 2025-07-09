@@ -3322,8 +3322,11 @@ export type ScheduledPaymentFilters = {
 	bookingId?: string;
 };
 
-type AllowedScheduledPaymentSortFields = "amount" | "dueDate" | "createdAt";
-type ScheduledPaymentSortOption = {
+export type AllowedScheduledPaymentSortFields =
+	| "amount"
+	| "dueDate"
+	| "createdAt";
+export type ScheduledPaymentSortOption = {
 	id: AllowedScheduledPaymentSortFields;
 	desc: boolean;
 };

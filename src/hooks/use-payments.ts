@@ -6,6 +6,7 @@ import type {
 	PaymentSchedulesResponse,
 	ReceivedPaymentDetail,
 	ReceivedPaymentsResponse,
+	ScheduledPaymentDetail,
 } from "@/types/payments";
 
 export async function fetchReceivedPayments(
@@ -83,5 +84,18 @@ export function usePaymentSchedules() {
 	return useQuery<PaymentSchedulesResponse, Error>({
 		queryKey: ["payment-schedules", "list", searchParams.toString()],
 		queryFn: () => fetchPaymentSchedules(searchParams),
+	});
+}
+
+export function useScheduledPaymentDetail(paymentId: string) {
+	return useQuery<ScheduledPaymentDetail, Error>({
+		queryKey: ["scheduled-payment", paymentId],
+		queryFn: async () => {
+			if (!paymentId) throw new Error("ID is required.");
+			const response = await fetch(`/api/payment-schedules/${paymentId}`);
+			if (!response.ok) throw new Error("Failed to fetch details.");
+			return response.json();
+		},
+		enabled: !!paymentId,
 	});
 }
