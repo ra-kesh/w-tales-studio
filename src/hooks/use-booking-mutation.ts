@@ -1,11 +1,10 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-
-import { sanitizeEmptiness } from "@/lib/utils";
+import { toast } from "sonner";
 import type { BookingFormValues } from "@/app/(dashboard)/bookings/_components/booking-form/booking-form-schema";
+import { sanitizeEmptiness } from "@/lib/utils";
 
 export const useBookingMutation = () => {
 	const queryClient = useQueryClient();
