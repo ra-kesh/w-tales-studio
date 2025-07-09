@@ -3102,43 +3102,6 @@ async function getOperationsData(organizationId: string, interval: string) {
 	};
 }
 
-// async function getExpenseAnalytics(organizationId: string, interval: string) {
-// 	const dateRange =
-// 		interval === "all" ? null : getDateRangeFromInterval(interval);
-
-// 	const expensesByCategory = await db
-// 		.select({
-// 			category: expenses.category,
-// 			total: sum(expenses.amount).mapWith(Number),
-// 		})
-// 		.from(expenses)
-// 		.where(
-// 			and(
-// 				eq(expenses.organizationId, organizationId),
-// 				dateRange
-// 					? gte(
-// 							expenses.date,
-// 							formatISO(dateRange.startDate, { representation: "date" }),
-// 						)
-// 					: undefined,
-// 				dateRange
-// 					? lte(
-// 							expenses.date,
-// 							formatISO(dateRange.endDate, { representation: "date" }),
-// 						)
-// 					: undefined,
-// 			),
-// 		)
-// 		.groupBy(expenses.category)
-// 		.orderBy(desc(sum(expenses.amount)));
-
-// 	return expensesByCategory;
-// }
-
-// This function should replace your existing getExpenseAnalytics.
-// It is designed to work directly with your ExpenseBreakdown component.
-
-// The return type matches the component's expected `ExpenseData[]` prop.
 type ExpenseBreakdownData = {
 	category: string;
 	total: number;
@@ -3250,8 +3213,11 @@ export type ReceivedPaymentFilters = {
 	invoiceId?: string;
 };
 
-type AllowedReceivedPaymentSortFields = "amount" | "paidOn" | "createdAt";
-type ReceivedPaymentSortOption = {
+export type AllowedReceivedPaymentSortFields =
+	| "amount"
+	| "paidOn"
+	| "createdAt";
+export type ReceivedPaymentSortOption = {
 	id: AllowedReceivedPaymentSortFields;
 	desc: boolean;
 };
@@ -3356,8 +3322,11 @@ export type ScheduledPaymentFilters = {
 	bookingId?: string;
 };
 
-type AllowedScheduledPaymentSortFields = "amount" | "dueDate" | "createdAt";
-type ScheduledPaymentSortOption = {
+export type AllowedScheduledPaymentSortFields =
+	| "amount"
+	| "dueDate"
+	| "createdAt";
+export type ScheduledPaymentSortOption = {
 	id: AllowedScheduledPaymentSortFields;
 	desc: boolean;
 };

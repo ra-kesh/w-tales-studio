@@ -12,6 +12,11 @@ const nextConfig: NextConfig = {
 	async redirects() {
 		return [
 			{
+				source: "/payments",
+				destination: "/payments/received",
+				permanent: true,
+			},
+			{
 				source: "/configurations",
 				destination: "/configurations/packages",
 				permanent: true,

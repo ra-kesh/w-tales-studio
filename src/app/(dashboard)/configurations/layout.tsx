@@ -32,7 +32,7 @@ const ConfigLayout = ({ children }: ConfigLayoutProps) => {
 									: "text-gray-500 hover:border-gray-300 hover:text-gray-700",
 							)}
 						>
-							<Link href={tab.path} className="w-full py-2">
+							<Link prefetch={true} href={tab.path} className="w-full py-2">
 								{tab.label}
 							</Link>
 						</SimpleTabsTrigger>
