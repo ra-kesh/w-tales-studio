@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { DataTablePagination } from "@/components/data-table/data-table-pagination";
 import { DataTableSkeleton } from "@/components/data-table/data-table-skeleton";
 import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,7 @@ import {
 	Tabs,
 } from "@/components/ui/tabs";
 import { useBookingTable } from "@/hooks/use-booking-table";
+import { useMinimalBookings } from "@/hooks/use-bookings";
 import { usePaymentSchedules, useReceivedPayments } from "@/hooks/use-payments";
 import { OpenRecviedPaymentSheet } from "./_component/open-received-payments-sheet";
 import { PaymentsTable } from "./_component/payment-table";
@@ -23,7 +25,18 @@ export default function PaymentsPage() {
 	const { data: scheduledData, isPending: isScheduledLoading } =
 		usePaymentSchedules();
 
-	const receivedColumns = useReceivedPaymentsColumns();
+	const {
+		data: minimalBookingsResponse,
+		isLoading: isMininmalBookingLoading,
+		isFetched: isMinimalBookingFetched,
+	} = useMinimalBookings();
+
+	const minimalBookings = minimalBookingsResponse?.data;
+
+	const receivedColumns = useReceivedPaymentsColumns({
+		minimalBookings: minimalBookings ?? [],
+		isMininmalBookingLoading,
+	});
 	const scheduledColumns = useScheduledPaymentsColumns();
 
 	const defaultData = React.useMemo(() => [], []);
@@ -52,19 +65,21 @@ export default function PaymentsPage() {
 					</CustomTabsTrigger>
 				</CustomTabsList>
 
-				<CustomTabsContent value="received" className="mt-6">
-					<DataTableToolbar table={receivedTable}>
+				<CustomTabsContent value="received" className="mt-4">
+					<DataTableToolbar table={receivedTable} className="mb-2">
 						<OpenRecviedPaymentSheet />
 					</DataTableToolbar>
 					{isReceivedLoading ? (
 						<DataTableSkeleton columnCount={5} />
 					) : (
-						<PaymentsTable table={receivedTable} columns={receivedColumns} />
+						<PaymentsTable table={receivedTable} columns={receivedColumns}>
+							<DataTablePagination table={receivedTable} />
+						</PaymentsTable>
 					)}
 				</CustomTabsContent>
 
-				<CustomTabsContent value="scheduled" className="mt-6">
-					<DataTableToolbar table={scheduledTable}>
+				<CustomTabsContent value="scheduled" className="mt-4">
+					<DataTableToolbar table={scheduledTable} className="mb-2">
 						<Button size="sm">Add Scheduled Payment</Button>
 					</DataTableToolbar>
 					{isScheduledLoading ? (

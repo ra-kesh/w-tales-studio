@@ -12,14 +12,15 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { usePaymentsParams } from "@/hooks/use-payments-params";
 import { usePermissions } from "@/hooks/use-permissions";
-import { useShootsParams } from "@/hooks/use-shoots-params";
-import type { ShootRowData } from "@/types/shoots";
+import type { ReceivedPaymentRow } from "@/types/payments";
 
-interface ShootTableRowActionsProps {
-	row: Row<any>;
+interface ReceivedPaymentTableRowActionsProps {
+	row: Row<ReceivedPaymentRow>;
 }
 
-export function ReceivedPaymentsRowActions({ row }: ShootTableRowActionsProps) {
+export function ReceivedPaymentsRowActions({
+	row,
+}: ReceivedPaymentTableRowActionsProps) {
 	const { setParams } = usePaymentsParams();
 
 	const { canCreateAndUpdateShoot } = usePermissions();

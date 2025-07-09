@@ -7,8 +7,10 @@ import { auth } from "@/lib/auth";
 import { getServerSession } from "@/lib/dal";
 import { db } from "@/lib/db/drizzle";
 import {
+	type AllowedReceivedPaymentSortFields,
 	getReceivedPayments,
 	type ReceivedPaymentFilters,
+	type ReceivedPaymentSortOption,
 } from "@/lib/db/queries";
 import { bookings, receivedAmounts } from "@/lib/db/schema";
 
@@ -30,6 +32,26 @@ export async function GET(request: Request) {
 		const page = Number.parseInt(searchParams.get("page") || "1", 10);
 		const limit = Number.parseInt(searchParams.get("perPage") || "10", 10);
 
+		const sortParam = searchParams.get("sort");
+
+		let sortOptions: ReceivedPaymentSortOption[] | undefined;
+
+		if (sortParam) {
+			try {
+				const parsedSort = JSON.parse(sortParam);
+				const allowedFields: AllowedReceivedPaymentSortFields[] = [
+					"amount",
+					"paidOn",
+					"createdAt",
+				];
+				sortOptions = parsedSort.filter((option: ReceivedPaymentSortOption) =>
+					allowedFields.includes(option.id),
+				);
+			} catch (e) {
+				console.error("Failed to parse sort parameter:", e);
+			}
+		}
+
 		const filters: ReceivedPaymentFilters = {
 			description: searchParams.get("description") || undefined,
 			paidOn: searchParams.get("paidOn") || undefined,
@@ -41,7 +63,7 @@ export async function GET(request: Request) {
 			orgId,
 			page,
 			limit,
-			undefined,
+			sortOptions,
 			filters,
 		);
 
@@ -119,7 +141,7 @@ export async function POST(request: Request) {
 				organizationId: activeOrganizationId,
 				bookingId: Number(bookingId),
 				amount,
-				description: description || "",
+				description: description || "N/a",
 				paidOn: paidOn,
 			})
 			.returning();

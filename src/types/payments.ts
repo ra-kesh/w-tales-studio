@@ -6,7 +6,7 @@ import type {
 } from "@/lib/db/schema";
 
 export type ReceivedPaymentRow = ReceivedAmount & {
-	booking: Pick<Booking, "name"> | null;
+	booking: Pick<Booking, "name">;
 	invoice: Pick<Invoice, "invoiceNumber"> | null;
 };
 

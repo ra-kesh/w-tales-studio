@@ -66,6 +66,7 @@ export function ReceivedPaymentEditSheet() {
 						<ReceivedPaymentForm
 							defaultValues={receivedPayment}
 							onSubmit={handleSubmit}
+							mode="edit"
 						/>
 					)
 				)}

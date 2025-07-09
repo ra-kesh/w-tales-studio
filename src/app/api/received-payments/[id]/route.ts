@@ -167,7 +167,7 @@ export async function PUT(
 			.set({
 				bookingId: Number(bookingId),
 				amount,
-				description: description || "",
+				description: description || "N/a",
 				paidOn,
 				updatedAt: new Date(),
 			})

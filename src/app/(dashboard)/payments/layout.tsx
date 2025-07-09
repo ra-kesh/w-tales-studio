@@ -3,7 +3,6 @@ import {
 	HydrationBoundary,
 	QueryClient,
 } from "@tanstack/react-query";
-import { Suspense } from "react";
 import { Protected } from "@/app/restricted-to-roles";
 import {
 	fetchPaymentSchedules,
@@ -11,6 +10,7 @@ import {
 } from "@/hooks/use-payments";
 import { getServerSession } from "@/lib/dal";
 import {
+	getMinimalBookings,
 	getPaymentsStats,
 	type PaymentsStats as StatsType,
 } from "@/lib/db/queries";
@@ -46,6 +46,11 @@ export default async function PaymentsLayout({
 		queryClient.prefetchQuery({
 			queryKey: ["payment-schedules", "list", ""],
 			queryFn: () => fetchPaymentSchedules(new URLSearchParams()),
+		}),
+		queryClient.prefetchQuery({
+			queryKey: ["bookings", "list", "minimal"],
+			queryFn: () =>
+				getMinimalBookings(session?.session.activeOrganizationId as string),
 		}),
 	]);
 
