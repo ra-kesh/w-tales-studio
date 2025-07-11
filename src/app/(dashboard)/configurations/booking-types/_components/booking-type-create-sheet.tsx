@@ -14,7 +14,7 @@ import { useBookingTypesParams } from "@/hooks/use-booking-types-params";
 import { useCreateBookingTypeMutation } from "@/hooks/use-configs";
 import { usePermissions } from "@/hooks/use-permissions";
 import { BookingTypeForm } from "./booking-type-form";
-import type { BookingFormValues } from "./booking-type-form-schema";
+import type { BookingTypeFormValues } from "./booking-type-form-schema";
 
 export function BookingTypeCreateSheet() {
 	const { setParams, createBookingType } = useBookingTypesParams();
@@ -24,10 +24,11 @@ export function BookingTypeCreateSheet() {
 
 	const createBookingTypeMutation = useCreateBookingTypeMutation();
 
-	const handleSubmit = async (data: BookingFormValues) => {
+	const handleSubmit = async (data: BookingTypeFormValues) => {
 		try {
 			await createBookingTypeMutation.mutateAsync({
 				value: data.value,
+				metadata: data.metadata,
 			});
 			setParams(null);
 		} catch (error: unknown) {

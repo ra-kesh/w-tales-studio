@@ -17,7 +17,10 @@ import {
 } from "@/hooks/use-configs";
 import { usePermissions } from "@/hooks/use-permissions";
 import { BookingTypeForm } from "./booking-type-form";
-import type { BookingFormValues } from "./booking-type-form-schema";
+import type {
+	BookingTypeFormValues,
+	BookingTypeMetadata,
+} from "./booking-type-form-schema";
 
 export function BookingTypeEditSheet() {
 	const { setParams, bookingTypeId } = useBookingTypesParams();
@@ -30,11 +33,12 @@ export function BookingTypeEditSheet() {
 	);
 	const updateBookingTypeMutation = useUpdateBookingTypeMutation();
 
-	const handleSubmit = async (data: BookingFormValues) => {
+	const handleSubmit = async (data: BookingTypeFormValues) => {
 		try {
 			await updateBookingTypeMutation.mutateAsync({
 				data: {
 					value: data.value,
+					metadata: data.metadata,
 				},
 				bookingTypeId: bookingTypeId as string,
 			});
@@ -48,12 +52,15 @@ export function BookingTypeEditSheet() {
 		}
 	};
 
-	const cleanedDefaultValues = bookingTypeData
-		? {
-				key: bookingTypeData.key,
-				value: bookingTypeData.value,
-			}
-		: undefined;
+	const cleanedDefaultValues = React.useMemo(() => {
+		if (!bookingTypeData) return undefined;
+		return {
+			value: bookingTypeData.value,
+			metadata: (bookingTypeData.metadata as BookingTypeMetadata) || {
+				roles: [],
+			},
+		};
+	}, [bookingTypeData]);
 
 	return (
 		<Sheet open={isOpen} onOpenChange={() => setParams(null)}>

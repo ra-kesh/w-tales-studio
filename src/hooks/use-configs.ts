@@ -167,9 +167,7 @@ export function useCreatePackageMutation() {
 export function useCreateBookingTypeMutation() {
 	const queryClient = useQueryClient();
 	return useMutation({
-		mutationFn: async (
-			data: Omit<NewConfiguration, "type" | "key" | "metadata">,
-		) => {
+		mutationFn: async (data: Omit<NewConfiguration, "type" | "key">) => {
 			const response = await fetch("/api/configurations/booking_types", {
 				method: "POST",
 				headers: {
@@ -177,10 +175,15 @@ export function useCreateBookingTypeMutation() {
 				},
 				body: JSON.stringify({ ...data, type: "booking_type" }),
 			});
+
+			const responseData = await response.json();
+
 			if (!response.ok) {
-				throw new Error("Failed to create booking type");
+				throw new Error(
+					responseData.message || "Failed to create booking type",
+				);
 			}
-			return response.json();
+			return responseData;
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({
@@ -251,10 +254,15 @@ export function useUpdateBookingTypeMutation() {
 					body: JSON.stringify({ ...data, type: "booking_type" }),
 				},
 			);
+
+			const responseData = await response.json();
+
 			if (!response.ok) {
-				throw new Error("Failed to update booking type");
+				throw new Error(
+					responseData.message || "Failed to update booking type",
+				);
 			}
-			return response.json();
+			return responseData;
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({
@@ -278,10 +286,14 @@ export function useDeleteBookingTypeMutation() {
 					method: "DELETE",
 				},
 			);
+			const responseData = await response.json();
+
 			if (!response.ok) {
-				throw new Error("Failed to delete booking type");
+				throw new Error(
+					responseData.message || "Failed to delete booking type",
+				);
 			}
-			return response.json();
+			return responseData;
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({
