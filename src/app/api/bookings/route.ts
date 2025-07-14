@@ -33,13 +33,8 @@ export async function POST(request: Request) {
 
 	const canCreateBooking = await auth.api.hasPermission({
 		headers: await headers(),
-		body: {
-			permissions: {
-				booking: ["create"],
-			},
-		},
+		body: { permissions: { booking: ["create"] } },
 	});
-
 	if (!canCreateBooking) {
 		return NextResponse.json(
 			{ message: "You do not have permission to add booking." },
@@ -57,68 +52,61 @@ export async function POST(request: Request) {
 	}
 	const data = parse.data;
 
-	try {
-		const existingBooking = await db.query.bookings.findFirst({
-			where: and(
-				eq(bookings.name, data.bookingName),
-				eq(bookings.organizationId, orgId),
+	const existingBooking = await db.query.bookings.findFirst({
+		where: and(
+			eq(bookings.name, data.bookingName),
+			eq(bookings.organizationId, orgId),
+		),
+	});
+	if (existingBooking) {
+		return NextResponse.json(
+			{ message: "A booking with this name already exists." },
+			{ status: 409 },
+		);
+	}
+
+	const totalReceived =
+		data.payments?.reduce((sum, p) => sum + parseFloat(p.amount), 0) ?? 0;
+	const totalScheduled =
+		data.scheduledPayments?.reduce((sum, p) => sum + parseFloat(p.amount), 0) ??
+		0;
+	const packageCost = parseFloat(data.packageCost);
+	if (totalReceived + totalScheduled > packageCost) {
+		return NextResponse.json(
+			{ message: "The sum of all payments cannot exceed the package cost." },
+			{ status: 400 },
+		);
+	}
+
+	if (data.shoots?.length) {
+		const allCrewIds = Array.from(
+			new Set(
+				data.shoots
+					.flatMap((s) => s.crews ?? [])
+					.map((id) => Number.parseInt(id, 10))
+					.filter((n) => !Number.isNaN(n)),
 			),
-		});
-		if (existingBooking) {
-			return NextResponse.json(
-				{ message: "A booking with this name already exists." },
-				{ status: 409 },
-			);
-		}
-
-		const totalReceived =
-			data.payments?.reduce((sum, p) => sum + parseFloat(p.amount), 0) ?? 0;
-		const totalScheduled =
-			data.scheduledPayments?.reduce(
-				(sum, p) => sum + parseFloat(p.amount),
-				0,
-			) ?? 0;
-		const packageCost = parseFloat(data.packageCost);
-
-		if (totalReceived + totalScheduled > packageCost) {
-			return NextResponse.json(
-				{ message: "The sum of all payments cannot exceed the package cost." },
-				{ status: 400 },
-			);
-		}
-
-		if (data.shoots?.length) {
-			const allCrewIds = Array.from(
-				new Set(
-					data.shoots
-						.flatMap((s) => s.crews ?? [])
-						.map((id) => Number.parseInt(id, 10))
-						.filter((n) => !Number.isNaN(n)),
-				),
-			);
-
-			if (allCrewIds.length) {
-				const existingCrews = await db
-					.select({ id: crews.id })
-					.from(crews)
-					.where(
-						and(inArray(crews.id, allCrewIds), eq(crews.organizationId, orgId)),
-					);
-
-				const foundCrewIds = new Set(existingCrews.map((c) => c.id));
-				const invalidCrewIds = allCrewIds.filter((id) => !foundCrewIds.has(id));
-
-				if (invalidCrewIds.length > 0) {
-					return NextResponse.json(
-						{ message: "Invalid crew IDs provided.", invalid: invalidCrewIds },
-						{ status: 400 },
-					);
-				}
+		);
+		if (allCrewIds.length) {
+			const existingCrews = await db
+				.select({ id: crews.id })
+				.from(crews)
+				.where(
+					and(inArray(crews.id, allCrewIds), eq(crews.organizationId, orgId)),
+				);
+			const foundCrewIds = new Set(existingCrews.map((c) => c.id));
+			const invalidCrewIds = allCrewIds.filter((id) => !foundCrewIds.has(id));
+			if (invalidCrewIds.length > 0) {
+				return NextResponse.json(
+					{ message: "Invalid crew IDs provided.", invalid: invalidCrewIds },
+					{ status: 400 },
+				);
 			}
 		}
+	}
 
+	try {
 		const newBookingId = await db.transaction(async (tx) => {
-			// 1) Create booking
 			const [bk] = await tx
 				.insert(bookings)
 				.values({
@@ -130,10 +118,8 @@ export async function POST(request: Request) {
 					note: data.note,
 				})
 				.returning({ id: bookings.id });
-
 			const bookingId = bk.id;
 
-			// 2) Create participants → clients + booking_participants
 			for (const p of data.participants) {
 				const [cl] = await tx
 					.insert(clients)
@@ -146,7 +132,6 @@ export async function POST(request: Request) {
 						metadata: p.metadata,
 					})
 					.returning({ id: clients.id });
-
 				await tx.insert(bookingParticipants).values({
 					bookingId,
 					clientId: cl.id,
@@ -154,7 +139,6 @@ export async function POST(request: Request) {
 				});
 			}
 
-			// 3) Optional: Shoots + assignments
 			if (data.shoots?.length) {
 				const insertedShoots = await tx
 					.insert(shoots)
@@ -166,21 +150,16 @@ export async function POST(request: Request) {
 							date: s.date,
 							time: s.time ?? "",
 							location: s.location,
-							notes: data.note,
+							// notes: s.notes,
 						})),
 					)
 					.returning({ id: shoots.id });
-
-				// assignments
 				const assigns = data.shoots.flatMap((s, i) =>
 					(s.crews ?? []).map((cid) => ({
 						shootId: insertedShoots[i].id,
 						crewId: Number.parseInt(cid, 10),
 						organizationId: orgId,
 						isLead: false,
-						assignedAt: new Date(),
-						createdAt: new Date(),
-						updatedAt: new Date(),
 					})),
 				);
 				if (assigns.length) {
@@ -188,7 +167,6 @@ export async function POST(request: Request) {
 				}
 			}
 
-			// 4) Optional: deliverables
 			if (data.deliverables?.length) {
 				await tx.insert(deliverables).values(
 					data.deliverables.map((d) => ({
@@ -207,22 +185,19 @@ export async function POST(request: Request) {
 				await tx.insert(receivedAmounts).values(
 					data.payments.map((pmt) => ({
 						bookingId,
-						organizationId: orgId, // Added to match new schema
+						organizationId: orgId,
 						amount: pmt.amount,
 						description: pmt.description,
 						paidOn: pmt.date,
-						// invoiceId is intentionally omitted to be NULL
 					})),
 				);
 			}
 
 			if (data.scheduledPayments?.length) {
-				// 6) Optional: scheduled payments
-				// CORRECTED: This now matches your new schema by adding the orgId.
 				await tx.insert(paymentSchedules).values(
 					data.scheduledPayments.map((sch) => ({
 						bookingId,
-						organizationId: orgId, // Added to match new schema
+						organizationId: orgId,
 						amount: sch.amount,
 						description: sch.description,
 						dueDate: sch.dueDate,
@@ -241,9 +216,9 @@ export async function POST(request: Request) {
 			{ status: 201 },
 		);
 	} catch (err) {
-		console.error("Error creating booking:", err);
+		console.error("Error during booking transaction:", err);
 		return NextResponse.json(
-			{ message: "Internal server error" },
+			{ message: "Internal server error during database operation" },
 			{ status: 500 },
 		);
 	}
