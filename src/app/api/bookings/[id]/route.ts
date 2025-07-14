@@ -1,4 +1,4 @@
-import { and, eq, inArray, ne, not } from "drizzle-orm";
+import { and, eq, inArray, ne, not, sum } from "drizzle-orm";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { BookingSchema } from "@/app/(dashboard)/bookings/_components/booking-form/booking-form-schema";
@@ -132,186 +132,286 @@ export async function PUT(
 		return NextResponse.json({ message: "Booking not found" }, { status: 404 });
 	}
 
-	const duplicate = await db.query.bookings.findFirst({
+	// b) Duplicate name check (excluding current booking)
+	const dup = await db.query.bookings.findFirst({
 		where: and(
 			eq(bookings.organizationId, orgId),
 			ne(bookings.id, bookingId),
 			eq(bookings.name, data.bookingName),
 		),
 	});
-	if (duplicate) {
+	if (dup) {
 		return NextResponse.json(
 			{ message: "A booking with this name already exists." },
 			{ status: 409 },
 		);
 	}
 
-	const totalReceived =
-		data.payments?.reduce((sum, p) => sum + parseFloat(p.amount), 0) ?? 0;
-	const totalScheduled =
-		data.scheduledPayments?.reduce((sum, p) => sum + parseFloat(p.amount), 0) ??
-		0;
-	const packageCost = parseFloat(data.packageCost);
+	if (data.packageCost !== existing.packageCost) {
+		// c) Payment sum ≤ package cost (if cost is changing)
+		const [recvTotal] = await db
+			.select({ total: sum(receivedAmounts.amount) })
+			.from(receivedAmounts)
+			.where(eq(receivedAmounts.bookingId, bookingId));
+		const [schedTotal] = await db
+			.select({ total: sum(paymentSchedules.amount) })
+			.from(paymentSchedules)
+			.where(eq(paymentSchedules.bookingId, bookingId));
 
-	if (totalReceived + totalScheduled > packageCost) {
-		return NextResponse.json(
-			{
-				message:
-					"The sum of received and scheduled payments cannot exceed the package cost.",
-			},
-			{ status: 400 },
-		);
-	}
+		const totalPayments =
+			(Number(recvTotal.total) || 0) + (Number(schedTotal.total) || 0);
+		const newCost = Number(data.packageCost);
 
-	const allCrewIds = Array.from(
-		new Set(
-			(data.shoots ?? [])
-				.flatMap((s) => s.crews ?? [])
-				.map((id) => Number.parseInt(id, 10))
-				.filter((n) => !Number.isNaN(n)),
-		),
-	);
-	if (allCrewIds.length) {
-		const crewsFound = await db
-			.select({ id: crews.id })
-			.from(crews)
-			.where(
-				and(inArray(crews.id, allCrewIds), eq(crews.organizationId, orgId)),
-			);
-
-		const validIds = new Set(crewsFound.map((c) => c.id));
-		const invalidIds = allCrewIds.filter((id) => !validIds.has(id));
-		if (invalidIds.length) {
+		if (totalPayments > newCost) {
 			return NextResponse.json(
-				{ message: "Invalid crew IDs provided", invalid: invalidIds },
+				{ message: "Cannot reduce cost below current payment total." },
 				{ status: 400 },
 			);
 		}
 	}
 
-	await db.transaction(async (tx) => {
-		await tx
-			.update(bookings)
-			.set({
-				name: data.bookingName,
-				bookingType: data.bookingType,
-				packageType: data.packageType,
-				packageCost: data.packageCost,
-				note: data.note,
-				updatedAt: new Date(),
-			})
-			.where(
-				and(eq(bookings.id, bookingId), eq(bookings.organizationId, orgId)),
-			);
+	// d) Status transition rules (e.g., can't revert "completed" to "new")
+	// const validTransitions = {
+	// 	new: ["preparation", "cancelled"],
+	// 	preparation: ["shooting", "cancelled"],
+	// 	shooting: ["delivery", "cancelled"],
+	// 	delivery: ["completed", "cancelled"],
+	// 	completed: [], // Terminal state
+	// 	cancelled: [], // Terminal state
+	// };
+	// if (
+	// 	data.status !== existing.status &&
+	// 	!validTransitions[existing.status].includes(data.status)
+	// ) {
+	// 	return NextResponse.json(
+	// 		{
+	// 			message: `Invalid status transition from "${existing.status}" to "${data.status}"`,
+	// 		},
+	// 		{ status: 400 },
+	// 	);
+	// }
 
-		await tx
-			.delete(bookingParticipants)
-			.where(eq(bookingParticipants.bookingId, bookingId));
+	/* ───────────────────── 4. ATOMIC DATABASE UPDATE ───────────────────── */
+	// No transaction needed since we're only updating one table.
+	const [updated] = await db
+		.update(bookings)
+		.set({
+			name: data.bookingName,
+			bookingType: data.bookingType,
+			packageType: data.packageType,
+			packageCost: data.packageCost,
+			// status: data.status,
+			note: data.note,
+			updatedAt: new Date(),
+		})
+		.where(and(eq(bookings.id, bookingId), eq(bookings.organizationId, orgId)))
+		.returning();
 
-		for (const p of data.participants) {
-			const [cl] = await tx
-				.insert(clients)
-				.values({
-					organizationId: orgId,
-					name: p.name,
-					phoneNumber: p.phone,
-					email: p.email,
-					address: p.address,
-					metadata: p.metadata,
-				})
-				.returning({ id: clients.id });
-			await tx.insert(bookingParticipants).values({
-				bookingId,
-				clientId: cl.id,
-				role: p.role,
-			});
-		}
+	if (!updated) {
+		return NextResponse.json(
+			{ message: "Failed to update booking" },
+			{ status: 500 },
+		);
+	}
 
-		await tx.delete(shoots).where(eq(shoots.bookingId, bookingId));
-
-		await tx
-			.delete(shootsAssignments)
-			.where(eq(shootsAssignments.shootId, bookingId));
-
-		if (data.shoots?.length) {
-			const newShoots = await tx
-				.insert(shoots)
-				.values(
-					data.shoots.map((s) => ({
-						bookingId,
-						organizationId: orgId,
-						title: s.title,
-						date: s.date,
-						time: s.time,
-						location: s.location,
-					})),
-				)
-				.returning({ id: shoots.id });
-
-			const assigns = data.shoots.flatMap((s, idx) =>
-				(s.crews ?? []).map((cid) => ({
-					shootId: newShoots[idx].id,
-					crewId: Number.parseInt(cid, 10),
-					organizationId: orgId,
-					isLead: false,
-					assignedAt: new Date(),
-				})),
-			);
-			if (assigns.length) await tx.insert(shootsAssignments).values(assigns);
-		}
-
-		await tx.delete(deliverables).where(eq(deliverables.bookingId, bookingId));
-
-		if (data.deliverables?.length) {
-			await tx.insert(deliverables).values(
-				data.deliverables.map((d) => ({
-					bookingId,
-					organizationId: orgId,
-					title: d.title,
-					isPackageIncluded: true,
-					cost: d.cost,
-					quantity: Number.parseInt(d.quantity, 10),
-					dueDate: d.dueDate,
-				})),
-			);
-		}
-
-		/* 5) Replace received payments */
-		await tx
-			.delete(receivedAmounts)
-			.where(eq(receivedAmounts.bookingId, bookingId));
-
-		if (data.payments?.length) {
-			await tx.insert(receivedAmounts).values(
-				data.payments.map((p) => ({
-					bookingId,
-					organizationId: orgId,
-					amount: p.amount,
-					description: p.description,
-					paidOn: p.date,
-				})),
-			);
-		}
-
-		await tx
-			.delete(paymentSchedules)
-			.where(eq(paymentSchedules.bookingId, bookingId));
-
-		if (data.scheduledPayments?.length) {
-			await tx.insert(paymentSchedules).values(
-				data.scheduledPayments.map((sp) => ({
-					bookingId,
-					organizationId: orgId,
-					amount: sp.amount,
-					description: sp.description,
-					dueDate: sp.dueDate,
-				})),
-			);
-		}
-	});
-
+	/* ───────────────────── 5. SUCCESS RESPONSE ───────────────────── */
 	return NextResponse.json(
-		{ data: { bookingId }, message: "Booking updated successfully" },
+		{
+			data: {
+				bookingId,
+			},
+			message: "Booking updated successfully",
+		},
 		{ status: 200 },
 	);
+
+	// const existing = await db.query.bookings.findFirst({
+	// 	where: and(eq(bookings.id, bookingId), eq(bookings.organizationId, orgId)),
+	// });
+	// if (!existing) {
+	// 	return NextResponse.json({ message: "Booking not found" }, { status: 404 });
+	// }
+
+	// const duplicate = await db.query.bookings.findFirst({
+	// 	where: and(
+	// 		eq(bookings.organizationId, orgId),
+	// 		ne(bookings.id, bookingId),
+	// 		eq(bookings.name, data.bookingName),
+	// 	),
+	// });
+	// if (duplicate) {
+	// 	return NextResponse.json(
+	// 		{ message: "A booking with this name already exists." },
+	// 		{ status: 409 },
+	// 	);
+	// }
+
+	// const totalReceived =
+	// 	data.payments?.reduce((sum, p) => sum + parseFloat(p.amount), 0) ?? 0;
+	// const totalScheduled =
+	// 	data.scheduledPayments?.reduce((sum, p) => sum + parseFloat(p.amount), 0) ??
+	// 	0;
+	// const packageCost = parseFloat(data.packageCost);
+
+	// if (totalReceived + totalScheduled > packageCost) {
+	// 	return NextResponse.json(
+	// 		{
+	// 			message:
+	// 				"The sum of received and scheduled payments cannot exceed the package cost.",
+	// 		},
+	// 		{ status: 400 },
+	// 	);
+	// }
+
+	// const allCrewIds = Array.from(
+	// 	new Set(
+	// 		(data.shoots ?? [])
+	// 			.flatMap((s) => s.crews ?? [])
+	// 			.map((id) => Number.parseInt(id, 10))
+	// 			.filter((n) => !Number.isNaN(n)),
+	// 	),
+	// );
+	// if (allCrewIds.length) {
+	// 	const crewsFound = await db
+	// 		.select({ id: crews.id })
+	// 		.from(crews)
+	// 		.where(
+	// 			and(inArray(crews.id, allCrewIds), eq(crews.organizationId, orgId)),
+	// 		);
+
+	// 	const validIds = new Set(crewsFound.map((c) => c.id));
+	// 	const invalidIds = allCrewIds.filter((id) => !validIds.has(id));
+	// 	if (invalidIds.length) {
+	// 		return NextResponse.json(
+	// 			{ message: "Invalid crew IDs provided", invalid: invalidIds },
+	// 			{ status: 400 },
+	// 		);
+	// 	}
+	// }
+
+	// await db.transaction(async (tx) => {
+	// 	await tx
+	// 		.update(bookings)
+	// 		.set({
+	// 			name: data.bookingName,
+	// 			bookingType: data.bookingType,
+	// 			packageType: data.packageType,
+	// 			packageCost: data.packageCost,
+	// 			note: data.note,
+	// 			updatedAt: new Date(),
+	// 		})
+	// 		.where(
+	// 			and(eq(bookings.id, bookingId), eq(bookings.organizationId, orgId)),
+	// 		);
+
+	// 	await tx
+	// 		.delete(bookingParticipants)
+	// 		.where(eq(bookingParticipants.bookingId, bookingId));
+
+	// 	for (const p of data.participants) {
+	// 		const [cl] = await tx
+	// 			.insert(clients)
+	// 			.values({
+	// 				organizationId: orgId,
+	// 				name: p.name,
+	// 				phoneNumber: p.phone,
+	// 				email: p.email,
+	// 				address: p.address,
+	// 				metadata: p.metadata,
+	// 			})
+	// 			.returning({ id: clients.id });
+	// 		await tx.insert(bookingParticipants).values({
+	// 			bookingId,
+	// 			clientId: cl.id,
+	// 			role: p.role,
+	// 		});
+	// 	}
+
+	// 	await tx.delete(shoots).where(eq(shoots.bookingId, bookingId));
+
+	// 	await tx
+	// 		.delete(shootsAssignments)
+	// 		.where(eq(shootsAssignments.shootId, bookingId));
+
+	// 	if (data.shoots?.length) {
+	// 		const newShoots = await tx
+	// 			.insert(shoots)
+	// 			.values(
+	// 				data.shoots.map((s) => ({
+	// 					bookingId,
+	// 					organizationId: orgId,
+	// 					title: s.title,
+	// 					date: s.date,
+	// 					time: s.time,
+	// 					location: s.location,
+	// 				})),
+	// 			)
+	// 			.returning({ id: shoots.id });
+
+	// 		const assigns = data.shoots.flatMap((s, idx) =>
+	// 			(s.crews ?? []).map((cid) => ({
+	// 				shootId: newShoots[idx].id,
+	// 				crewId: Number.parseInt(cid, 10),
+	// 				organizationId: orgId,
+	// 				isLead: false,
+	// 				assignedAt: new Date(),
+	// 			})),
+	// 		);
+	// 		if (assigns.length) await tx.insert(shootsAssignments).values(assigns);
+	// 	}
+
+	// 	await tx.delete(deliverables).where(eq(deliverables.bookingId, bookingId));
+
+	// 	if (data.deliverables?.length) {
+	// 		await tx.insert(deliverables).values(
+	// 			data.deliverables.map((d) => ({
+	// 				bookingId,
+	// 				organizationId: orgId,
+	// 				title: d.title,
+	// 				isPackageIncluded: true,
+	// 				cost: d.cost,
+	// 				quantity: Number.parseInt(d.quantity, 10),
+	// 				dueDate: d.dueDate,
+	// 			})),
+	// 		);
+	// 	}
+
+	// 	/* 5) Replace received payments */
+	// 	await tx
+	// 		.delete(receivedAmounts)
+	// 		.where(eq(receivedAmounts.bookingId, bookingId));
+
+	// 	if (data.payments?.length) {
+	// 		await tx.insert(receivedAmounts).values(
+	// 			data.payments.map((p) => ({
+	// 				bookingId,
+	// 				organizationId: orgId,
+	// 				amount: p.amount,
+	// 				description: p.description,
+	// 				paidOn: p.date,
+	// 			})),
+	// 		);
+	// 	}
+
+	// 	await tx
+	// 		.delete(paymentSchedules)
+	// 		.where(eq(paymentSchedules.bookingId, bookingId));
+
+	// 	if (data.scheduledPayments?.length) {
+	// 		await tx.insert(paymentSchedules).values(
+	// 			data.scheduledPayments.map((sp) => ({
+	// 				bookingId,
+	// 				organizationId: orgId,
+	// 				amount: sp.amount,
+	// 				description: sp.description,
+	// 				dueDate: sp.dueDate,
+	// 			})),
+	// 		);
+	// 	}
+	// });
+
+	// return NextResponse.json(
+	// 	{ data: { bookingId }, message: "Booking updated successfully" },
+	// 	{ status: 200 },
+	// );
 }

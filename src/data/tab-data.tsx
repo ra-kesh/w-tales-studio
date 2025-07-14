@@ -25,14 +25,14 @@ export const settingsTabs: TabItem[] = [
 
 export const configTabs: TabItem[] = [
 	{
-		path: "/configurations/packages",
-		label: "Package Types",
-		permissions: { package_type_config: ["list"] },
-	},
-	{
 		path: "/configurations/booking-types",
 		label: "Booking Types",
 		permissions: { booking_type_config: ["list"] },
+	},
+	{
+		path: "/configurations/packages",
+		label: "Package Types",
+		permissions: { package_type_config: ["list"] },
 	},
 	{
 		path: "/configurations/deliverable-status",

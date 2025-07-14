@@ -14,6 +14,8 @@ export const PackageSchema = z.object({
 				}),
 			)
 			.min(1, { message: "At least one deliverable is required" }),
+
+		bookingType: z.string().optional(),
 	}),
 });
 
@@ -27,6 +29,7 @@ export const PackageMetadataSchema = z.object({
 			quantity: z.string(),
 		}),
 	),
+	bookingType: z.string().optional(),
 });
 
 export type PackageMetadata = z.infer<typeof PackageMetadataSchema>;
@@ -41,5 +44,7 @@ export const defaultPackage: PackageFormValues = {
 				quantity: "",
 			},
 		],
+
+		bookingType: "",
 	},
 };

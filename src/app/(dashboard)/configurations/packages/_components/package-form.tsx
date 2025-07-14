@@ -1,11 +1,19 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Plus, Trash } from "lucide-react";
+import { Check, ChevronsUpDown, Plus, Trash } from "lucide-react"; // Import Check and ChevronsUpDown
 import { useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+	Command, // Import Command components
+	CommandEmpty,
+	CommandGroup,
+	CommandInput,
+	CommandItem,
+	CommandList,
+} from "@/components/ui/command";
 import {
 	Form,
 	FormControl,
@@ -15,6 +23,20 @@ import {
 	FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import {
+	Popover, // Import Popover components
+	PopoverContent,
+	PopoverTrigger,
+} from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area"; // Import ScrollArea
+import {
+	Select, // Import Select
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
+import { useBookingTypes } from "@/hooks/use-configs"; // Assuming this hook fetches booking types
 import { cn } from "@/lib/utils";
 import {
 	defaultPackage,
@@ -42,6 +64,8 @@ export function PackageForm({
 	const lastDeliverableRef = useRef<HTMLDivElement | null>(null);
 
 	const deliverables = form.watch("metadata.defaultDeliverables");
+
+	const { data: bookingTypes = [] } = useBookingTypes(); // Fetch booking types
 
 	useEffect(() => {
 		if (lastDeliverableRef.current) {
@@ -88,6 +112,95 @@ export function PackageForm({
 										<Input className="pl-7" {...field} />
 									</div>
 								</FormControl>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
+				</div>
+
+				{/* NEW FIELD: Booking Type Association */}
+				<div className="col-span-5">
+					<FormField
+						control={form.control}
+						name="metadata.bookingType"
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel>Associated Booking Type (Optional)</FormLabel>
+								<Popover>
+									<PopoverTrigger asChild>
+										<FormControl>
+											<Button
+												variant="outline"
+												role="combobox"
+												className={cn(
+													"w-full justify-between",
+													!field.value && "text-muted-foreground",
+												)}
+											>
+												{field.value
+													? bookingTypes.find(
+															(type) => type.value === field.value,
+														)?.label
+													: "Select booking type"}
+												<ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+											</Button>
+										</FormControl>
+									</PopoverTrigger>
+									<PopoverContent className="w-full p-0">
+										<Command>
+											<CommandInput placeholder="Search booking types..." />
+											<CommandList>
+												<ScrollArea className="h-64">
+													<CommandEmpty>No booking type found.</CommandEmpty>
+													<CommandGroup>
+														{/* Option to clear selection */}
+														<CommandItem
+															key="clear-booking-type"
+															value=""
+															onSelect={() => {
+																form.setValue("metadata.bookingType", "");
+															}}
+														>
+															<Check
+																className={cn(
+																	"mr-2 h-4 w-4",
+																	!field.value ? "opacity-100" : "opacity-0",
+																)}
+															/>
+															— None —
+														</CommandItem>
+														{/* Map over fetched booking types */}
+														{bookingTypes.map((type) => (
+															<CommandItem
+																key={type.value}
+																value={type.value}
+																onSelect={() => {
+																	form.setValue(
+																		"metadata.bookingType",
+																		type.value,
+																		{
+																			shouldValidate: true,
+																		},
+																	);
+																}}
+															>
+																<Check
+																	className={cn(
+																		"mr-2 h-4 w-4",
+																		field.value === type.value
+																			? "opacity-100"
+																			: "opacity-0",
+																	)}
+																/>
+																{type.label}
+															</CommandItem>
+														))}
+													</CommandGroup>
+												</ScrollArea>
+											</CommandList>
+										</Command>
+									</PopoverContent>
+								</Popover>
 								<FormMessage />
 							</FormItem>
 						)}

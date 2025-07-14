@@ -18,7 +18,7 @@ const nextConfig: NextConfig = {
 			},
 			{
 				source: "/configurations",
-				destination: "/configurations/packages",
+				destination: "/configurations/booking-types",
 				permanent: true,
 			},
 			{
