@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, sum } from "drizzle-orm";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
@@ -12,7 +12,7 @@ import {
 	type ReceivedPaymentFilters,
 	type ReceivedPaymentSortOption,
 } from "@/lib/db/queries";
-import { bookings, receivedAmounts } from "@/lib/db/schema";
+import { bookings, paymentSchedules, receivedAmounts } from "@/lib/db/schema";
 
 export async function GET(request: Request) {
 	const { session } = await getServerSession();
@@ -112,29 +112,51 @@ export async function POST(request: Request) {
 		);
 	}
 
+	const body = await request.json();
+	// 3. Validation: Parse the request body with Zod
+	const validatedData = receivedPaymentFormSchema.parse(body);
+
+	const { bookingId, amount, description, paidOn } = validatedData;
+	const numericBookingId = Number(bookingId);
+
+	const bookingExists = await db.query.bookings.findFirst({
+		where: and(
+			eq(bookings.id, Number(bookingId)),
+			eq(bookings.organizationId, activeOrganizationId),
+		),
+	});
+
+	if (!bookingExists) {
+		return NextResponse.json(
+			{
+				message: "Booking not found or does not belong to this organization.",
+			},
+			{ status: 404 },
+		);
+	}
+
+	const [receivedTotalResult] = await db
+		.select({ total: sum(receivedAmounts.amount) })
+		.from(receivedAmounts)
+		.where(eq(receivedAmounts.bookingId, numericBookingId));
+	const [scheduledTotalResult] = await db
+		.select({ total: sum(paymentSchedules.amount) })
+		.from(paymentSchedules)
+		.where(eq(paymentSchedules.bookingId, numericBookingId));
+
+	const currentTotal =
+		(Number(receivedTotalResult?.total) || 0) +
+		(Number(scheduledTotalResult?.total) || 0);
+	const newGrandTotal = currentTotal + parseFloat(amount);
+
+	if (newGrandTotal > parseFloat(bookingExists.packageCost)) {
+		return NextResponse.json(
+			{ message: "Total of all payments cannot exceed the package cost." },
+			{ status: 400 },
+		);
+	}
+
 	try {
-		const body = await request.json();
-		// 3. Validation: Parse the request body with Zod
-		const validatedData = receivedPaymentFormSchema.parse(body);
-
-		const { bookingId, amount, description, paidOn } = validatedData;
-
-		const bookingExists = await db.query.bookings.findFirst({
-			where: and(
-				eq(bookings.id, Number(bookingId)),
-				eq(bookings.organizationId, activeOrganizationId),
-			),
-		});
-
-		if (!bookingExists) {
-			return NextResponse.json(
-				{
-					message: "Booking not found or does not belong to this organization.",
-				},
-				{ status: 404 },
-			);
-		}
-
 		const newPayment = await db
 			.insert(receivedAmounts)
 			.values({
