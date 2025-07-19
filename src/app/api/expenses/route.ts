@@ -1,21 +1,21 @@
+import { organization } from "better-auth/plugins";
+import { and, eq, inArray } from "drizzle-orm";
 import { NextResponse } from "next/server";
+import { ExpenseSchema } from "@/app/(dashboard)/expenses/expense-form-schema";
+import { getServerSession } from "@/lib/dal";
+import { db } from "@/lib/db/drizzle";
 import {
 	type AllowedExpenseSortFields,
 	type ExpenseFilters,
 	type ExpenseSortOption,
 	getExpenses,
 } from "@/lib/db/queries";
-import { getServerSession } from "@/lib/dal";
-import { ExpenseSchema } from "@/app/(dashboard)/expenses/expense-form-schema";
-import { db } from "@/lib/db/drizzle";
-import { and, eq, inArray } from "drizzle-orm";
 import {
 	bookings,
 	crews,
 	expenses,
 	expensesAssignments,
 } from "@/lib/db/schema";
-import { organization } from "better-auth/plugins";
 
 export async function GET(request: Request) {
 	const { session } = await getServerSession();
@@ -39,7 +39,7 @@ export async function GET(request: Request) {
 		const limit = Number.parseInt(searchParams.get("limit") || "10", 10);
 
 		const sortParam = searchParams.get("sort");
-		let sortOptions: ExpenseSortOption[] | undefined = undefined;
+		let sortOptions: ExpenseSortOption[] | undefined;
 		if (sortParam) {
 			try {
 				const parsedSort = JSON.parse(sortParam);
@@ -120,7 +120,7 @@ export async function POST(request: Request) {
 
 	if (!validation.success) {
 		return NextResponse.json(
-			{ message: "Validation error", errors: validation.error.errors },
+			{ message: "Validation error", errors: validation.error.issues },
 			{ status: 400 },
 		);
 	}

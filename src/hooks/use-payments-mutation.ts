@@ -23,8 +23,20 @@ export function useCreateReceivedPaymentMutation() {
 
 			return response.json();
 		},
-		onSuccess: () => {
+		onSuccess: (updatedData) => {
 			queryClient.invalidateQueries({ queryKey: ["received-payments"] });
+			queryClient.invalidateQueries({
+				queryKey: ["bookings"],
+			});
+			queryClient.invalidateQueries({
+				queryKey: [
+					"bookings",
+					"detail",
+					{
+						bookingId: updatedData.bookingId.toString(),
+					},
+				],
+			});
 			toast.success("Payment added successfully!");
 		},
 		onError: (error: Error) => {
@@ -47,7 +59,7 @@ export function useUpdateReceivedPaymentMutation() {
 			const response = await fetch(
 				`/api/received-payments/${receivedPaymentId}`,
 				{
-					method: "PUT", // Assuming you'll use PATCH for updates
+					method: "PUT",
 					headers: {
 						"Content-Type": "application/json",
 					},
@@ -62,8 +74,20 @@ export function useUpdateReceivedPaymentMutation() {
 
 			return response.json();
 		},
-		onSuccess: () => {
+		onSuccess: (updatedData) => {
 			queryClient.invalidateQueries({ queryKey: ["received-payments"] });
+			queryClient.invalidateQueries({
+				queryKey: ["bookings"],
+			});
+			queryClient.invalidateQueries({
+				queryKey: [
+					"bookings",
+					"detail",
+					{
+						bookingId: updatedData.bookingId.toString(),
+					},
+				],
+			});
 			toast.success("Payment updated successfully!");
 		},
 		onError: (error: Error) => {
@@ -112,8 +136,20 @@ export function useCreateScheduledPaymentMutation() {
 			}
 			return response.json();
 		},
-		onSuccess: () => {
+		onSuccess: (updatedData) => {
 			queryClient.invalidateQueries({ queryKey: ["payment-schedules"] });
+			queryClient.invalidateQueries({
+				queryKey: ["bookings"],
+			});
+			queryClient.invalidateQueries({
+				queryKey: [
+					"bookings",
+					"detail",
+					{
+						bookingId: updatedData.bookingId.toString(),
+					},
+				],
+			});
 			toast.success("Payment scheduled successfully!");
 		},
 		onError: (error: Error) => toast.error(error.message),
@@ -148,6 +184,18 @@ export function useUpdateScheduledPaymentMutation() {
 			queryClient.invalidateQueries({ queryKey: ["payment-schedules"] });
 			queryClient.invalidateQueries({
 				queryKey: ["scheduled-payment", updatedData.id],
+			});
+			queryClient.invalidateQueries({
+				queryKey: ["bookings"],
+			});
+			queryClient.invalidateQueries({
+				queryKey: [
+					"bookings",
+					"detail",
+					{
+						bookingId: updatedData.bookingId.toString(),
+					},
+				],
 			});
 		},
 		onError: (error: Error) => toast.error(error.message),

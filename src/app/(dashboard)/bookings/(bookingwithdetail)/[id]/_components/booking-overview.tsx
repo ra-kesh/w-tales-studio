@@ -1,20 +1,30 @@
 "use client";
 
 import { format } from "date-fns";
-import { AlertCircle, CheckCircle2, Clock, FileText } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+	AlertCircle,
+	CheckCircle2,
+	Clock,
+	Edit,
+	FileText,
+	Mail,
+	Phone,
+	Users,
+} from "lucide-react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useClientParams } from "@/hooks/use-client-params";
 import { cn } from "@/lib/utils";
 import type { BookingDetail } from "@/types/booking";
-import { Expenses } from "./booking-financials/expenses";
-import { ReceivedPayments } from "./booking-financials/received-payments";
-import { UpcomingPayments } from "./booking-financials/upcoming-payments";
 
 interface BookingOverviewProps {
 	booking: BookingDetail;
 }
 
 export function BookingOverview({ booking }: BookingOverviewProps) {
+	const { setParams } = useClientParams();
+
 	const packageCost = Number(booking.packageCost);
 
 	const totalReceived = booking.receivedAmounts.reduce(
@@ -22,27 +32,13 @@ export function BookingOverview({ booking }: BookingOverviewProps) {
 		0,
 	);
 
-	const totalExpenses = booking.expenses.reduce(
-		(sum, expense) => sum + Number(expense.amount),
-		0,
-	);
-
-	const totalScheduled = booking.paymentSchedules.reduce(
-		(sum, schedule) => sum + Number(schedule.amount),
-		0,
-	);
-
 	const packageAmount = Number(packageCost);
-	const pendingAmount = packageAmount - totalReceived;
-	const profit = packageAmount - totalExpenses;
 
-	// Calculate completion percentage
 	const paymentPercentage = Math.min(
 		Math.round((totalReceived / packageAmount) * 100),
 		100,
 	);
 
-	// Define booking milestones
 	const milestones = [
 		{
 			id: "advance",
@@ -133,10 +129,17 @@ export function BookingOverview({ booking }: BookingOverviewProps) {
 	const overallCompletion = Math.round(
 		(completedMilestones / milestones.length) * 100,
 	);
+	const getInitials = (name: string | null | undefined) => {
+		if (!name) return "??";
+		return name
+			.split(" ")
+			.map((part) => part[0])
+			.join("")
+			.toUpperCase();
+	};
 
 	return (
 		<div className="space-y-6">
-			{/* Project Progress Card */}
 			<div className="bg-white rounded-lg border shadow-sm">
 				<div className="p-5">
 					<div className="flex items-center justify-between mb-4">
@@ -193,137 +196,77 @@ export function BookingOverview({ booking }: BookingOverviewProps) {
 				</div>
 			</div>
 
-			<div className="bg-white rounded-lg border shadow-sm">
-				<div className="p-5">
-					<div className="flex justify-between items-center">
-						<h3 className="text-base font-semibold mb-4">Financial Summary</h3>
-					</div>
-
-					<div className="grid grid-cols-2 gap-6 ">
-						<div>
-							<div className="grid grid-cols-2 gap-4">
-								<div>
-									<span className="text-sm text-muted-foreground">
-										Total Expenses
-									</span>
-									<p className="text-xl font-bold text-red-500">
-										₹{totalExpenses.toLocaleString()}
-									</p>
-									<p className="text-xs text-muted-foreground mt-1">
-										{Math.round((totalExpenses / packageAmount) * 100)}% of
-										package
-									</p>
-								</div>
-								<div>
-									<span className="text-sm text-muted-foreground">
-										Net Profit
-									</span>
-									<p className="text-xl font-bold text-green-600">
-										₹{profit.toLocaleString()}
-									</p>
-									<p className="text-xs text-muted-foreground mt-1">
-										{Math.round((profit / packageAmount) * 100)}% profit margin
-									</p>
-								</div>
-							</div>
-						</div>
-
-						<div className="flex justify-end items-center w-full">
-							<div className="">
-								<span className="text-sm text-muted-foreground">
-									Total Package
-								</span>
-								<p className="text-2xl font-bold">
-									₹{packageAmount.toLocaleString()}
-								</p>
-							</div>
-						</div>
-					</div>
-
-					<Card className="my-6">
-						<CardContent>
-							<div className="flex justify-between text-xs mb-1">
-								<span>
-									Received:{" "}
-									<span className="font-medium text-green-600">
-										₹{totalReceived.toLocaleString()}
-									</span>{" "}
-									({paymentPercentage}%)
-								</span>
-								<span>
-									Pending:{" "}
-									<span className="font-medium text-orange-500">
-										₹{pendingAmount.toLocaleString()}
-									</span>{" "}
-									({100 - paymentPercentage}%)
-								</span>
-							</div>
-							<div className="w-full bg-gray-200 rounded-full h-2">
+			<Card>
+				<CardHeader>
+					<CardTitle className="flex items-center gap-2">
+						<Users className="h-5 w-5 text-muted-foreground" />
+						<span>Clients</span>
+					</CardTitle>
+				</CardHeader>
+				<CardContent>
+					{booking.participants && booking.participants.length > 0 ? (
+						<div className="divide-y">
+							{booking.participants.map((participant) => (
 								<div
-									className="bg-green-500 h-2 rounded-full"
-									style={{ width: `${paymentPercentage}%` }}
-								/>
-							</div>
-						</CardContent>
-					</Card>
+									key={participant.client.id}
+									className="flex items-center justify-between py-4 first:pt-0 last:pb-0"
+								>
+									<div className="flex items-center gap-4">
+										<Avatar className="h-10 w-10">
+											<AvatarFallback className="bg-primary/10 text-primary font-medium">
+												{getInitials(participant.client.name)}
+											</AvatarFallback>
+										</Avatar>
+										<div>
+											<div className="font-medium">
+												{participant.client.name}
+											</div>
+											<div className="text-sm text-muted-foreground capitalize">
+												{participant.role}
+											</div>
+										</div>
+										<div className="mb-auto">
+											<Button
+												variant="ghost"
+												size="icon"
+												className="h-6 w-6 rounded-full hover:bg-gray-100 ml-2"
+												onClick={() =>
+													setParams({
+														clientId: participant.client.id.toString(),
+													})
+												}
+											>
+												<Edit className="h-3.5 w-3.5 text-gray-500" />
+												<span className="sr-only">Edit Client</span>
+											</Button>
+										</div>
+									</div>
+									<div className="text-right text-sm text-muted-foreground space-y-1">
+										{participant.client.email && (
+											<div className="flex items-center justify-end gap-2">
+												<span>{participant.client.email}</span>
+												<Mail className="h-4 w-4" />
+											</div>
+										)}
+										{participant.client.phoneNumber && (
+											<div className="flex items-center justify-end gap-2">
+												<span>{participant.client.phoneNumber}</span>
+												<Phone className="h-4 w-4" />
+											</div>
+										)}
+									</div>
+								</div>
+							))}
+						</div>
+					) : (
+						<div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
+							<Users className="h-8 w-8 mb-2 opacity-50" />
+							<p>No participants have been added to this booking yet.</p>
+						</div>
+					)}
+				</CardContent>
+			</Card>
 
-					{/* Key Metrics */}
-					{/* <div className="grid grid-cols-4 gap-4 py-3  mb-4">
-            <div className="text-center">
-              <p className="text-lg font-semibold text-green-600">
-                {paymentPercentage}%
-              </p>
-              <span className="text-xs font-medium text-muted-foreground">
-                Received
-              </span>
-            </div>
-            <div className="text-center">
-              <p className="text-lg font-semibold text-orange-500">
-                {100 - paymentPercentage}%
-              </p>
-              <span className="text-xs font-medium text-muted-foreground">
-                Pending
-              </span>
-            </div>
-            <div className="text-center">
-              <p className="text-lg font-semibold text-red-500">
-                {Math.round((totalExpenses / packageAmount) * 100)}%
-              </p>
-              <span className="text-xs font-medium text-muted-foreground">
-                Expenses
-              </span>
-            </div>
-            <div className="text-center">
-              <p className="text-lg font-semibold text-green-600">
-                {Math.round((profit / packageAmount) * 100)}%
-              </p>
-              <span className="text-xs font-medium text-muted-foreground">
-                Profit
-              </span>
-            </div>
-          </div> */}
-
-					{/* Payment Activities Tabs */}
-					<Tabs defaultValue="received" className="w-full">
-						<TabsList className="grid w-full grid-cols-3 mb-4">
-							<TabsTrigger value="received">Received Payments</TabsTrigger>
-							<TabsTrigger value="upcoming">Upcoming Payments</TabsTrigger>
-							<TabsTrigger value="expenses">Expenses</TabsTrigger>
-						</TabsList>
-						<TabsContent value="received" className="mt-0">
-							<ReceivedPayments receivedAmounts={booking.receivedAmounts} />
-						</TabsContent>
-						<TabsContent value="upcoming" className="mt-0">
-							<UpcomingPayments paymentSchedules={booking.paymentSchedules} />
-						</TabsContent>
-						<TabsContent value="expenses" className="mt-0">
-							<Expenses expenses={booking.expenses} />
-						</TabsContent>
-					</Tabs>
-				</div>
-			</div>
-
-			{/* Notes Section */}
 			<div className="bg-white rounded-lg border shadow-sm">
 				<div className="p-5">
 					<div className="flex items-center justify-between mb-4">

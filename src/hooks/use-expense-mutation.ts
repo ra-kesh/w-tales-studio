@@ -1,8 +1,8 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import type { ExpenseFormValues } from "@/app/(dashboard)/expenses/expense-form-schema";
 import { toast } from "sonner";
+import type { ExpenseFormValues } from "@/app/(dashboard)/expenses/expense-form-schema";
 
 export const useCreateExpenseMutation = () => {
 	const queryClient = useQueryClient();
@@ -20,9 +20,18 @@ export const useCreateExpenseMutation = () => {
 
 			return response.json();
 		},
-		onSuccess: () => {
+		onSuccess: ({ data }) => {
 			queryClient.invalidateQueries({ queryKey: ["expenses"] });
 			queryClient.invalidateQueries({ queryKey: ["bookings", "list"] });
+			queryClient.invalidateQueries({
+				queryKey: [
+					"bookings",
+					"detail",
+					{
+						bookingId: data.bookingId.toString(),
+					},
+				],
+			});
 			toast.success("Expense created");
 		},
 		onError: (error) => {

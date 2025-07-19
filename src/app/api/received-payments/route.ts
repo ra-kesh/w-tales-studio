@@ -149,7 +149,7 @@ export async function POST(request: Request) {
 		return NextResponse.json(newPayment[0], { status: 201 });
 	} catch (error) {
 		if (error instanceof ZodError) {
-			return NextResponse.json({ errors: error.errors }, { status: 400 });
+			return NextResponse.json({ errors: error.issues }, { status: 400 });
 		}
 		console.error("Error creating received payment:", error);
 		return NextResponse.json(

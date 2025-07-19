@@ -1,6 +1,14 @@
 "use client";
 
-import { Camera, CheckSquare, Image, Info } from "lucide-react";
+import {
+	Banknote,
+	Camera,
+	CheckSquare,
+	HandCoins,
+	Image,
+	IndianRupee,
+	Info,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +25,7 @@ import { useBookingDetail } from "@/hooks/use-bookings";
 import { usePermissions } from "@/hooks/use-permissions";
 import { BookingDeliverables } from "./booking-deliverables";
 import { BookingDetailsSkeleton } from "./booking-details-skeleton";
+import BookingFinance from "./booking-financials/booking-finance";
 import { BookingOverview } from "./booking-overview";
 import { BookingShoots } from "./booking-shoots";
 import { BookingTasks } from "./booking-tasks";
@@ -42,6 +51,7 @@ export function BookingDetails({ id }: { id: string }) {
 		{ id: "shoots", label: "Shoots", icon: Camera },
 		{ id: "deliverables", label: "Deliverables", icon: Image },
 		{ id: "tasks", label: "Tasks", icon: CheckSquare },
+		{ id: "finance", label: "Finances", icon: IndianRupee },
 	];
 
 	const handleClose = () => router.push("/bookings");
@@ -136,6 +146,7 @@ export function BookingDetails({ id }: { id: string }) {
 					<CustomTabsContent value="overview">
 						<BookingOverview booking={booking} />
 					</CustomTabsContent>
+
 					<CustomTabsContent value="shoots">
 						<BookingShoots shoots={booking.shoots} />
 					</CustomTabsContent>
@@ -144,6 +155,9 @@ export function BookingDetails({ id }: { id: string }) {
 					</CustomTabsContent>
 					<CustomTabsContent value="tasks">
 						<BookingTasks tasks={booking.tasks} />
+					</CustomTabsContent>
+					<CustomTabsContent value="finance">
+						<BookingFinance booking={booking} />
 					</CustomTabsContent>
 				</div>
 			</ScrollArea>
