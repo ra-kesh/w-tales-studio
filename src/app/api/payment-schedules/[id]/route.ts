@@ -1,11 +1,11 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, ne, sum } from "drizzle-orm";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 import { updateScheduledPaymentSchema } from "@/app/(dashboard)/payments/_component/scheduled-payment-form-schema";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db/drizzle";
-import { paymentSchedules } from "@/lib/db/schema";
+import { bookings, paymentSchedules, receivedAmounts } from "@/lib/db/schema";
 
 interface RouteContext {
 	params: { id: string };
@@ -13,7 +13,7 @@ interface RouteContext {
 
 export async function GET(
 	request: Request,
-	{ params }: { params: { id: string } },
+	{ params }: { params: Promise<{ id: string }> },
 ) {
 	const session = await auth.api.getSession({
 		headers: await headers(),
@@ -66,7 +66,7 @@ export async function GET(
 
 export async function PUT(
 	request: Request,
-	{ params }: { params: { id: string } },
+	{ params }: { params: Promise<{ id: string }> },
 ) {
 	const session = await auth.api.getSession({
 		headers: await headers(),
@@ -100,14 +100,67 @@ export async function PUT(
 	const { id } = await params;
 	const paymentId = Number.parseInt(id, 10);
 
-	try {
-		const body = await request.json();
-		const validatedData = updateScheduledPaymentSchema.parse({
-			...body,
-			id: paymentId,
-		});
-		const { id, bookingId, amount, description, dueDate } = validatedData;
+	const body = await request.json();
+	const validatedData = updateScheduledPaymentSchema.parse({
+		...body,
+		id: paymentId,
+	});
 
+	const { bookingId, amount, description, dueDate } = validatedData;
+	const numericBookingId = Number(bookingId);
+
+	const existingPayment = await db.query.paymentSchedules.findFirst({
+		where: and(
+			eq(paymentSchedules.id, Number(id)),
+			eq(paymentSchedules.organizationId, activeOrganizationId),
+		),
+	});
+	if (!existingPayment) {
+		return NextResponse.json(
+			{ message: "Scheduled payment not found" },
+			{ status: 404 },
+		);
+	}
+
+	// b) Verify the associated booking exists and belongs to the org
+	const booking = await db.query.bookings.findFirst({
+		where: and(
+			eq(bookings.id, numericBookingId),
+			eq(bookings.organizationId, activeOrganizationId),
+		),
+	});
+	if (!booking) {
+		return NextResponse.json({ message: "Booking not found" }, { status: 404 });
+	}
+
+	const [receivedTotalResult] = await db
+		.select({ total: sum(receivedAmounts.amount) })
+		.from(receivedAmounts)
+		.where(eq(receivedAmounts.bookingId, numericBookingId));
+
+	const [otherScheduledTotalResult] = await db
+		.select({ total: sum(paymentSchedules.amount) })
+		.from(paymentSchedules)
+		.where(
+			and(
+				eq(paymentSchedules.bookingId, numericBookingId),
+				ne(paymentSchedules.id, Number(id)),
+			),
+		);
+
+	const totalOfOtherPayments =
+		(Number(receivedTotalResult?.total) || 0) +
+		(Number(otherScheduledTotalResult?.total) || 0);
+	const newGrandTotal = totalOfOtherPayments + parseFloat(amount);
+
+	if (newGrandTotal > parseFloat(booking.packageCost)) {
+		return NextResponse.json(
+			{ message: "Total of all payments cannot exceed the package cost." },
+			{ status: 400 },
+		);
+	}
+
+	try {
 		const updatedPayment = await db
 			.update(paymentSchedules)
 			.set({
@@ -117,13 +170,13 @@ export async function PUT(
 				dueDate: dueDate,
 				updatedAt: new Date(),
 			})
-			.where(eq(paymentSchedules.id, id))
+			.where(eq(paymentSchedules.id, Number(id)))
 			.returning();
 
 		return NextResponse.json(updatedPayment[0], { status: 200 });
 	} catch (error) {
 		if (error instanceof ZodError) {
-			return NextResponse.json({ errors: error.errors }, { status: 400 });
+			return NextResponse.json({ errors: error.issues }, { status: 400 });
 		}
 		console.error(`Error updating scheduled payment ${paymentId}:`, error);
 		return NextResponse.json(

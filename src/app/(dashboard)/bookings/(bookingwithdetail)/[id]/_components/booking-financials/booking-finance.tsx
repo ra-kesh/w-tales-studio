@@ -23,11 +23,6 @@ const BookingFinance = ({ booking }: { booking: BookingDetail }) => {
 		0,
 	);
 
-	const totalScheduled = booking.paymentSchedules.reduce(
-		(sum, schedule) => sum + Number(schedule.amount),
-		0,
-	);
-
 	const packageAmount = Number(packageCost);
 	const pendingAmount = packageAmount - totalReceived;
 	const profit = packageAmount - totalExpenses;
