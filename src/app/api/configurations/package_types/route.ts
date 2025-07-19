@@ -1,6 +1,8 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, not, or } from "drizzle-orm";
+import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { PackageSchema } from "@/app/(dashboard)/configurations/packages/_components/package-form-schema";
+import { auth } from "@/lib/auth";
 import { getServerSession } from "@/lib/dal";
 import { db } from "@/lib/db/drizzle";
 import { configurations } from "@/lib/db/schema";
@@ -22,67 +24,58 @@ export async function POST(request: Request) {
 		);
 	}
 
-	const body = await request.json();
+	const canCreate = await auth.api.hasPermission({
+		headers: await headers(),
+		body: { permissions: { package_type_config: ["create"] } },
+	});
 
-	const validation = PackageSchema.safeParse(body);
-
-	if (!validation.success) {
+	if (!canCreate) {
 		return NextResponse.json(
-			{ message: "Validation error", errors: validation.error.errors },
-			{ status: 400 },
+			{ message: "You are not authorized to add new package type" },
+			{ status: 403 },
 		);
 	}
 
-	const validatedData = validation.data;
-
-	const key = generateKey(validatedData.value);
-
 	try {
-		const result = await db.transaction(async (tx) => {
-			const existingConfig = await tx.query.configurations.findFirst({
-				where: and(
-					eq(configurations.organizationId, userOrganizationId),
-					eq(configurations.type, "package_type"),
-					eq(configurations.key, key),
-				),
-			});
+		const body = await request.json();
+		const validation = PackageSchema.safeParse(body);
+		if (!validation.success) {
+			return NextResponse.json(
+				{ message: "Validation error", errors: validation.error.errors },
+				{ status: 400 },
+			);
+		}
+		const validatedData = validation.data;
+		const key = generateKey(validatedData.value);
 
-			if (existingConfig) {
-				throw new Error("Package type already exists");
-			}
-
-			const existingValue = await tx.query.configurations.findFirst({
-				where: and(
-					eq(configurations.organizationId, userOrganizationId),
-					eq(configurations.type, "package_type"),
-					eq(configurations.value, validatedData.value),
-				),
-			});
-
-			if (existingValue) {
-				throw new Error("Package type already exists");
-			}
-
-			const [newConfig] = await tx
-				.insert(configurations)
-				.values({
-					organizationId: userOrganizationId,
-					type: "package_type",
-					key: key,
-					value: validatedData.value,
-					metadata: validatedData.metadata,
-					isSystem: false,
-					createdAt: new Date(),
-					updatedAt: new Date(),
-				})
-				.returning({ id: configurations.id });
-
-			return newConfig;
+		const conflict = await checkPackageTypeConflict(userOrganizationId, {
+			key,
+			value: validatedData.value,
 		});
+		if (conflict) {
+			return NextResponse.json(
+				{ message: "A package type with this name already exists." },
+				{ status: 409 },
+			);
+		}
+
+		const [newConfig] = await db
+			.insert(configurations)
+			.values({
+				organizationId: userOrganizationId,
+				type: "package_type",
+				key: key,
+				value: validatedData.value,
+				metadata: validatedData.metadata,
+				isSystem: false,
+				createdAt: new Date(),
+				updatedAt: new Date(),
+			})
+			.returning({ id: configurations.id });
 
 		return NextResponse.json(
 			{
-				data: { packageTypeId: result.id },
+				data: { packageTypeId: newConfig.id },
 				message: "Package type created successfully",
 			},
 			{ status: 201 },
@@ -96,4 +89,22 @@ export async function POST(request: Request) {
 			{ status: 500 },
 		);
 	}
+}
+
+export async function checkPackageTypeConflict(
+	orgId: string,
+	data: { key: string; value: string },
+	excludeId?: number,
+) {
+	const conditions = [
+		eq(configurations.organizationId, orgId),
+		eq(configurations.type, "package_type"),
+		or(eq(configurations.key, data.key), eq(configurations.value, data.value)),
+	];
+
+	if (excludeId) {
+		conditions.push(not(eq(configurations.id, excludeId)));
+	}
+
+	return db.query.configurations.findFirst({ where: and(...conditions) });
 }

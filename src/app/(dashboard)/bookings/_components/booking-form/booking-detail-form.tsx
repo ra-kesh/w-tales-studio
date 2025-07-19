@@ -4,13 +4,7 @@ import { Plus, Trash2 } from "lucide-react";
 import React, { useMemo } from "react";
 import { useFieldArray, useFormContext } from "react-hook-form";
 import { Button } from "@/components/ui/button";
-import {
-	Card,
-	CardContent,
-	CardFooter,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
 	FormControl,
 	FormField,
@@ -28,6 +22,7 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { participantRoles as allParticipantRoles } from "@/data/role-data";
 import { useBookingTypesParams } from "@/hooks/use-booking-types-params";
 import { useBookingTypes, usePackageTypes } from "@/hooks/use-configs";
 import { usePackageParams } from "@/hooks/use-package-params";
@@ -36,101 +31,37 @@ import type { BookingFormValues } from "./booking-form-schema";
 export const BookingDetailForm = () => {
 	const form = useFormContext<BookingFormValues>();
 	const { data: bookingTypes = [] } = useBookingTypes();
-	const { data: packageTypes = [] } = usePackageTypes();
+	const { data: allPackageTypes = [] } = usePackageTypes();
 
-	type RoleOption = { value: string; label: string };
+	const selectedBookingTypeKey = form.watch("bookingType");
 
-	type RolesByBookingType = {
-		[key: string]: RoleOption[];
-		wedding: RoleOption[];
-		"pre-wedding": RoleOption[];
-		engagement: RoleOption[];
-		maternity: RoleOption[];
-		"b-day": RoleOption[];
-		"baby shoot": RoleOption[];
-		commercial: RoleOption[];
-		corporate: RoleOption[];
-		default: RoleOption[];
-	};
+	const filteredPackageTypes = useMemo(() => {
+		if (!selectedBookingTypeKey) {
+			return allPackageTypes;
+		}
+		return allPackageTypes.filter(
+			(pkg) =>
+				!pkg.metadata?.bookingType ||
+				pkg.metadata.bookingType === selectedBookingTypeKey,
+		);
+	}, [selectedBookingTypeKey, allPackageTypes]);
 
-	const rolesByBookingType: RolesByBookingType = useMemo(
-		() => ({
-			wedding: [
-				{ value: "bride", label: "Bride" },
-				{ value: "groom", label: "Groom" },
-				{ value: "family", label: "Family" },
-				{ value: "planner", label: "Planner" },
-				{ value: "other", label: "Other" },
-			],
-			"pre-wedding": [
-				{ value: "bride", label: "Bride" },
-				{ value: "groom", label: "Groom" },
-				{ value: "family", label: "Family" },
-				{ value: "planner", label: "Planner" },
-				{ value: "other", label: "Other" },
-			],
-			engagement: [
-				{ value: "bride", label: "Bride" },
-				{ value: "groom", label: "Groom" },
-				{ value: "family", label: "Family" },
-				{ value: "planner", label: "Planner" },
-				{ value: "other", label: "Other" },
-			],
+	const roleOptions = useMemo(() => {
+		const selectedType = bookingTypes.find(
+			(t) => t.value === selectedBookingTypeKey,
+		);
+		const selectedRoleValues = selectedType?.metadata?.roles;
 
-			maternity: [
-				{ value: "mother", label: "Mother" },
-				{ value: "partner", label: "Partner" },
-				{ value: "family", label: "Family" },
-				{ value: "planner", label: "Planner" },
-				{ value: "other", label: "Other" },
-			],
-
-			"b-day": [
-				{ value: "birthday_person", label: "Birthday Person" },
-				{ value: "host", label: "Host" },
-				{ value: "family", label: "Family" },
-				{ value: "planner", label: "Planner" },
-				{ value: "other", label: "Other" },
-			],
-
-			"baby shoot": [
-				{ value: "baby", label: "Baby" },
-				{ value: "parent", label: "Parent" },
-				{ value: "sibling", label: "Sibling" },
-				{ value: "family", label: "Family" },
-				{ value: "other", label: "Other" },
-			],
-
-			commercial: [
-				{ value: "brand", label: "Brand" },
-				{ value: "contact", label: "Point of Contact" },
-				{ value: "agency", label: "Agency" },
-				{ value: "planner", label: "Planner" },
-				{ value: "other", label: "Other" },
-			],
-
-			corporate: [
-				{ value: "company", label: "Company" },
-				{ value: "contact", label: "Point of Contact" },
-				{ value: "team", label: "Team" },
-				{ value: "planner", label: "Planner" },
-				{ value: "other", label: "Other" },
-			],
-
-			default: [{ value: "other", label: "Other" }],
-		}),
-		[],
-	);
-
-	const raw = form.watch("bookingType");
-	const key = typeof raw === "string" ? raw.toLowerCase() : "default";
-	const roleOptions = rolesByBookingType[key] ?? rolesByBookingType.default;
+		if (selectedRoleValues && selectedRoleValues.length > 0) {
+			return allParticipantRoles.filter((role) =>
+				selectedRoleValues.includes(role.value),
+			);
+		}
+		return [{ value: "other", label: "Other" }];
+	}, [selectedBookingTypeKey, bookingTypes]);
 
 	const { setParams } = usePackageParams();
 	const { setParams: setBookingParams } = useBookingTypesParams();
-
-	// const roleOptions =
-	// 	rolesByBookingType[bookingType.toLowerCase()] ?? rolesByBookingType.default;
 
 	const {
 		fields: participants,
@@ -143,7 +74,6 @@ export const BookingDetailForm = () => {
 
 	return (
 		<>
-			{/* ——— Booking Details ——— */}
 			<Card>
 				<CardHeader>
 					<CardTitle>Booking Details</CardTitle>
@@ -222,7 +152,7 @@ export const BookingDetailForm = () => {
 										<Select
 											onValueChange={(val) => {
 												field.onChange(val);
-												const selected = packageTypes.find(
+												const selected = allPackageTypes.find(
 													(p) => p.value === val,
 												);
 												if (selected?.metadata) {
@@ -258,15 +188,16 @@ export const BookingDetailForm = () => {
 												</SelectTrigger>
 											</FormControl>
 											<SelectContent>
-												{packageTypes?.length > 0 ? (
-													packageTypes.map((p) => (
+												{/* Use the dynamically filtered list of packages */}
+												{filteredPackageTypes?.length > 0 ? (
+													filteredPackageTypes.map((p) => (
 														<SelectItem key={p.value} value={p.value}>
 															{p.label}
 														</SelectItem>
 													))
 												) : (
-													<span className="text-sm flex justify-center items-center text-muted-foreground">
-														No Package types found
+													<span className="text-sm flex justify-center items-center text-muted-foreground p-2">
+														No packages found
 													</span>
 												)}
 

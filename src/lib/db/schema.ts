@@ -147,10 +147,10 @@ export const configurations = pgTable("configurations", {
 	updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export const relationsTable = pgTable("relations", {
-	id: serial("id").primaryKey(),
-	name: text("name").notNull().unique(),
-});
+// export const relationsTable = pgTable("relations", {
+// 	id: serial("id").primaryKey(),
+// 	name: text("name").notNull().unique(),
+// });
 
 export const clients = pgTable("clients", {
 	id: serial("id").primaryKey(),
@@ -807,8 +807,8 @@ export type TeamDataWithMembers = Organization & {
 	})[];
 };
 
-export type Relation = typeof relationsTable.$inferSelect;
-export type NewRelation = typeof relationsTable.$inferInsert;
+// export type Relation = typeof relationsTable.$inferSelect;
+// export type NewRelation = typeof relationsTable.$inferInsert;
 export type Client = typeof clients.$inferSelect;
 export type NewClient = typeof clients.$inferInsert;
 export type Booking = typeof bookings.$inferSelect;

@@ -1,25 +1,25 @@
 "use client";
 
+import { Plus, Trash } from "lucide-react";
 import React from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
 	type UseFormReturn,
 	useFieldArray,
 	useFormContext,
 } from "react-hook-form";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
+	FormControl,
 	FormField,
 	FormItem,
-	FormControl,
-	FormMessage,
 	FormLabel,
+	FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import type { BookingFormValues } from "./booking-form-schema";
-import { useCrews } from "@/hooks/use-crews";
 import { MultiAsyncSelect } from "@/components/ui/multi-select";
+import { useCrews } from "@/hooks/use-crews";
+import type { BookingFormValues } from "./booking-form-schema";
 
 interface ShootDetailFormProps {
 	form: UseFormReturn<BookingFormValues>;

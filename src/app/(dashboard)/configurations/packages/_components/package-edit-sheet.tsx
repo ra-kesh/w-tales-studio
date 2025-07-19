@@ -1,26 +1,29 @@
 "use client";
 
+import { X } from "lucide-react";
 import React from "react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import {
 	Sheet,
 	SheetContent,
 	SheetHeader,
 	SheetTitle,
 } from "@/components/ui/sheet";
-import { X } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { usePackageParams } from "@/hooks/use-package-params";
-import { PackageForm } from "./package-form";
 import {
 	usePackageDetail,
 	useUpdatePackageMutation,
 } from "@/hooks/use-configs";
-import type { PackageFormValues } from "./package-form-schema";
-import { toast } from "sonner";
+import { usePackageParams } from "@/hooks/use-package-params";
+import { usePermissions } from "@/hooks/use-permissions";
+import { PackageForm } from "./package-form";
+import type { PackageFormValues, PackageMetadata } from "./package-form-schema";
 
 export function PackageEditSheet() {
 	const { setParams, packageId } = usePackageParams();
 	const isOpen = Boolean(packageId);
+
+	const { canCreateAndUpdatePackageTypes } = usePermissions();
 
 	const { data: packageData, isLoading } = usePackageDetail(packageId ?? "");
 	const updatePackageMutation = useUpdatePackageMutation();
@@ -44,21 +47,28 @@ export function PackageEditSheet() {
 		}
 	};
 
-	const cleanedDefaultValues = packageData
-		? {
-				key: packageData.key,
-				value: packageData.value,
-				metadata: {
-					defaultCost: packageData.metadata.defaultCost ?? "",
-					defaultDeliverables:
-						packageData.metadata.defaultDeliverables?.map((d) => ({
-							title: d.title,
-							quantity: d.quantity.toString(),
-						})) ?? [],
-				},
-			}
-		: undefined;
+	const cleanedDefaultValues = React.useMemo(() => {
+		if (!packageData) return undefined;
 
+		const metadataFromApi = (packageData.metadata || {}) as PackageMetadata;
+
+		return {
+			value: packageData.value,
+			metadata: {
+				defaultCost: metadataFromApi.defaultCost ?? "",
+				defaultDeliverables:
+					metadataFromApi.defaultDeliverables?.map((d) => ({
+						title: d.title ?? "",
+						quantity: d.quantity ?? "",
+					})) ?? [],
+				bookingType: metadataFromApi.bookingType ?? "",
+			},
+		};
+	}, [packageData]);
+
+	if (!canCreateAndUpdatePackageTypes) {
+		return null;
+	}
 	return (
 		<Sheet open={isOpen} onOpenChange={() => setParams(null)}>
 			<SheetContent side="right" className="min-w-xl">

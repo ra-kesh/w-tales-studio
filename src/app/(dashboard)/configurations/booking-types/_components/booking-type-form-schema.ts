@@ -1,11 +1,21 @@
 import { z } from "zod";
 
-export const BookingSchema = z.object({
-  value: z.string().min(1, "Value is required"),
+export const BookingTypeSchema = z.object({
+	value: z.string().min(1, "Value is required"),
+	metadata: z.object({
+		roles: z.array(z.string()).optional(),
+	}),
 });
 
-export type BookingFormValues = z.infer<typeof BookingSchema>;
+export type BookingTypeFormValues = z.infer<typeof BookingTypeSchema>;
 
-export const defaultBookingType: BookingFormValues = {
-  value: "",
+export type BookingTypeMetadata = z.infer<
+	typeof BookingTypeSchema.shape.metadata
+>;
+
+export const defaultBookingType: BookingTypeFormValues = {
+	value: "",
+	metadata: {
+		roles: ["client", "other"],
+	},
 };

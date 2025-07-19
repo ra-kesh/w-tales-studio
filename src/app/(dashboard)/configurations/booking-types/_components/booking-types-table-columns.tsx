@@ -1,9 +1,11 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { format } from "date-fns";
+import { format, formatDistanceToNow } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
+import { participantRoles } from "@/data/role-data";
+import type { BookingTypeMetadata } from "./booking-type-form-schema";
 import { BookingTypeTableRowActions } from "./booking-type-row-action";
 
 export interface BookingTypeRow {
@@ -11,7 +13,7 @@ export interface BookingTypeRow {
 	label: string;
 	value: string;
 	isSystem: boolean;
-	metadata: any;
+	metadata: BookingTypeMetadata;
 	createdAt: string;
 	updatedAt: string;
 	onEdit?: (id: number) => void;
@@ -59,6 +61,31 @@ export const useBookingTypeColumns = () => {
 			),
 		},
 		{
+			accessorKey: "metadata",
+			header: "Roles",
+			cell: ({ row }) => {
+				const roleValues = row.original.metadata?.roles;
+
+				if (!roleValues || roleValues.length === 0) {
+					return <span>—</span>;
+				}
+
+				const displayRoles = roleValues
+					.map((val) => participantRoles.find((p) => p.value === val)?.label)
+					.filter(Boolean);
+
+				return (
+					<div className="flex flex-wrap gap-1">
+						{displayRoles.map((label) => (
+							<Badge key={label} variant="secondary">
+								{label}
+							</Badge>
+						))}
+					</div>
+				);
+			},
+		},
+		{
 			accessorKey: "createdAt",
 			header: "Created",
 			cell: ({ row }) => {
@@ -68,10 +95,15 @@ export const useBookingTypeColumns = () => {
 		},
 		{
 			accessorKey: "updatedAt",
-			header: "Updated",
+			header: "Last Updated",
 			cell: ({ row }) => {
-				const d = new Date(row.original.updatedAt);
-				return <span>{format(d, "yyyy-MM-dd")}</span>;
+				const dateToDisplay = new Date(
+					row.original.updatedAt || row.original.createdAt,
+				);
+
+				return (
+					<span>{formatDistanceToNow(dateToDisplay, { addSuffix: true })}</span>
+				);
 			},
 		},
 		{

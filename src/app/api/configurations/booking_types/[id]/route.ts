@@ -1,17 +1,20 @@
 import { and, eq, not } from "drizzle-orm";
+import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import {
-	type BookingMetadata,
-	BookingSchema,
+	type BookingTypeMetadata,
+	BookingTypeSchema,
 } from "@/app/(dashboard)/configurations/booking-types/_components/booking-type-form-schema";
+import { auth } from "@/lib/auth";
 import { getServerSession } from "@/lib/dal";
 import { db } from "@/lib/db/drizzle";
 import { configurations } from "@/lib/db/schema";
 import { generateKey } from "@/lib/utils";
+import { checkBookingTypeConflict } from "../route";
 
 export async function PUT(
 	request: Request,
-	{ params }: { params: { id: string } },
+	{ params }: { params: Promise<{ id: string }> },
 ) {
 	const { session } = await getServerSession();
 
@@ -20,9 +23,26 @@ export async function PUT(
 	}
 
 	const userOrganizationId = session.session.activeOrganizationId;
+
 	if (!userOrganizationId) {
 		return NextResponse.json(
 			{ message: "User not associated with an organization" },
+			{ status: 403 },
+		);
+	}
+
+	const canUpdate = await auth.api.hasPermission({
+		headers: await headers(),
+		body: {
+			permissions: {
+				booking_type_config: ["update"],
+			},
+		},
+	});
+
+	if (!canUpdate) {
+		return NextResponse.json(
+			{ message: "You are not authorized to update booking type" },
 			{ status: 403 },
 		);
 	}
@@ -32,7 +52,7 @@ export async function PUT(
 	const bookingTypeId = Number.parseInt(id, 10);
 	const body = await request.json();
 
-	const validation = BookingSchema.safeParse(body);
+	const validation = BookingTypeSchema.safeParse(body);
 
 	if (!validation.success) {
 		return NextResponse.json(
@@ -42,73 +62,40 @@ export async function PUT(
 	}
 
 	const validatedData = validation.data;
+	const { value, metadata } = validatedData;
+	const key = generateKey(value);
 
 	try {
-		const updatedConfig = await db.transaction(async (tx) => {
-			const existingConfig = await tx.query.configurations.findFirst({
-				where: and(
-					eq(configurations.id, bookingTypeId),
-					eq(configurations.organizationId, userOrganizationId),
-					eq(configurations.type, "booking_type"),
-				),
-			});
-
-			if (!existingConfig) {
-				throw new Error("Booking type not found or access denied");
-			}
-			const newKey = validatedData.value
-				? generateKey(validatedData.value)
-				: existingConfig.key;
-
-			const newValue = validatedData.value ?? existingConfig.value;
-
-			const existingMetadata =
-				(existingConfig.metadata as BookingMetadata | null) || {};
-
-			const newMetadata: BookingMetadata =
-				validatedData.metadata ?? existingMetadata;
-
-			// Check for conflicts with other booking types (excluding the current one)
-			const conflictingConfig = await tx.query.configurations.findFirst({
-				where: and(
-					eq(configurations.organizationId, userOrganizationId),
-					eq(configurations.type, "booking_type"),
-					eq(configurations.key, newKey),
-					not(eq(configurations.id, bookingTypeId)),
-				),
-			});
-			if (conflictingConfig) {
-				throw new Error("Booking type already exists");
-			}
-
-			// Check for duplicate value (excluding the current one)
-			const conflictingValue = await tx.query.configurations.findFirst({
-				where: and(
-					eq(configurations.organizationId, userOrganizationId),
-					eq(configurations.type, "booking_type"),
-					eq(configurations.value, newValue),
-					not(eq(configurations.id, bookingTypeId)),
-				),
-			});
-
-			if (conflictingValue) {
-				throw new Error("Booking type already exists");
-			}
-
-			// Update the booking type configuration
-			const [updatedConfig] = await tx
-				.update(configurations)
-				.set({
-					key: newKey,
-					value: newValue,
-					metadata: newMetadata,
-					updatedAt: new Date(),
-				})
-				.where(eq(configurations.id, bookingTypeId))
-				.returning();
-
-			return updatedConfig;
+		const existingConfig = await db.query.configurations.findFirst({
+			where: and(
+				eq(configurations.id, bookingTypeId),
+				eq(configurations.organizationId, userOrganizationId),
+				eq(configurations.type, "booking_type"),
+			),
 		});
+
+		if (!existingConfig) {
+			throw new Error("Booking type not found or access denied");
+		}
+
+		const conflict = await checkBookingTypeConflict(
+			userOrganizationId,
+			{ key, value },
+			bookingTypeId,
+		);
+		if (conflict) {
+			return NextResponse.json(
+				{ message: "A booking type with this name already exists." },
+				{ status: 409 },
+			);
+		}
+
+		const [updatedConfig] = await db
+			.update(configurations)
+			.set({ key, value, metadata, updatedAt: new Date() })
+			.where(eq(configurations.id, bookingTypeId))
+			.returning();
+
 		return NextResponse.json(
 			{
 				data: { bookingTypeId: updatedConfig.id },
@@ -129,7 +116,7 @@ export async function PUT(
 
 export async function DELETE(
 	request: Request,
-	{ params }: { params: { id: string } },
+	{ params }: { params: Promise<{ id: string }> },
 ) {
 	const { session } = await getServerSession();
 
@@ -141,6 +128,22 @@ export async function DELETE(
 	if (!userOrganizationId) {
 		return NextResponse.json(
 			{ message: "User not associated with an organization" },
+			{ status: 403 },
+		);
+	}
+
+	const canDelete = await auth.api.hasPermission({
+		headers: await headers(),
+		body: {
+			permissions: {
+				booking_type_config: ["delete"],
+			},
+		},
+	});
+
+	if (!canDelete) {
+		return NextResponse.json(
+			{ message: "You are not authorized to delete booking type" },
 			{ status: 403 },
 		);
 	}

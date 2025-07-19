@@ -32,16 +32,15 @@ export function useTaskConfigs() {
 	};
 }
 
-interface PackageMetadata {
+interface Metadata {
 	defaultCost: string;
-	durationUnit: string;
-	commercial_use: boolean | null;
-	isCustomizable: boolean;
-	defaultDeliverables: Array<{
+	defaultDeliverables?: {
 		title: string;
 		quantity: string;
 		is_package_included: boolean;
-	}>;
+	}[];
+	bookingType?: string;
+	roles: string;
 }
 
 // biome-ignore lint/suspicious/noExplicitAny: <explanation>
@@ -74,7 +73,7 @@ export function useConfigs<ConfigOption>(type: ConfigTypeKey) {
 				id: config.id,
 				value: config.key,
 				label: config.value,
-				metadata: config.metadata as PackageMetadata,
+				metadata: config.metadata as Metadata,
 				isSystem: config.isSystem,
 				createdAt: config.createdAt,
 				updatedAt: config.updatedAt,
@@ -82,8 +81,7 @@ export function useConfigs<ConfigOption>(type: ConfigTypeKey) {
 	});
 }
 
-export const usePackageTypes = () =>
-	useConfigs<PackageMetadata>("package_type");
+export const usePackageTypes = () => useConfigs<Metadata>("package_type");
 
 export const useBookingTypes = () => useConfigs("booking_type");
 
@@ -110,7 +108,7 @@ export function usePackageDetail(id: string | null) {
 			id: data.id,
 			key: data.key,
 			value: data.value,
-			metadata: data.metadata as PackageMetadata,
+			metadata: data.metadata as Metadata,
 		}),
 	});
 }
@@ -167,9 +165,7 @@ export function useCreatePackageMutation() {
 export function useCreateBookingTypeMutation() {
 	const queryClient = useQueryClient();
 	return useMutation({
-		mutationFn: async (
-			data: Omit<NewConfiguration, "type" | "key" | "metadata">,
-		) => {
+		mutationFn: async (data: Omit<NewConfiguration, "type" | "key">) => {
 			const response = await fetch("/api/configurations/booking_types", {
 				method: "POST",
 				headers: {
@@ -177,10 +173,15 @@ export function useCreateBookingTypeMutation() {
 				},
 				body: JSON.stringify({ ...data, type: "booking_type" }),
 			});
+
+			const responseData = await response.json();
+
 			if (!response.ok) {
-				throw new Error("Failed to create booking type");
+				throw new Error(
+					responseData.message || "Failed to create booking type",
+				);
 			}
-			return response.json();
+			return responseData;
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({
@@ -251,10 +252,15 @@ export function useUpdateBookingTypeMutation() {
 					body: JSON.stringify({ ...data, type: "booking_type" }),
 				},
 			);
+
+			const responseData = await response.json();
+
 			if (!response.ok) {
-				throw new Error("Failed to update booking type");
+				throw new Error(
+					responseData.message || "Failed to update booking type",
+				);
 			}
-			return response.json();
+			return responseData;
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({
@@ -278,10 +284,14 @@ export function useDeleteBookingTypeMutation() {
 					method: "DELETE",
 				},
 			);
+			const responseData = await response.json();
+
 			if (!response.ok) {
-				throw new Error("Failed to delete booking type");
+				throw new Error(
+					responseData.message || "Failed to delete booking type",
+				);
 			}
-			return response.json();
+			return responseData;
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({
