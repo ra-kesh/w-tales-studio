@@ -1,7 +1,9 @@
 import { organization } from "better-auth/plugins";
 import { and, eq, inArray } from "drizzle-orm";
+import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { ExpenseSchema } from "@/app/(dashboard)/expenses/expense-form-schema";
+import { auth } from "@/lib/auth";
 import { getServerSession } from "@/lib/dal";
 import { db } from "@/lib/db/drizzle";
 import {
@@ -112,6 +114,14 @@ export async function POST(request: Request) {
 			{ message: "User not associated with an organization" },
 			{ status: 403 },
 		);
+	}
+
+	const canCreate = await auth.api.hasPermission({
+		headers: await headers(),
+		body: { permissions: { expense: ["create"] } },
+	});
+	if (!canCreate) {
+		return NextResponse.json({ message: "Forbidden" }, { status: 403 });
 	}
 
 	const body = await request.json();
