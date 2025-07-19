@@ -1,7 +1,6 @@
 "use client";
 
-import { Camera, CheckSquare, Edit, Image, Info, XIcon } from "lucide-react";
-import Link from "next/link";
+import { Camera, CheckSquare, Image, Info } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +12,7 @@ import {
 	CustomTabsTrigger,
 	Tabs,
 } from "@/components/ui/tabs";
+import { useBookingParams } from "@/hooks/use-booking-params";
 import { useBookingDetail } from "@/hooks/use-bookings";
 import { usePermissions } from "@/hooks/use-permissions";
 import { BookingDeliverables } from "./booking-deliverables";
@@ -25,6 +25,8 @@ export function BookingDetails({ id }: { id: string }) {
 	const headerRef = useRef<HTMLDivElement>(null);
 	const [headerHeight, setHeaderHeight] = useState(0);
 	const router = useRouter();
+
+	const { setParams } = useBookingParams();
 
 	const { data: booking, isPending } = useBookingDetail(id);
 
@@ -73,26 +75,17 @@ export function BookingDetails({ id }: { id: string }) {
 							>
 								Close
 							</Button>
-							{canCreateAndUpdateBooking && (
-								<Link
-									href={{
-										pathname: `/bookings/edit/${id}`,
-										query: { tab: "details" },
-									}}
-									prefetch={true}
-								>
-									<Button
-										size="sm"
-										className="bg-indigo-600  font-semibold text-white  hover:bg-indigo-500 cursor-pointer"
-									>
-										Edit Booking
-									</Button>
-								</Link>
-							)}
+							<Button
+								size="sm"
+								className="bg-indigo-600  font-semibold text-white  hover:bg-indigo-500 cursor-pointer"
+								onClick={() => setParams({ bookingId: id })}
+								disabled={!canCreateAndUpdateBooking}
+							>
+								Edit Booking
+							</Button>
 						</div>
 					</div>
 
-					{/* Client Details Grid */}
 					<div className="rounded-lg bg-muted/40 w-full">
 						<div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-3 p-4">
 							<div className="space-y-1">

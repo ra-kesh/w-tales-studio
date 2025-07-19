@@ -60,7 +60,13 @@ export type BookingDetail = {
 	packageTypeValue: string;
 	packageCost: string;
 	// clientId: number;
-	status: string;
+	status:
+		| "new"
+		| "preparation"
+		| "shooting"
+		| "delivery"
+		| "completed"
+		| "cancelled";
 	createdAt: string;
 	updatedAt: string;
 	note: string | null;
