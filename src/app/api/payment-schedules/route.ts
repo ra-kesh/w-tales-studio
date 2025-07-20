@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, sum } from "drizzle-orm";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
@@ -12,7 +12,7 @@ import {
 	type ScheduledPaymentFilters,
 	type ScheduledPaymentSortOption,
 } from "@/lib/db/queries";
-import { bookings, paymentSchedules } from "@/lib/db/schema";
+import { bookings, paymentSchedules, receivedAmounts } from "@/lib/db/schema";
 
 export async function GET(request: Request) {
 	const { session } = await getServerSession();
@@ -110,24 +110,44 @@ export async function POST(request: Request) {
 			{ status: 403 },
 		);
 	}
+
+	const body = await request.json();
+	const validatedData = scheduledPaymentFormSchema.parse(body);
+	const { bookingId, amount, description, dueDate } = validatedData;
+	const numericBookingId = Number(bookingId);
+
+	const bookingExists = await db.query.bookings.findFirst({
+		where: and(
+			eq(bookings.id, Number(bookingId)),
+			eq(bookings.organizationId, activeOrganizationId),
+		),
+	});
+	if (!bookingExists) {
+		return NextResponse.json({ message: "Booking not found" }, { status: 404 });
+	}
+
+	const [receivedTotalResult] = await db
+		.select({ total: sum(receivedAmounts.amount) })
+		.from(receivedAmounts)
+		.where(eq(receivedAmounts.bookingId, numericBookingId));
+	const [scheduledTotalResult] = await db
+		.select({ total: sum(paymentSchedules.amount) })
+		.from(paymentSchedules)
+		.where(eq(paymentSchedules.bookingId, numericBookingId));
+
+	const currentTotal =
+		(Number(receivedTotalResult?.total) || 0) +
+		(Number(scheduledTotalResult?.total) || 0);
+	const newGrandTotal = currentTotal + parseFloat(amount);
+
+	if (newGrandTotal > parseFloat(bookingExists.packageCost)) {
+		return NextResponse.json(
+			{ message: "Total of all payments cannot exceed the package cost." },
+			{ status: 400 },
+		);
+	}
+
 	try {
-		const body = await request.json();
-		const validatedData = scheduledPaymentFormSchema.parse(body);
-		const { bookingId, amount, description, dueDate } = validatedData;
-
-		const bookingExists = await db.query.bookings.findFirst({
-			where: and(
-				eq(bookings.id, Number(bookingId)),
-				eq(bookings.organizationId, activeOrganizationId),
-			),
-		});
-		if (!bookingExists) {
-			return NextResponse.json(
-				{ message: "Booking not found" },
-				{ status: 404 },
-			);
-		}
-
 		const newScheduledPayment = await db
 			.insert(paymentSchedules)
 			.values({
@@ -142,7 +162,7 @@ export async function POST(request: Request) {
 		return NextResponse.json(newScheduledPayment[0], { status: 201 });
 	} catch (error) {
 		if (error instanceof ZodError) {
-			return NextResponse.json({ errors: error.errors }, { status: 400 });
+			return NextResponse.json({ errors: error.issues }, { status: 400 });
 		}
 		console.error("Error creating scheduled payment:", error);
 		return NextResponse.json(

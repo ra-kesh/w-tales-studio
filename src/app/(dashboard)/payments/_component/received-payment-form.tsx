@@ -2,6 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Check, ChevronsUpDown } from "lucide-react";
+import { useParams } from "next/navigation";
 import * as React from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -48,9 +49,15 @@ export function ReceivedPaymentForm({
 	onSubmit,
 	mode = "create",
 }: ReceivedPaymentFormProps) {
+	const params = useParams();
+	const bookingIdFromParams = params.id ? params.id.toString() : "";
+
 	const form = useForm<ReceivedPaymentFormValues>({
 		resolver: zodResolver(receivedPaymentFormSchema),
-		defaultValues,
+		defaultValues: {
+			...defaultValues,
+			bookingId: defaultValues.bookingId || bookingIdFromParams || "",
+		},
 		mode: "onChange",
 	});
 
@@ -80,7 +87,7 @@ export function ReceivedPaymentForm({
 													"w-full justify-between",
 													!field.value && "text-muted-foreground",
 												)}
-												disabled={mode === "edit"}
+												disabled={mode === "edit" || !!bookingIdFromParams}
 											>
 												{field.value
 													? bookings?.find(
@@ -97,12 +104,11 @@ export function ReceivedPaymentForm({
 											filter={(value, search) => {
 												if (!bookings) return 0;
 												const booking = bookings.find(
-													(b) => b.id.toString() === value,
+													(b) => b.id === Number.parseInt(value),
 												);
 												if (!booking) return 0;
-												return booking.name
-													.toLowerCase()
-													.includes(search.toLowerCase())
+												const searchString = `${booking.name}`.toLowerCase();
+												return searchString.includes(search.toLowerCase())
 													? 1
 													: 0;
 											}}
@@ -135,7 +141,7 @@ export function ReceivedPaymentForm({
 																			: "opacity-0",
 																	)}
 																/>
-																{booking.name}
+																{booking.name} (ID: {booking.id})
 															</CommandItem>
 														))}
 													</CommandGroup>

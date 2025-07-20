@@ -1,11 +1,11 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, ne, sum } from "drizzle-orm";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 import { receivedPaymentFormSchema } from "@/app/(dashboard)/payments/_component/received-payment-form-schema";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db/drizzle";
-import { bookings, receivedAmounts } from "@/lib/db/schema";
+import { bookings, paymentSchedules, receivedAmounts } from "@/lib/db/schema";
 
 interface RouteContext {
 	params: {
@@ -15,7 +15,7 @@ interface RouteContext {
 
 export async function GET(
 	request: Request,
-	{ params }: { params: { id: string } },
+	{ params }: { params: Promise<{ id: string }> },
 ) {
 	const session = await auth.api.getSession({
 		headers: await headers(),
@@ -94,7 +94,7 @@ export async function GET(
 
 export async function PUT(
 	request: Request,
-	{ params }: { params: { id: string } },
+	{ params }: { params: Promise<{ id: string }> },
 ) {
 	const session = await auth.api.getSession({
 		headers: await headers(),
@@ -128,40 +128,61 @@ export async function PUT(
 	const { id } = await params;
 	const paymentId = Number.parseInt(id, 10);
 
+	const body = await request.json();
+
+	const validatedData = receivedPaymentFormSchema.parse(body);
+	const { bookingId, amount, description, paidOn } = validatedData;
+	const numericBookingId = Number(bookingId);
+
+	const existingPayment = await db.query.receivedAmounts.findFirst({
+		where: and(
+			eq(receivedAmounts.id, paymentId),
+			eq(receivedAmounts.organizationId, activeOrganizationId),
+		),
+	});
+
+	if (!existingPayment) {
+		return NextResponse.json({ message: "Payment not found" }, { status: 404 });
+	}
+
+	const bookingExists = await db.query.bookings.findFirst({
+		where: and(
+			eq(bookings.id, Number(bookingId)),
+			eq(bookings.organizationId, activeOrganizationId),
+		),
+	});
+
+	if (!bookingExists) {
+		return NextResponse.json({ message: "Booking not found" }, { status: 404 });
+	}
+
+	const [otherReceivedTotalResult] = await db
+		.select({ total: sum(receivedAmounts.amount) })
+		.from(receivedAmounts)
+		.where(
+			and(
+				eq(receivedAmounts.bookingId, numericBookingId),
+				ne(receivedAmounts.id, Number(id)),
+			),
+		);
+	const [scheduledTotalResult] = await db
+		.select({ total: sum(paymentSchedules.amount) })
+		.from(paymentSchedules)
+		.where(eq(paymentSchedules.bookingId, numericBookingId));
+
+	const totalOfOtherPayments =
+		(Number(otherReceivedTotalResult?.total) || 0) +
+		(Number(scheduledTotalResult?.total) || 0);
+	const newGrandTotal = totalOfOtherPayments + parseFloat(amount);
+
+	if (newGrandTotal > parseFloat(bookingExists.packageCost)) {
+		return NextResponse.json(
+			{ message: "Total of all payments cannot exceed the package cost." },
+			{ status: 400 },
+		);
+	}
+
 	try {
-		const body = await request.json();
-		// 3. Validation
-		const validatedData = receivedPaymentFormSchema.parse(body);
-		const { bookingId, amount, description, paidOn } = validatedData;
-
-		const existingPayment = await db.query.receivedAmounts.findFirst({
-			where: and(
-				eq(receivedAmounts.id, paymentId),
-				eq(receivedAmounts.organizationId, activeOrganizationId),
-			),
-		});
-
-		if (!existingPayment) {
-			return NextResponse.json(
-				{ message: "Payment not found" },
-				{ status: 404 },
-			);
-		}
-
-		const bookingExists = await db.query.bookings.findFirst({
-			where: and(
-				eq(bookings.id, Number(bookingId)),
-				eq(bookings.organizationId, activeOrganizationId),
-			),
-		});
-
-		if (!bookingExists) {
-			return NextResponse.json(
-				{ message: "Booking not found" },
-				{ status: 404 },
-			);
-		}
-
 		const updatedPayment = await db
 			.update(receivedAmounts)
 			.set({
@@ -177,7 +198,7 @@ export async function PUT(
 		return NextResponse.json(updatedPayment[0], { status: 200 });
 	} catch (error) {
 		if (error instanceof ZodError) {
-			return NextResponse.json({ errors: error.errors }, { status: 400 });
+			return NextResponse.json({ errors: error.issues }, { status: 400 });
 		}
 		console.error(`Error updating payment ${paymentId}:`, error);
 		return NextResponse.json(

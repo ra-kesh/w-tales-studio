@@ -2,6 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Check, ChevronsUpDown } from "lucide-react";
+import { useParams } from "next/navigation";
 import * as React from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -48,9 +49,15 @@ export function ScheduledPaymentForm({
 	onSubmit,
 	mode = "create",
 }: ScheduledPaymentFormProps) {
+	const params = useParams();
+	const bookingIdFromParams = params.id ? params.id.toString() : "";
+
 	const form = useForm<ScheduledPaymentFormValues>({
 		resolver: zodResolver(scheduledPaymentFormSchema),
-		defaultValues,
+		defaultValues: {
+			...defaultValues,
+			bookingId: defaultValues.bookingId || bookingIdFromParams || "",
+		},
 		mode: "onChange",
 	});
 
@@ -80,11 +87,12 @@ export function ScheduledPaymentForm({
 													"w-full justify-between",
 													!field.value && "text-muted-foreground",
 												)}
-												disabled={mode === "edit"}
+												disabled={mode === "edit" || !!bookingIdFromParams}
 											>
 												{field.value
 													? bookings?.find(
-															(b) => b.id === Number.parseInt(field.value),
+															(booking) =>
+																booking.id === Number.parseInt(field.value),
 														)?.name || "Select a booking"
 													: "Select a booking"}
 												<ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -92,7 +100,19 @@ export function ScheduledPaymentForm({
 										</FormControl>
 									</PopoverTrigger>
 									<PopoverContent className="w-full p-0 relative z-50">
-										<Command>
+										<Command
+											filter={(value, search) => {
+												if (!bookings) return 0;
+												const booking = bookings.find(
+													(b) => b.id === Number.parseInt(value),
+												);
+												if (!booking) return 0;
+												const searchString = `${booking.name}`.toLowerCase();
+												return searchString.includes(search.toLowerCase())
+													? 1
+													: 0;
+											}}
+										>
 											<CommandInput placeholder="Search bookings..." />
 											<CommandList>
 												<ScrollArea className="h-64">
@@ -106,7 +126,10 @@ export function ScheduledPaymentForm({
 																	form.setValue(
 																		"bookingId",
 																		booking.id.toString(),
-																		{ shouldValidate: true, shouldDirty: true },
+																		{
+																			shouldValidate: true,
+																			shouldDirty: true,
+																		},
 																	);
 																}}
 															>
@@ -118,7 +141,7 @@ export function ScheduledPaymentForm({
 																			: "opacity-0",
 																	)}
 																/>
-																{booking.name}
+																{booking.name} (ID: {booking.id})
 															</CommandItem>
 														))}
 													</CommandGroup>

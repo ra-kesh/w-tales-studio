@@ -1,9 +1,11 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import type { ShootFormValues } from "@/app/(dashboard)/shoots/_components/shoot-form-schema";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import type { ShootFormValues } from "@/app/(dashboard)/shoots/_components/shoot-form-schema";
 
 export function useCreateShootMutation() {
 	const queryClient = useQueryClient();
+	const router = useRouter();
 
 	return useMutation({
 		mutationFn: async (data: ShootFormValues) => {
@@ -50,11 +52,16 @@ export function useCreateShootMutation() {
 		onError: (error) => {
 			toast.error(error.message || "Failed to create shoot");
 		},
+		onSettled: () => {
+			router.refresh();
+		},
 	});
 }
 
 export function useUpdateShootMutation() {
 	const queryClient = useQueryClient();
+
+	const router = useRouter();
 
 	return useMutation({
 		mutationFn: async ({
@@ -106,6 +113,9 @@ export function useUpdateShootMutation() {
 		},
 		onError: (error) => {
 			toast.error(error.message || "Failed to update shoot");
+		},
+		onSettled: () => {
+			router.refresh();
 		},
 	});
 }

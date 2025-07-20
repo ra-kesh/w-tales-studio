@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { ShootCreateSheet } from "@/app/(dashboard)/shoots/_components/shoot-create-sheet";
+import { BookingEditSheet } from "./bookings/_components/booking-form/booking-edit-sheet";
 import { ClientEditSheet } from "./clients/_components/client-edit-sheet";
 import { DeliverableStatusCreateSheet } from "./configurations/_components/deliverable-status-create-sheet";
 import { DeliverableStatusEditSheet } from "./configurations/_components/deliverable-status-edit-sheet";
@@ -29,6 +30,9 @@ export function GlobalSheets() {
 			<ShootCreateSheet />
 			<Suspense fallback={<div>Loading...</div>}>
 				<ShootEditSheet />
+			</Suspense>
+			<Suspense fallback={<div>Loading...</div>}>
+				<BookingEditSheet />
 			</Suspense>
 			<PackageCreateSheet />
 			<Suspense fallback={<div>Loading...</div>}>

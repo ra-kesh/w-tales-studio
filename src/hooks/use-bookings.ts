@@ -95,68 +95,73 @@ export function useBookingDetail(id: string) {
 }
 
 export function useBookingFormData(bookingId: string) {
-	const { data: booking, isLoading, error } = useBookingDetail(bookingId);
+	const {
+		data: booking,
+		refetch,
+		isLoading,
+		error,
+	} = useBookingDetail(bookingId);
 
 	// Only re‐compute when booking changes
-	const data = useMemo<BookingFormValues | undefined>(
+	const data = useMemo(
 		() => (booking ? transformBookingToFormData(booking) : undefined),
 		[booking],
 	);
 
-	return { data, isLoading, error };
+	return { data, refetch, isLoading, error };
 }
 
-export function transformBookingToFormData(
-	booking: BookingDetail,
-): BookingFormValues {
-	const participants: Participant[] = booking.participants.map((pp) => ({
-		name: pp.client.name,
-		role: pp.role,
-		phone: pp.client.phoneNumber ?? "",
-		email: pp.client.email ?? "",
-		address: pp.client.address ?? "",
-		metadata: pp.client.metadata ?? {},
-	}));
+export function transformBookingToFormData(booking: BookingDetail) {
+	// const participants: Participant[] = booking.participants.map((pp) => ({
+	// 	name: pp.client.name,
+	// 	role: pp.role,
+	// 	phone: pp.client.phoneNumber ?? "",
+	// 	email: pp.client.email ?? "",
+	// 	address: pp.client.address ?? "",
+	// 	metadata: pp.client.metadata ?? {},
+	// }));
 
 	return {
 		bookingName: booking.name,
 		bookingType: booking.bookingTypeKey, // the raw key
 		packageType: booking.packageTypeKey, // the raw key
 		packageCost: booking.packageCost,
+		note: booking.note,
+		status: booking.status,
 
-		// new participants array
-		participants,
+		// // new participants array
+		// participants,
 
-		note: booking.note ?? "",
+		// note: booking.note ?? "",
 
-		shoots: booking.shoots.map((s) => ({
-			title: s.title ?? "",
-			date: s.date ?? "",
-			time: s.time ?? "",
-			location:
-				typeof s.location === "string"
-					? s.location
-					: JSON.stringify(s.location),
-			crews: s.shootsAssignments?.map((a) => a.crew.id.toString()) ?? [],
-		})),
+		// shoots: booking.shoots.map((s) => ({
+		// 	title: s.title ?? "",
+		// 	date: s.date ?? "",
+		// 	time: s.time ?? "",
+		// 	location:
+		// 		typeof s.location === "string"
+		// 			? s.location
+		// 			: JSON.stringify(s.location),
+		// 	crews: s.shootsAssignments?.map((a) => a.crew.id.toString()) ?? [],
+		// })),
 
-		deliverables: booking.deliverables.map((d) => ({
-			title: d.title ?? "",
-			cost: d.cost ?? "0.00",
-			quantity: d.quantity.toString(),
-			dueDate: d.dueDate ?? "",
-		})),
+		// deliverables: booking.deliverables.map((d) => ({
+		// 	title: d.title ?? "",
+		// 	cost: d.cost ?? "0.00",
+		// 	quantity: d.quantity.toString(),
+		// 	dueDate: d.dueDate ?? "",
+		// })),
 
-		payments: booking.receivedAmounts.map((r) => ({
-			amount: r.amount,
-			description: r.description ?? "",
-			date: r.paidOn ?? "",
-		})),
+		// payments: booking.receivedAmounts.map((r) => ({
+		// 	amount: r.amount,
+		// 	description: r.description ?? "",
+		// 	date: r.paidOn ?? "",
+		// })),
 
-		scheduledPayments: booking.paymentSchedules.map((p) => ({
-			amount: p.amount,
-			description: p.description ?? "",
-			dueDate: p.dueDate ?? "",
-		})),
+		// scheduledPayments: booking.paymentSchedules.map((p) => ({
+		// 	amount: p.amount,
+		// 	description: p.description ?? "",
+		// 	dueDate: p.dueDate ?? "",
+		// })),
 	};
 }
