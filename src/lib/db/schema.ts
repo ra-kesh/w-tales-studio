@@ -147,11 +147,6 @@ export const configurations = pgTable("configurations", {
 	updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// export const relationsTable = pgTable("relations", {
-// 	id: serial("id").primaryKey(),
-// 	name: text("name").notNull().unique(),
-// });
-
 export const clients = pgTable("clients", {
 	id: serial("id").primaryKey(),
 	organizationId: text("organization_id")
@@ -268,7 +263,7 @@ export const shoots = pgTable("shoots", {
 	duration: text("duration"),
 	location: jsonb("location"),
 	notes: text("notes"),
-	additionalServices: jsonb("additional_services"),
+	additionalDetails: jsonb("additional_details"),
 	createdAt: timestamp("created_at").defaultNow(),
 	updatedAt: timestamp("updated_at").defaultNow(),
 });

@@ -239,6 +239,13 @@
       "when": 1750928847368,
       "tag": "0033_normal_king_bedlam",
       "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1752997121678,
+      "tag": "0034_swift_loners",
+      "breakpoints": true
     }
   ]
 }
