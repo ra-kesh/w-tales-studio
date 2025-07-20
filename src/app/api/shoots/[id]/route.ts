@@ -1,13 +1,15 @@
+import { and, eq, inArray } from "drizzle-orm";
+import { headers } from "next/headers";
 import { NextResponse } from "next/server";
+import { ShootSchema } from "@/app/(dashboard)/shoots/_components/shoot-form-schema";
+import { auth } from "@/lib/auth";
 import { getServerSession } from "@/lib/dal";
 import { db } from "@/lib/db/drizzle";
 import { bookings, crews, shoots, shootsAssignments } from "@/lib/db/schema";
-import { and, eq, inArray } from "drizzle-orm";
-import { ShootSchema } from "@/app/(dashboard)/shoots/_components/shoot-form-schema";
 
 export async function GET(
 	request: Request,
-	{ params }: { params: { id: string } },
+	{ params }: { params: Promise<{ id: string }> },
 ) {
 	const { session } = await getServerSession();
 
@@ -22,6 +24,14 @@ export async function GET(
 			{ message: "User not associated with an organization" },
 			{ status: 403 },
 		);
+	}
+
+	const canUpdate = await auth.api.hasPermission({
+		headers: await headers(),
+		body: { permissions: { shoot: ["read"] } },
+	});
+	if (!canUpdate) {
+		return NextResponse.json({ message: "Forbidden" }, { status: 403 });
 	}
 
 	try {
@@ -83,6 +93,8 @@ export async function GET(
 			time: shoot.time,
 			location: shoot.location,
 			notes: shoot.notes,
+			additionalDetails: shoot.additionalDetails,
+
 			crewMembers: shoot.shootsAssignments.map((assignment) =>
 				assignment.crewId.toString(),
 			),
@@ -111,7 +123,7 @@ export async function GET(
 
 export async function PUT(
 	request: Request,
-	{ params }: { params: { id: string } },
+	{ params }: { params: Promise<{ id: string }> },
 ) {
 	const { session } = await getServerSession();
 
@@ -127,6 +139,14 @@ export async function PUT(
 		);
 	}
 
+	const canUpdate = await auth.api.hasPermission({
+		headers: await headers(),
+		body: { permissions: { shoot: ["update"] } },
+	});
+	if (!canUpdate) {
+		return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+	}
+
 	const { id } = await params;
 
 	const shootId = Number.parseInt(id, 10);
@@ -140,7 +160,7 @@ export async function PUT(
 	const validation = ShootSchema.safeParse(body);
 	if (!validation.success) {
 		return NextResponse.json(
-			{ message: "Validation error", errors: validation.error.errors },
+			{ message: "Validation error", errors: validation.error.issues },
 			{ status: 400 },
 		);
 	}
@@ -217,6 +237,8 @@ export async function PUT(
 					time: validatedData.time ?? existingShoot.time,
 					location: validatedData.location ?? existingShoot.location,
 					notes: validatedData.notes ?? existingShoot.notes,
+					additionalDetails:
+						validatedData.additionalDetails ?? existingShoot.additionalDetails,
 					updatedAt: new Date(),
 				})
 				.where(eq(shoots.id, shootId))
