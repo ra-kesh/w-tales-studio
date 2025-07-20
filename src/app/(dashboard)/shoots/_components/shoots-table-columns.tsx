@@ -1,11 +1,7 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { Checkbox } from "@/components/ui/checkbox";
-import { ShootTableRowActions } from "./shoots-table-row-actions";
 import { format } from "date-fns";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
 	CalendarIcon,
 	CameraIcon,
@@ -13,9 +9,13 @@ import {
 	TextIcon,
 	Users,
 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import type { ShootRowData } from "@/types/shoots";
 import { DataTableColumnHeader } from "../../tasks/_components/task-table-column-header";
+import { ShootTableRowActions } from "./shoots-table-row-actions";
 
 export const useShootColumns = ({
 	minimalBookings,
@@ -53,9 +53,9 @@ export const useShootColumns = ({
 			cell: ({ row }) => (
 				<div>
 					<div className="font-medium">{row.original.title}</div>
-					<div className="text-sm text-muted-foreground">
+					{/* <div className="text-sm text-muted-foreground">
 						{row.original.booking.name}
-					</div>
+					</div> */}
 				</div>
 			),
 			meta: {

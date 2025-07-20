@@ -13,7 +13,7 @@ export function OpenDeliverableSheet() {
 		<div>
 			<Button
 				size="sm"
-				className="bg-indigo-600  font-semibold text-white  hover:bg-indigo-500 cursor-pointer"
+				className="font-semibold cursor-pointer"
 				onClick={() => setParams({ createDeliverable: true })}
 				disabled={!canCreateAndUpdateDeliverable}
 			>

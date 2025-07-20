@@ -87,7 +87,7 @@ export function BookingDetails({ id }: { id: string }) {
 							</Button>
 							<Button
 								size="sm"
-								className="bg-indigo-600  font-semibold text-white  hover:bg-indigo-500 cursor-pointer"
+								className="font-semibold cursor-pointer"
 								onClick={() => setParams({ bookingId: id })}
 								disabled={!canCreateAndUpdateBooking}
 							>

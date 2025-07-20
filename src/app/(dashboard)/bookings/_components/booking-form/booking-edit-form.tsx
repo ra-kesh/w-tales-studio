@@ -173,7 +173,7 @@ export function BookingEditForm({ booking, onSubmit }: BookingEditFormProps) {
 
 				<div className="col-span-6">
 					<Button
-						className="w-full bg-indigo-600  font-semibold text-white  hover:bg-indigo-500 cursor-pointer"
+						className="w-full font-semibold cursor-pointer"
 						type="submit"
 						disabled={form.formState.isSubmitting}
 					>

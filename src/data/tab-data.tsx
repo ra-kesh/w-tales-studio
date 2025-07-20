@@ -13,7 +13,7 @@ export const settingsTabs: TabItem[] = [
 	},
 	{
 		path: "/settings/organization",
-		label: "Organization",
+		label: "Studio",
 		permissions: { organization: ["update", "delete"] },
 	},
 	{
