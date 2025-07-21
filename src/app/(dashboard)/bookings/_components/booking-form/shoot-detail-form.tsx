@@ -44,7 +44,7 @@ export const ShootDetailForm = () => {
 
 			return {
 				label: `${displayName}${role}${statusBadge}`,
-				value: crew.id.toString(),
+				value: `${displayName}${role}${statusBadge}`,
 			};
 		});
 	}, [crewData?.data]);
@@ -170,7 +170,6 @@ export const ShootDetailForm = () => {
 														searchPlaceholder="Search crew..."
 														className="w-full"
 														loading={isLoading}
-														async={true}
 													/>
 												</FormControl>
 												<FormMessage />

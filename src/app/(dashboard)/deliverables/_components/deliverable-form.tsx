@@ -1,26 +1,12 @@
 "use client";
 
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-	Form,
-	FormControl,
-	FormField,
-	FormItem,
-	FormLabel,
-	FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import {
-	DeliverableSchema,
-	type DeliverableFormValues,
-	defaultDeliverable,
-} from "../deliverable-form-schema";
-
 import { Check, ChevronsUpDown } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { useParams } from "next/navigation";
+import React, { useEffect, useMemo } from "react";
+import { useForm } from "react-hook-form";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
 	Command,
 	CommandEmpty,
@@ -30,16 +16,21 @@ import {
 	CommandList,
 } from "@/components/ui/command";
 import {
+	Form,
+	FormControl,
+	FormField,
+	FormItem,
+	FormLabel,
+	FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { MultiAsyncSelect } from "@/components/ui/multi-select";
+import {
 	Popover,
 	PopoverContent,
 	PopoverTrigger,
 } from "@/components/ui/popover";
-import { useMinimalBookings } from "@/hooks/use-bookings";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Checkbox } from "@/components/ui/checkbox";
-import React, { useEffect, useMemo } from "react";
-import { MultiAsyncSelect } from "@/components/ui/multi-select";
-import { useCrews } from "@/hooks/use-crews";
 import {
 	Select,
 	SelectContent,
@@ -47,7 +38,15 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { useParams } from "next/navigation";
+import { Textarea } from "@/components/ui/textarea";
+import { useMinimalBookings } from "@/hooks/use-bookings";
+import { useCrews } from "@/hooks/use-crews";
+import { cn } from "@/lib/utils";
+import {
+	type DeliverableFormValues,
+	DeliverableSchema,
+	defaultDeliverable,
+} from "../deliverable-form-schema";
 
 interface DeliverableFormProps {
 	defaultValues?: DeliverableFormValues;
@@ -100,7 +99,7 @@ export function DeliverableForm({
 
 			return {
 				label: `${displayName}${role}${statusBadge}`,
-				value: crew.id.toString(),
+				value: `${displayName}${role}${statusBadge}`,
 			};
 		});
 	}, [crewData?.data]);
@@ -341,7 +340,6 @@ export function DeliverableForm({
 										searchPlaceholder="Search crew..."
 										className="w-full"
 										loading={isLoadingCrew}
-										async={true}
 									/>
 								</FormControl>
 								<FormMessage />

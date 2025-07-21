@@ -89,7 +89,7 @@ export function ShootForm({
 
 			return {
 				label: `${displayName}${role}${statusBadge}`,
-				value: crew.id.toString(),
+				value: `${displayName}${role}${statusBadge}`,
 			};
 		});
 	}, [crewData?.data]);
@@ -252,7 +252,6 @@ export function ShootForm({
 										searchPlaceholder="Search crew..."
 										className="w-full"
 										loading={isLoadingCrew}
-										async={true}
 									/>
 								</FormControl>
 								<FormMessage />
@@ -344,13 +343,6 @@ export function ShootForm({
 						)}
 					/>
 				</div>
-
-				{/* <div className="col-span-2 border-t ">
-					<h3 className="text-sm font-medium text-muted-foreground">
-						Additional Details
-					</h3>
-					
-				</div> */}
 
 				<div className="col-span-2 mt-6">
 					<Button
