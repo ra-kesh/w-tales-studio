@@ -1,26 +1,11 @@
 "use client";
 
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-	Form,
-	FormControl,
-	FormField,
-	FormItem,
-	FormLabel,
-	FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import {
-	TaskSchema,
-	type TaskFormValues,
-	defaultTask,
-} from "../task-form-schema";
-
 import { Check, ChevronsUpDown } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { useParams } from "next/navigation";
+import { useMemo } from "react";
+import { useForm } from "react-hook-form";
+import { Button } from "@/components/ui/button";
 import {
 	Command,
 	CommandEmpty,
@@ -30,17 +15,31 @@ import {
 	CommandList,
 } from "@/components/ui/command";
 import {
+	Form,
+	FormControl,
+	FormField,
+	FormItem,
+	FormLabel,
+	FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { MultiAsyncSelect } from "@/components/ui/multi-select";
+import {
 	Popover,
 	PopoverContent,
 	PopoverTrigger,
 } from "@/components/ui/popover";
-import { useMinimalBookings } from "@/hooks/use-bookings";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Textarea } from "@/components/ui/textarea";
+import { useMinimalBookings } from "@/hooks/use-bookings";
 import { useTaskConfigs } from "@/hooks/use-configs";
-import { MultiAsyncSelect } from "@/components/ui/multi-select";
 import { useCrews } from "@/hooks/use-crews";
-import { useMemo } from "react";
-import { useParams } from "next/navigation";
+import { cn } from "@/lib/utils";
+import {
+	defaultTask,
+	type TaskFormValues,
+	TaskSchema,
+} from "../task-form-schema";
 
 interface TaskFormProps {
 	defaultValues?: TaskFormValues;
@@ -86,7 +85,7 @@ export function TaskForm({
 
 			return {
 				label: `${displayName}${role}${statusBadge}`,
-				value: crew.id.toString(),
+				value: `${displayName}${role}${statusBadge}`,
 			};
 		});
 	}, [crewData?.data]);
@@ -395,7 +394,6 @@ export function TaskForm({
 										searchPlaceholder="Search crew..."
 										className="w-full"
 										loading={isLoadingCrew}
-										async={true}
 									/>
 								</FormControl>
 								<FormMessage />

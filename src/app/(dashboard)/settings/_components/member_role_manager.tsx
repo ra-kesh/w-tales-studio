@@ -41,8 +41,6 @@ export function MemberRoleManager({
 					| "manager"
 					| "post_production_manager"
 					| "hr"
-					| "owner"
-					| "crew"
 				)[],
 			});
 			toast.success("Member roles updated successfully.");

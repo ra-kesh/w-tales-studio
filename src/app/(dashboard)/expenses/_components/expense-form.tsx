@@ -101,7 +101,7 @@ export function ExpenseForm({
 
 			return {
 				label: `${displayName}${role}${statusBadge}`,
-				value: crew.id.toString(),
+				value: `${displayName}${role}${statusBadge}`,
 			};
 		});
 	}, [crewData?.data]);
@@ -317,7 +317,6 @@ export function ExpenseForm({
 										searchPlaceholder="Search crew..."
 										className="w-full"
 										loading={isLoadingCrew}
-										async={true}
 									/>
 								</FormControl>
 								<FormMessage />

@@ -1,7 +1,6 @@
 "use client";
 
 import {
-	type ColumnDef,
 	type ColumnFiltersState,
 	type ExpandedState,
 	flexRender,
@@ -147,7 +146,7 @@ export function PackageTable({ data, onEdit, onDelete }: PackageTableProps) {
 									{row.getIsExpanded() &&
 										row.original.metadata.defaultDeliverables && (
 											<TableRow className="bg-muted/30">
-												<TableCell className="p-0" colSpan={4} />
+												<TableCell className="p-0" colSpan={5} />
 												<TableCell className="p-0" colSpan={1}>
 													<div className="p-4">
 														<Table>

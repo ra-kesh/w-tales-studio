@@ -52,8 +52,6 @@ export function EditMemberRolesDialog({
 					| "manager"
 					| "post_production_manager"
 					| "hr"
-					| "owner"
-					| "crew"
 				)[],
 			});
 			onRolesUpdate(selectedRoles);
