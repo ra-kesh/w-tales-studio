@@ -5,6 +5,7 @@ import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import type { Session } from "@/types/auth";
 import { NavUser } from "./nav-user";
+import NewActionSwitcher from "./new-action-switcher";
 
 const pageMetadata: Record<string, { title: string; description?: string }> = {
 	"/home": { title: "Home", description: "Welcome to StudioPlus" },
@@ -98,8 +99,8 @@ export function SiteHeader({ sessions }: { sessions: Session[] }) {
 						)} */}
 					</div>
 				</div>
-				<div>
-					<NavUser sessions={sessions} />
+				<div className="flex items-center space-x-2">
+					<NewActionSwitcher />
 				</div>
 			</div>
 		</header>

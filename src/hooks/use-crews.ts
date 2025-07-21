@@ -23,7 +23,6 @@ interface CrewsResponse {
 }
 
 interface CreateCrewInput {
-	memberId?: string;
 	name?: string;
 	email?: string;
 	phoneNumber?: string;
@@ -37,8 +36,8 @@ interface UpdateCrewInput extends CreateCrewInput {
 	status?: string;
 }
 
-export async function fetchCrews(page = 1, limit = 10): Promise<CrewsResponse> {
-	const response = await fetch(`/api/crews?page=${page}&limit=${limit}`, {
+export async function fetchCrews(): Promise<CrewsResponse> {
+	const response = await fetch(`/api/crews`, {
 		headers: {
 			"Content-Type": "application/json",
 		},
@@ -51,11 +50,10 @@ export async function fetchCrews(page = 1, limit = 10): Promise<CrewsResponse> {
 	return response.json();
 }
 
-export function useCrews(page?: number, limit?: number) {
+export function useCrews() {
 	return useQuery({
-		queryKey: ["crews", { page, limit }],
-		queryFn: () => fetchCrews(page, limit),
-		// placeholderData: { data: [], total: 0, page: 1, limit: 10 },
+		queryKey: ["crews"],
+		queryFn: () => fetchCrews(),
 	});
 }
 
@@ -87,7 +85,11 @@ export function useCreateCrewMutation() {
 			});
 
 			if (!response.ok) {
-				throw new Error("Failed to create crew member");
+				const errorData = await response.json();
+
+				throw new Error(
+					errorData.message || `Request failed with status ${response.status}`,
+				);
 			}
 
 			return response.json();
@@ -97,7 +99,7 @@ export function useCreateCrewMutation() {
 			toast.success("Crew member created successfully");
 		},
 		onError: (error: Error) => {
-			toast.error(error.message || "Failed to create crew member");
+			toast.error(error.message);
 		},
 	});
 }
@@ -116,7 +118,11 @@ export function useUpdateCrewMutation() {
 			});
 
 			if (!response.ok) {
-				throw new Error("Failed to update crew member");
+				const errorData = await response.json();
+
+				throw new Error(
+					errorData.message || `Request failed with status ${response.status}`,
+				);
 			}
 
 			return response.json();
@@ -129,7 +135,7 @@ export function useUpdateCrewMutation() {
 			toast.success("Crew member updated successfully");
 		},
 		onError: (error: Error) => {
-			toast.error(error.message || "Failed to update crew member");
+			toast.error(error.message);
 		},
 	});
 }
@@ -144,7 +150,11 @@ export function useDeleteCrewMutation() {
 			});
 
 			if (!response.ok) {
-				throw new Error("Failed to delete crew member");
+				const errorData = await response.json();
+
+				throw new Error(
+					errorData.message || `Request failed with status ${response.status}`,
+				);
 			}
 
 			return response.json();
@@ -154,7 +164,7 @@ export function useDeleteCrewMutation() {
 			toast.success("Crew member deleted successfully");
 		},
 		onError: (error: Error) => {
-			toast.error(error.message || "Failed to delete crew member");
+			toast.error(error.message);
 		},
 	});
 }

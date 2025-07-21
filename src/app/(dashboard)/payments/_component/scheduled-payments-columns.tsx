@@ -1,20 +1,64 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { Book } from "lucide-react";
+import { CalendarIcon, CameraIcon } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import type { ScheduledPaymentRow } from "@/types/payments";
 import { DataTableColumnHeader } from "../../tasks/_components/task-table-column-header";
+import { ScheduledPaymentsRowActions } from "./schedule-payment-row-action";
 
-export const useScheduledPaymentsColumns = () => {
+export const useScheduledPaymentsColumns = ({
+	minimalBookings,
+	isMininmalBookingLoading,
+}: {
+	minimalBookings: Array<{ id: string | number; name: string }>;
+	isMininmalBookingLoading: boolean;
+}) => {
 	const columns: ColumnDef<ScheduledPaymentRow>[] = [
 		{
 			id: "select",
-			header: ({ table }) => <Checkbox /* ... */ />,
-			cell: ({ row }) => <Checkbox /* ... */ />,
+			header: ({ table }) => (
+				<Checkbox
+					checked={table.getIsAllPageRowsSelected()}
+					onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+					aria-label="Select all"
+				/>
+			),
+			cell: ({ row }) => (
+				<Checkbox
+					checked={row.getIsSelected()}
+					onCheckedChange={(value) => row.toggleSelected(!!value)}
+					aria-label="Select row"
+				/>
+			),
+			enableSorting: false,
+			enableHiding: false,
 		},
-
+		{
+			id: "bookingId",
+			accessorKey: "booking.name",
+			header: ({ column }) => (
+				<DataTableColumnHeader column={column} title="Booking" />
+			),
+			cell: ({ row }) => {
+				return <span className="text-md ">{row.original.booking?.name}</span>;
+			},
+			meta: {
+				label: "Boooking",
+				variant: "multiSelect",
+				options: isMininmalBookingLoading
+					? []
+					: (minimalBookings.map((booking) => ({
+							label: booking.name,
+							value: String(booking.id),
+						})) ?? []),
+				icon: CameraIcon,
+			},
+			enableColumnFilter: true,
+			enableSorting: false,
+			enableHiding: false,
+		},
 		{
 			accessorKey: "amount",
 			header: ({ column }) => (
@@ -23,23 +67,21 @@ export const useScheduledPaymentsColumns = () => {
 			cell: ({ row }) => formatCurrency(row.original.amount),
 		},
 		{
+			id: "dueDate",
 			accessorKey: "dueDate",
 			header: ({ column }) => (
 				<DataTableColumnHeader column={column} title="Due Date" />
 			),
 			cell: ({ row }) => formatDate(row.original.dueDate ?? ""),
-		},
-		{
-			accessorKey: "booking",
-			header: "Booking",
-			cell: ({ row }) => row.original.booking?.name || "N/A",
 			meta: {
-				label: "Booking",
-				variant: "multiSelect",
-				icon: Book,
+				label: "Date",
+				variant: "dateRange",
+				icon: CalendarIcon,
 			},
 			enableColumnFilter: true,
+			enableSorting: true,
 		},
+
 		{
 			accessorKey: "description",
 			header: ({ column }) => (
@@ -47,7 +89,10 @@ export const useScheduledPaymentsColumns = () => {
 			),
 			cell: ({ row }) => row.original.description ?? "N/a",
 		},
-		// Add actions column here if needed
+		{
+			id: "actions",
+			cell: ({ row }) => <ScheduledPaymentsRowActions row={row} />,
+		},
 	];
 	return columns;
 };

@@ -1,28 +1,12 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Check, ChevronsUpDown } from "lucide-react";
+import { useParams } from "next/navigation";
 import * as React from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useParams } from "next/navigation";
-import {
-	Form,
-	FormControl,
-	FormField,
-	FormItem,
-	FormLabel,
-	FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import {
-	ShootSchema,
-	type ShootFormValues,
-	defaultShoot,
-} from "./shoot-form-schema";
-
-import { Check, ChevronsUpDown } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
 	Command,
 	CommandEmpty,
@@ -32,14 +16,30 @@ import {
 	CommandList,
 } from "@/components/ui/command";
 import {
+	Form,
+	FormControl,
+	FormField,
+	FormItem,
+	FormLabel,
+	FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { MultiAsyncSelect } from "@/components/ui/multi-select";
+import {
 	Popover,
 	PopoverContent,
 	PopoverTrigger,
 } from "@/components/ui/popover";
-import { useMinimalBookings } from "@/hooks/use-bookings";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Textarea } from "@/components/ui/textarea";
+import { useMinimalBookings } from "@/hooks/use-bookings";
 import { useCrews } from "@/hooks/use-crews";
-import { MultiAsyncSelect } from "@/components/ui/multi-select";
+import { cn } from "@/lib/utils";
+import {
+	defaultShoot,
+	type ShootFormValues,
+	ShootSchema,
+} from "./shoot-form-schema";
 
 interface ShootFormProps {
 	defaultValues?: ShootFormValues;
@@ -63,6 +63,10 @@ export function ShootForm({
 		time: defaultValues.time || "",
 		location: defaultValues.location || "",
 		notes: defaultValues.notes || "",
+		additionalDetails: {
+			isDroneUsed: defaultValues.additionalDetails?.isDroneUsed || false,
+			requiredCrewCount: defaultValues.additionalDetails?.requiredCrewCount,
+		},
 	};
 
 	const form = useForm<ShootFormValues>({
@@ -186,20 +190,49 @@ export function ShootForm({
 						)}
 					/>
 				</div>
-				<div className="col-span-2">
-					<FormField
-						control={form.control}
-						name="title"
-						render={({ field }) => (
-							<FormItem>
-								<FormLabel>Title</FormLabel>
-								<FormControl>
-									<Input placeholder="Enter shoot title" {...field} />
-								</FormControl>
-								<FormMessage />
-							</FormItem>
-						)}
-					/>
+				<div className="col-span-2 grid grid-cols-6 gap-6">
+					<div className="col-span-4">
+						<FormField
+							control={form.control}
+							name="title"
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>Title</FormLabel>
+									<FormControl>
+										<Input placeholder="Enter shoot title" {...field} />
+									</FormControl>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
+					</div>
+					<div className="col-span-2">
+						<FormField
+							control={form.control}
+							name="additionalDetails.requiredCrewCount"
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>No. of Crews</FormLabel>
+									<FormControl>
+										<Input
+											type="number"
+											placeholder="e.g., 3"
+											{...field}
+											onChange={(e) =>
+												field.onChange(
+													e.target.value === ""
+														? undefined
+														: Number(e.target.value),
+												)
+											}
+											value={field.value ?? ""}
+										/>
+									</FormControl>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
+					</div>
 				</div>
 
 				<div className="col-span-2">
@@ -263,6 +296,26 @@ export function ShootForm({
 				<div className="col-span-2">
 					<FormField
 						control={form.control}
+						name="additionalDetails.isDroneUsed"
+						render={({ field }) => (
+							<FormItem className="flex flex-row items-center justify-between rounded-lg border p-3  col-span-1">
+								<div className="space-y-0.5">
+									<FormLabel>Drone Usage</FormLabel>
+								</div>
+								<FormControl>
+									<Checkbox
+										checked={field.value}
+										onCheckedChange={field.onChange}
+									/>
+								</FormControl>
+							</FormItem>
+						)}
+					/>
+				</div>
+
+				<div className="col-span-2">
+					<FormField
+						control={form.control}
 						name="location"
 						render={({ field }) => (
 							<FormItem>
@@ -291,6 +344,13 @@ export function ShootForm({
 						)}
 					/>
 				</div>
+
+				{/* <div className="col-span-2 border-t ">
+					<h3 className="text-sm font-medium text-muted-foreground">
+						Additional Details
+					</h3>
+					
+				</div> */}
 
 				<div className="col-span-2 mt-6">
 					<Button

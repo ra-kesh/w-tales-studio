@@ -1,6 +1,8 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, not, or } from "drizzle-orm";
+import { headers } from "next/headers";
 import { NextResponse } from "next/server";
-import { BookingSchema } from "@/app/(dashboard)/configurations/booking-types/_components/booking-type-form-schema";
+import { BookingTypeSchema } from "@/app/(dashboard)/configurations/booking-types/_components/booking-type-form-schema";
+import { auth } from "@/lib/auth";
 import { getServerSession } from "@/lib/dal";
 import { db } from "@/lib/db/drizzle";
 import { configurations } from "@/lib/db/schema";
@@ -22,9 +24,25 @@ export async function POST(request: Request) {
 		);
 	}
 
+	const canCreate = await auth.api.hasPermission({
+		headers: await headers(),
+		body: {
+			permissions: {
+				booking_type_config: ["create"],
+			},
+		},
+	});
+
+	if (!canCreate) {
+		return NextResponse.json(
+			{ message: "You are not authorized to add new booking type" },
+			{ status: 403 },
+		);
+	}
+
 	const body = await request.json();
 
-	const validation = BookingSchema.safeParse(body);
+	const validation = BookingTypeSchema.safeParse(body);
 
 	if (!validation.success) {
 		return NextResponse.json(
@@ -35,54 +53,38 @@ export async function POST(request: Request) {
 
 	const validatedData = validation.data;
 
-	const key = generateKey(validatedData.value);
-
 	try {
-		const result = await db.transaction(async (tx) => {
-			const existingConfig = await tx.query.configurations.findFirst({
-				where: and(
-					eq(configurations.organizationId, userOrganizationId),
-					eq(configurations.type, "booking_type"),
-					eq(configurations.key, key),
-				),
-			});
+		const { value, metadata } = validatedData;
+		const key = generateKey(validatedData.value);
 
-			if (existingConfig) {
-				throw new Error("Booking type already exists");
-			}
-
-			const existingValue = await tx.query.configurations.findFirst({
-				where: and(
-					eq(configurations.organizationId, userOrganizationId),
-					eq(configurations.type, "booking_type"),
-					eq(configurations.value, validatedData.value),
-				),
-			});
-
-			if (existingValue) {
-				throw new Error("Booking type already exists");
-			}
-
-			const [newConfig] = await tx
-				.insert(configurations)
-				.values({
-					organizationId: userOrganizationId,
-					type: "booking_type",
-					key: key,
-					value: validatedData.value,
-					metadata: validatedData.metadata,
-					isSystem: false,
-					createdAt: new Date(),
-					updatedAt: new Date(),
-				})
-				.returning({ id: configurations.id });
-
-			return newConfig;
+		const conflict = await checkBookingTypeConflict(userOrganizationId, {
+			key,
+			value,
 		});
+		if (conflict) {
+			return NextResponse.json(
+				{ message: "A booking type with this name already exists." },
+				{ status: 409 },
+			);
+		}
+
+		const [newConfig] = await db
+			.insert(configurations)
+			.values({
+				organizationId: userOrganizationId,
+				type: "booking_type",
+				key: key,
+				value: value,
+				metadata: metadata,
+				isSystem: false,
+				createdAt: new Date(),
+				updatedAt: new Date(),
+			})
+			.returning({ id: configurations.id });
 
 		return NextResponse.json(
 			{
-				data: { bookingTypeId: result.id },
+				data: { bookingTypeId: newConfig.id },
 				message: "Booking type created successfully",
 			},
 			{ status: 201 },
@@ -96,4 +98,22 @@ export async function POST(request: Request) {
 			{ status: 500 },
 		);
 	}
+}
+
+export async function checkBookingTypeConflict(
+	orgId: string,
+	data: { key: string; value: string },
+	excludeId?: number,
+) {
+	const conditions = [
+		eq(configurations.organizationId, orgId),
+		eq(configurations.type, "booking_type"),
+		or(eq(configurations.key, data.key), eq(configurations.value, data.value)),
+	];
+
+	if (excludeId) {
+		conditions.push(not(eq(configurations.id, excludeId)));
+	}
+
+	return db.query.configurations.findFirst({ where: and(...conditions) });
 }

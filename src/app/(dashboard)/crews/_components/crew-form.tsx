@@ -1,7 +1,10 @@
 "use client";
 
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Loader2, Plus, X } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { Button } from "@/components/ui/button";
+
 import {
 	Form,
 	FormControl,
@@ -12,29 +15,12 @@ import {
 	FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Check, ChevronsUpDown, Plus, X, Loader2 } from "lucide-react";
-import { cn } from "@/lib/utils";
+
 import {
-	Command,
-	CommandEmpty,
-	CommandGroup,
-	CommandInput,
-	CommandItem,
-	CommandList,
-} from "@/components/ui/command";
-import {
-	Popover,
-	PopoverContent,
-	PopoverTrigger,
-} from "@/components/ui/popover";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import {
-	CrewSchema,
 	type CrewFormValues,
+	CrewSchema,
 	defaultCrew,
 } from "./crew-form-schema";
-import { useOrganizationMembers } from "@/hooks/use-members";
 
 interface CrewFormProps {
 	defaultValues?: CrewFormValues;
@@ -55,156 +41,10 @@ export function CrewForm({
 
 	const equipment = form.watch("equipment") || [];
 
-	const {
-		data: members = [],
-		isLoading: isLoadingMembers,
-		error: membersError,
-	} = useOrganizationMembers();
-
-	const getSelectedMemberName = (memberId: string | undefined) => {
-		if (!memberId) return "Select team member";
-		const member = members.find((m) => m.memberId === memberId);
-		return member?.userName || "Select team member";
-	};
-
-	const handleAddEquipment = (e: React.FormEvent<HTMLFormElement>) => {
-		e.preventDefault();
-		const formData = new FormData(e.currentTarget);
-		const value = formData.get("newEquipment")?.toString().trim();
-
-		if (value) {
-			form.setValue("equipment", [...equipment, value], {
-				shouldValidate: true,
-			});
-			(e.target as HTMLFormElement).reset();
-		}
-	};
-
-	const handleRemoveEquipment = (index: number) => {
-		const newEquipment = equipment.filter((_, i) => i !== index);
-		form.setValue("equipment", newEquipment, {
-			shouldValidate: true,
-		});
-	};
-
 	return (
 		<Form {...form}>
 			<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 px-4">
 				<div className="grid grid-cols-2 gap-6">
-					<div className="col-span-2">
-						<FormField
-							control={form.control}
-							name="memberId"
-							render={({ field }) => (
-								<FormItem>
-									<FormLabel>Select Team Member (Optional)</FormLabel>
-									<Popover>
-										<PopoverTrigger asChild>
-											<FormControl>
-												<Button
-													variant="outline"
-													// biome-ignore lint/a11y/useSemanticElements: <explanation>
-													role="combobox"
-													disabled={
-														isLoadingMembers ||
-														!!membersError ||
-														mode === "edit"
-													}
-													className={cn(
-														"w-full justify-between",
-														!field.value && "text-muted-foreground",
-													)}
-												>
-													{isLoadingMembers ? (
-														<span className="flex items-center">
-															<Loader2 className="mr-2 h-4 w-4 animate-spin" />{" "}
-															Loading...
-														</span>
-													) : membersError ? (
-														"Error loading members"
-													) : (
-														getSelectedMemberName(field.value)
-													)}
-													<ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-												</Button>
-											</FormControl>
-										</PopoverTrigger>
-										<PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-											<Command>
-												<CommandInput placeholder="Search team members..." />
-												<CommandList>
-													<ScrollArea className="h-64">
-														<CommandEmpty>No team member found.</CommandEmpty>
-														<CommandGroup>
-															<CommandItem
-																key="clear-selection"
-																value=""
-																onSelect={() => {
-																	form.setValue("memberId", "", {
-																		shouldValidate: true,
-																	});
-																	form.setValue("email", "");
-																}}
-															>
-																<Check
-																	className={cn(
-																		"mr-2 h-4 w-4",
-																		!field.value ? "opacity-100" : "opacity-0",
-																	)}
-																/>
-																-- None (External Crew) --
-															</CommandItem>
-
-															{members.map((member) => (
-																<CommandItem
-																	key={member.memberId}
-																	value={member.memberId}
-																	onSelect={() => {
-																		form.setValue("memberId", member.memberId, {
-																			shouldValidate: true,
-																		});
-
-																		if (member.userEmail) {
-																			form.setValue("email", member.userEmail);
-																		} else {
-																			form.setValue("email", "");
-																		}
-
-																		form.setValue("name", "");
-																	}}
-																>
-																	<Check
-																		className={cn(
-																			"mr-2 h-4 w-4",
-																			field.value === member.memberId
-																				? "opacity-100"
-																				: "opacity-0",
-																		)}
-																	/>
-																	{member.userName ||
-																		`User (${member.userId.substring(
-																			0,
-																			6,
-																		)}...)`}
-																</CommandItem>
-															))}
-														</CommandGroup>
-													</ScrollArea>
-												</CommandList>
-											</Command>
-										</PopoverContent>
-									</Popover>
-									{membersError && (
-										<p className="text-sm text-red-600 mt-1">
-											{membersError.message}
-										</p>
-									)}
-									<FormMessage />
-								</FormItem>
-							)}
-						/>
-					</div>
-
 					<div className="col-span-2">
 						<FormField
 							control={form.control}
@@ -213,14 +53,10 @@ export function CrewForm({
 								<FormItem>
 									<FormLabel>Crew Name</FormLabel>
 									<FormControl>
-										<Input
-											placeholder="Enter name for external crew member"
-											{...field}
-											disabled={!!form.watch("memberId")}
-										/>
+										<Input placeholder="e.g., John Doe" {...field} />
 									</FormControl>
 									<FormDescription>
-										Required if no team member is selected.
+										The name of the external crew member or freelancer.
 									</FormDescription>
 									<FormMessage />
 								</FormItem>
@@ -235,11 +71,7 @@ export function CrewForm({
 							<FormItem>
 								<FormLabel>Email</FormLabel>
 								<FormControl>
-									<Input
-										placeholder="crew@example.com"
-										{...field}
-										disabled={!!form.watch("memberId")}
-									/>
+									<Input placeholder="crew@example.com" {...field} />
 								</FormControl>
 								<FormMessage />
 							</FormItem>
@@ -260,33 +92,24 @@ export function CrewForm({
 						)}
 					/>
 
-					<FormField
-						control={form.control}
-						name="role"
-						render={({ field }) => (
-							<FormItem>
-								<FormLabel>Role</FormLabel>
-								<FormControl>
-									<Input placeholder="e.g. Lead Photographer" {...field} />
-								</FormControl>
-								<FormMessage />
-							</FormItem>
-						)}
-					/>
-
-					<FormField
-						control={form.control}
-						name="specialization"
-						render={({ field }) => (
-							<FormItem>
-								<FormLabel>Specialization</FormLabel>
-								<FormControl>
-									<Input placeholder="e.g. Candid, Drone" {...field} />
-								</FormControl>
-								<FormMessage />
-							</FormItem>
-						)}
-					/>
+					<div className="col-span-2">
+						<FormField
+							control={form.control}
+							name="specialization"
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>Specialization</FormLabel>
+									<FormControl>
+										<Input
+											placeholder="e.g. Cinematographer,Drone operator"
+											{...field}
+										/>
+									</FormControl>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
+					</div>
 
 					<div className="col-span-2 space-y-4">
 						<div className="flex items-center justify-between">

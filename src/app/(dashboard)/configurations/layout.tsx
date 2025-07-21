@@ -4,25 +4,18 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Suspense } from "react";
 import { SimpleTabsList, SimpleTabsTrigger } from "@/components/ui/tabs";
+import { configTabs } from "@/data/tab-data";
+import { useFilteredTabs } from "@/hooks/use-filtered-tabs";
 import { cn } from "@/lib/utils";
 
-interface SettingsLayoutProps {
+interface ConfigLayoutProps {
 	children?: React.ReactNode;
 }
 
-const SettingsLayout = ({ children }: SettingsLayoutProps) => {
+const ConfigLayout = ({ children }: ConfigLayoutProps) => {
 	const pathname = usePathname();
 
-	const tabs = [
-		{ path: "/configurations/packages", label: "Package Types" },
-		{ path: "/configurations/booking-types", label: "Booking Types" },
-		{
-			path: "/configurations/deliverable-status",
-			label: "Deliverables Status",
-		},
-		{ path: "/configurations/task-status", label: "Task Status" },
-		// { path: "/configurations/task-priority", label: "Task Priority" },
-	];
+	const tabs = useFilteredTabs(configTabs);
 
 	return (
 		<div className="hidden h-full flex-1 flex-col space-y-8 p-6 pt-0 md:flex">
@@ -39,7 +32,7 @@ const SettingsLayout = ({ children }: SettingsLayoutProps) => {
 									: "text-gray-500 hover:border-gray-300 hover:text-gray-700",
 							)}
 						>
-							<Link href={tab.path} className="w-full py-2">
+							<Link prefetch={true} href={tab.path} className="w-full py-2">
 								{tab.label}
 							</Link>
 						</SimpleTabsTrigger>
@@ -51,4 +44,4 @@ const SettingsLayout = ({ children }: SettingsLayoutProps) => {
 	);
 };
 
-export default SettingsLayout;
+export default ConfigLayout;

@@ -1,4 +1,3 @@
-import { createAuthClient } from "better-auth/react";
 import {
 	adminClient,
 	customSessionClient,
@@ -7,12 +6,17 @@ import {
 	organizationClient,
 	usernameClient,
 } from "better-auth/client/plugins";
+import { createAuthClient } from "better-auth/react";
 import { toast } from "sonner";
 import type { auth } from ".";
+import { ac, appRoles } from "./permission";
 
 export const authClient = createAuthClient({
 	plugins: [
-		organizationClient(),
+		organizationClient({
+			ac,
+			roles: appRoles,
+		}),
 		usernameClient(),
 		adminClient(),
 		multiSessionClient(),

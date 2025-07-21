@@ -1,7 +1,14 @@
 "use client";
 
-import { Camera, CheckSquare, Edit, Image, Info, XIcon } from "lucide-react";
-import Link from "next/link";
+import {
+	Banknote,
+	Camera,
+	CheckSquare,
+	HandCoins,
+	Image,
+	IndianRupee,
+	Info,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Badge } from "@/components/ui/badge";
@@ -13,9 +20,12 @@ import {
 	CustomTabsTrigger,
 	Tabs,
 } from "@/components/ui/tabs";
+import { useBookingParams } from "@/hooks/use-booking-params";
 import { useBookingDetail } from "@/hooks/use-bookings";
+import { usePermissions } from "@/hooks/use-permissions";
 import { BookingDeliverables } from "./booking-deliverables";
 import { BookingDetailsSkeleton } from "./booking-details-skeleton";
+import BookingFinance from "./booking-financials/booking-finance";
 import { BookingOverview } from "./booking-overview";
 import { BookingShoots } from "./booking-shoots";
 import { BookingTasks } from "./booking-tasks";
@@ -24,6 +34,8 @@ export function BookingDetails({ id }: { id: string }) {
 	const headerRef = useRef<HTMLDivElement>(null);
 	const [headerHeight, setHeaderHeight] = useState(0);
 	const router = useRouter();
+
+	const { setParams } = useBookingParams();
 
 	const { data: booking, isPending } = useBookingDetail(id);
 
@@ -39,10 +51,12 @@ export function BookingDetails({ id }: { id: string }) {
 		{ id: "shoots", label: "Shoots", icon: Camera },
 		{ id: "deliverables", label: "Deliverables", icon: Image },
 		{ id: "tasks", label: "Tasks", icon: CheckSquare },
+		{ id: "finance", label: "Finances", icon: IndianRupee },
 	];
 
 	const handleClose = () => router.push("/bookings");
-	const handleEdit = () => router.push(`/bookings/edit/${id}`);
+
+	const { canCreateAndUpdateBooking } = usePermissions();
 
 	if (isPending || !booking) {
 		return <BookingDetailsSkeleton />;
@@ -71,25 +85,17 @@ export function BookingDetails({ id }: { id: string }) {
 							>
 								Close
 							</Button>
-
-							<Link
-								href={{
-									pathname: `/bookings/edit/${id}`,
-									query: { tab: "details" },
-								}}
-								prefetch={true}
+							<Button
+								size="sm"
+								className="font-semibold cursor-pointer"
+								onClick={() => setParams({ bookingId: id })}
+								disabled={!canCreateAndUpdateBooking}
 							>
-								<Button
-									size="sm"
-									className="bg-indigo-600  font-semibold text-white  hover:bg-indigo-500 cursor-pointer"
-								>
-									Edit Booking
-								</Button>
-							</Link>
+								Edit Booking
+							</Button>
 						</div>
 					</div>
 
-					{/* Client Details Grid */}
 					<div className="rounded-lg bg-muted/40 w-full">
 						<div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-3 p-4">
 							<div className="space-y-1">
@@ -140,6 +146,7 @@ export function BookingDetails({ id }: { id: string }) {
 					<CustomTabsContent value="overview">
 						<BookingOverview booking={booking} />
 					</CustomTabsContent>
+
 					<CustomTabsContent value="shoots">
 						<BookingShoots shoots={booking.shoots} />
 					</CustomTabsContent>
@@ -148,6 +155,9 @@ export function BookingDetails({ id }: { id: string }) {
 					</CustomTabsContent>
 					<CustomTabsContent value="tasks">
 						<BookingTasks tasks={booking.tasks} />
+					</CustomTabsContent>
+					<CustomTabsContent value="finance">
+						<BookingFinance booking={booking} />
 					</CustomTabsContent>
 				</div>
 			</ScrollArea>

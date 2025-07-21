@@ -1,32 +1,11 @@
 "use client";
 
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-	Form,
-	FormControl,
-	FormField,
-	FormItem,
-	FormLabel,
-	FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
-import {
-	ExpenseSchema,
-	type ExpenseFormValues,
-	defaultExpense,
-} from "../expense-form-schema";
-import { useMinimalBookings } from "@/hooks/use-bookings";
 import { Check, ChevronsUpDown } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { useParams } from "next/navigation";
+import { useEffect, useMemo } from "react";
+import { useForm } from "react-hook-form";
+import { Button } from "@/components/ui/button";
 import {
 	Command,
 	CommandEmpty,
@@ -36,17 +15,38 @@ import {
 	CommandList,
 } from "@/components/ui/command";
 import {
+	Form,
+	FormControl,
+	FormField,
+	FormItem,
+	FormLabel,
+	FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { MultiAsyncSelect } from "@/components/ui/multi-select";
+import {
 	Popover,
 	PopoverContent,
 	PopoverTrigger,
 } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { BillTo } from "@/lib/db/schema";
-import { useCrews } from "@/hooks/use-crews";
-import { useEffect, useMemo } from "react";
-import { useParams } from "next/navigation";
-import { MultiAsyncSelect } from "@/components/ui/multi-select";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
+import { useMinimalBookings } from "@/hooks/use-bookings";
 import { useConfigs } from "@/hooks/use-configs";
+import { useCrews } from "@/hooks/use-crews";
+import { BillTo } from "@/lib/db/schema";
+import { cn } from "@/lib/utils";
+import {
+	defaultExpense,
+	type ExpenseFormValues,
+	ExpenseSchema,
+} from "../expense-form-schema";
 
 interface ExpenseFormProps {
 	defaultValues?: ExpenseFormValues;
@@ -64,7 +64,7 @@ export function ExpenseForm({
 
 	// Clean up default values to only include fields we need
 	const cleanedDefaultValues = {
-		bookingId: defaultValues.bookingId?.toString() ?? "",
+		bookingId: defaultValues.bookingId?.toString() || bookingIdFromParams || "",
 		description: defaultValues.description ?? "",
 		amount: defaultValues.amount?.toString() ?? "",
 		category: defaultValues.category ?? "miscellaneous",
@@ -124,7 +124,6 @@ export function ExpenseForm({
 										<FormControl>
 											<Button
 												variant="outline"
-												// biome-ignore lint/a11y/useSemanticElements: <explanation>
 												role="combobox"
 												className={cn(
 													"w-full justify-between",

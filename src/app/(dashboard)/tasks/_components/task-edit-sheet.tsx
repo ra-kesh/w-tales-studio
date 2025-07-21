@@ -1,24 +1,27 @@
 "use client";
 
+import { X } from "lucide-react";
 import React from "react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import {
 	Sheet,
 	SheetContent,
 	SheetHeader,
 	SheetTitle,
 } from "@/components/ui/sheet";
-import { Button } from "@/components/ui/button";
-import { X } from "lucide-react";
-import { TaskForm } from "./task-form";
-import type { TaskFormValues } from "../task-form-schema";
-import { useTaskDetails } from "@/hooks/use-tasks";
-import { useTaskParams } from "@/hooks/use-task-params";
+import { usePermissions } from "@/hooks/use-permissions";
 import { useUpdateTaskMutation } from "@/hooks/use-task-mutation";
-import { toast } from "sonner";
+import { useTaskParams } from "@/hooks/use-task-params";
+import { useTaskDetails } from "@/hooks/use-tasks";
+import type { TaskFormValues } from "../task-form-schema";
+import { TaskForm } from "./task-form";
 
 export function TaskEditSheet() {
 	const { setParams, taskId } = useTaskParams();
-	const isOpen = Boolean(taskId);
+	const { canCreateAndUpdateTask } = usePermissions();
+
+	const isOpen = Boolean(taskId) && canCreateAndUpdateTask;
 
 	const { data: task, isLoading } = useTaskDetails(taskId as string);
 

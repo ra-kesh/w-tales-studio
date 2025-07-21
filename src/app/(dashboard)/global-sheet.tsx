@@ -1,7 +1,6 @@
-"use client";
-
 import { Suspense } from "react";
 import { ShootCreateSheet } from "@/app/(dashboard)/shoots/_components/shoot-create-sheet";
+import { BookingEditSheet } from "./bookings/_components/booking-form/booking-edit-sheet";
 import { ClientEditSheet } from "./clients/_components/client-edit-sheet";
 import { DeliverableStatusCreateSheet } from "./configurations/_components/deliverable-status-create-sheet";
 import { DeliverableStatusEditSheet } from "./configurations/_components/deliverable-status-edit-sheet";
@@ -17,6 +16,10 @@ import { DeliverableCreateSheet } from "./deliverables/_components/deliverable-c
 import { DeliverableEditSheet } from "./deliverables/_components/deliverable-edit-sheet";
 import { ExpenseCreateSheet } from "./expenses/_components/expense-create-sheet";
 import { ExpenseEditSheet } from "./expenses/_components/expense-edit-sheet";
+import { ReceivedPaymentCreateSheet } from "./payments/_component/received-payment-create-sheet";
+import { ReceivedPaymentEditSheet } from "./payments/_component/received-payment-edit-sheet";
+import { ScheduledPaymentCreateSheet } from "./payments/_component/scheduled-payment-create-sheet";
+import { ScheduledPaymentEditSheet } from "./payments/_component/scheduled-payment-edit-sheet";
 import { ShootEditSheet } from "./shoots/_components/shoot-edit-sheet";
 import { TaskCreateSheet } from "./tasks/_components/task-create-sheet";
 import { TaskEditSheet } from "./tasks/_components/task-edit-sheet";
@@ -27,6 +30,9 @@ export function GlobalSheets() {
 			<ShootCreateSheet />
 			<Suspense fallback={<div>Loading...</div>}>
 				<ShootEditSheet />
+			</Suspense>
+			<Suspense fallback={<div>Loading...</div>}>
+				<BookingEditSheet />
 			</Suspense>
 			<PackageCreateSheet />
 			<Suspense fallback={<div>Loading...</div>}>
@@ -67,6 +73,14 @@ export function GlobalSheets() {
 			<CrewCreateSheet />
 			<Suspense fallback={<div>Loading...</div>}>
 				<CrewEditSheet />
+			</Suspense>
+			<ReceivedPaymentCreateSheet />
+			<Suspense fallback={<div>Loading...</div>}>
+				<ReceivedPaymentEditSheet />
+			</Suspense>
+			<ScheduledPaymentCreateSheet />
+			<Suspense fallback={<div>Loading...</div>}>
+				<ScheduledPaymentEditSheet />
 			</Suspense>
 		</>
 	);

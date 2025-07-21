@@ -1,17 +1,17 @@
+import { and, eq, inArray } from "drizzle-orm";
+import { headers } from "next/headers";
 import { NextResponse } from "next/server";
+import { ShootSchema } from "@/app/(dashboard)/shoots/_components/shoot-form-schema";
+import { auth } from "@/lib/auth";
+import { getServerSession } from "@/lib/dal";
+import { db } from "@/lib/db/drizzle";
 import {
 	type AllowedShootSortFields,
 	getShoots,
 	type ShootFilters,
 	type ShootSortOption,
 } from "@/lib/db/queries";
-import { getServerSession } from "@/lib/dal";
-import { db } from "@/lib/db/drizzle";
-import { shoots, bookings, crews, shootsAssignments } from "@/lib/db/schema";
-import { eq, and, inArray } from "drizzle-orm";
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
-import { ShootSchema } from "@/app/(dashboard)/shoots/_components/shoot-form-schema";
+import { bookings, crews, shoots, shootsAssignments } from "@/lib/db/schema";
 
 export async function GET(request: Request) {
 	const { session } = await getServerSession();
@@ -29,13 +29,21 @@ export async function GET(request: Request) {
 		);
 	}
 
+	const canUpdate = await auth.api.hasPermission({
+		headers: await headers(),
+		body: { permissions: { shoot: ["list"] } },
+	});
+	if (!canUpdate) {
+		return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+	}
+
 	try {
 		const { searchParams } = new URL(request.url);
 		const page = Number.parseInt(searchParams.get("page") || "1", 10);
 		const limit = Number.parseInt(searchParams.get("limit") || "10", 10);
 
 		const sortParam = searchParams.get("sort");
-		let sortOptions: ShootSortOption[] | undefined = undefined;
+		let sortOptions: ShootSortOption[] | undefined;
 		if (sortParam) {
 			try {
 				const parsedSortOptions = JSON.parse(sortParam);
@@ -103,71 +111,72 @@ export async function POST(request: Request) {
 
 	if (!validation.success) {
 		return NextResponse.json(
-			{ message: "Validation error", errors: validation.error.errors },
+			{ message: "Validation error", errors: validation.error.issues },
 			{ status: 400 },
 		);
 	}
 
 	const validatedData = validation.data;
+	const { bookingId, crewMembers, additionalDetails } = validatedData;
+
+	if (!validatedData.bookingId) {
+		return NextResponse.json(
+			{ message: "Booking ID is required" },
+			{ status: 400 },
+		);
+	}
+
+	const numericBookingId = Number(bookingId);
+
+	const bookingExists = await db.query.bookings.findFirst({
+		where: and(
+			eq(bookings.id, numericBookingId),
+			eq(bookings.organizationId, userOrganizationId),
+		),
+	});
+	if (!bookingExists) {
+		return NextResponse.json({ message: "Booking not found" }, { status: 404 });
+	}
+
+	let crewAssignments: { crewId: number }[] = [];
+
+	if (crewMembers && crewMembers.length > 0) {
+		const crewIds = crewMembers.map(Number);
+		const existingCrews = await db
+			.select({ id: crews.id })
+			.from(crews)
+			.where(
+				and(
+					inArray(crews.id, crewIds),
+					eq(crews.organizationId, userOrganizationId),
+				),
+			);
+
+		if (existingCrews.length !== crewIds.length) {
+			const foundCrewIds = new Set(existingCrews.map((c) => c.id));
+			const invalidCrewIds = crewIds.filter((id) => !foundCrewIds.has(id));
+			return NextResponse.json(
+				{ message: "Invalid crew members provided.", invalidCrewIds },
+				{ status: 400 },
+			);
+		}
+
+		crewAssignments = crewIds.map((crewId) => ({ crewId: Number(crewId) }));
+	}
 
 	try {
 		const result = await db.transaction(async (tx) => {
-			const existingBooking = await tx.query.bookings.findFirst({
-				where: and(
-					eq(bookings.id, Number.parseInt(validatedData.bookingId)),
-					eq(bookings.organizationId, userOrganizationId),
-				),
-			});
-
-			if (!existingBooking) {
-				return NextResponse.json(
-					{ message: "Booking not found or access denied" },
-					{ status: 404 },
-				);
-			}
-
-			let crewAssignments: { crewId: number }[] = [];
-			if (validatedData.crewMembers && validatedData.crewMembers.length > 0) {
-				const crewIds = validatedData.crewMembers;
-
-				const existingCrews = await tx
-					.select({ id: crews.id })
-					.from(crews)
-					.where(
-						and(
-							inArray(crews.id, crewIds.map(Number)),
-							eq(crews.organizationId, userOrganizationId),
-						),
-					);
-
-				const foundCrewIds = new Set(existingCrews.map((crew) => crew.id));
-				const invalidCrewIds = crewIds.filter(
-					(id) => !foundCrewIds.has(Number(id)),
-				);
-
-				if (invalidCrewIds.length > 0) {
-					return NextResponse.json(
-						{
-							message: "Invalid crew members",
-							invalidCrewIds,
-						},
-						{ status: 400 },
-					);
-				}
-
-				crewAssignments = crewIds.map((crewId) => ({ crewId: Number(crewId) }));
-			}
-
 			const [newShoot] = await tx
 				.insert(shoots)
 				.values({
-					bookingId: Number.parseInt(validatedData.bookingId),
+					bookingId: numericBookingId,
 					organizationId: userOrganizationId,
 					title: validatedData.title,
 					date: validatedData.date,
 					time: validatedData.time,
 					location: validatedData.location,
 					notes: validatedData.notes,
+					additionalDetails: additionalDetails,
 					createdAt: new Date(),
 					updatedAt: new Date(),
 				})

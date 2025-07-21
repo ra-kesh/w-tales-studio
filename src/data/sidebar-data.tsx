@@ -1,132 +1,129 @@
+import type { LucideIcon } from "lucide-react";
 import {
-	AudioWaveform,
-	BookOpen,
-	Bot,
+	BanknoteIcon,
 	CameraIcon,
-	Command,
-	FolderIcon,
-	Frame,
-	GalleryVerticalEnd,
+	DockIcon,
 	HelpCircleIcon,
 	Home,
 	LayoutDashboardIcon,
-	PieChart,
-	SearchIcon,
-	Settings2,
+	ListTodoIcon,
+	PackageIcon,
 	Settings2Icon,
 	SettingsIcon,
-	SquareTerminal,
+	SquareUserRoundIcon,
 	UsersIcon,
 	Wallet2Icon,
-	WalletIcon,
 } from "lucide-react";
 
-export const sidebarData = {
-	user: {
-		name: "satish",
-		email: "s@example.com",
-		avatar: "/avatars/shadcn.jpg",
-	},
-	teams: [
-		{
-			name: "WeddingTales",
-			logo: GalleryVerticalEnd,
-			plan: "Studio",
-		},
-		// {
-		// 	name: "Maxxer Media",
-		// 	logo: AudioWaveform,
-		// 	plan: "Startup",
-		// },
-	],
+export interface NavItemWithPermissions {
+	title: string;
+	url: string;
+	icon: LucideIcon;
+	permissions?: {
+		[key: string]: string[];
+	};
+}
+
+export interface NavSection {
+	label: string | null; // Label can be null for items without a heading
+	items: NavItemWithPermissions[];
+}
+
+interface SidebarData {
+	navMain: NavSection[];
+	navSecondary: NavItemWithPermissions[];
+}
+
+export const sidebarData: SidebarData = {
 	navMain: [
 		{
-			title: "Home",
-			url: "/home",
-			icon: Home,
-			// isActive: true,
-		},
-		{
-			title: "Dashboard",
-			url: "/dashboard",
-			icon: LayoutDashboardIcon,
-			// isActive: true,
-		},
-		{
-			title: "Bookings",
-			url: "/bookings",
-			icon: CameraIcon,
-			// isActive: true,
+			label: null,
 			items: [
+				{ title: "Home", url: "/home", icon: Home },
+				{
+					title: "Dashboard",
+					url: "/dashboard",
+					icon: LayoutDashboardIcon,
+					permissions: { dashboard: ["read"] },
+				},
+			],
+		},
+		{
+			label: "Platform",
+			items: [
+				{
+					title: "Bookings",
+					url: "/bookings",
+					icon: DockIcon,
+					permissions: { booking: ["list"] },
+				},
 				{
 					title: "Shoots",
 					url: "/shoots",
+					icon: CameraIcon,
+					permissions: { shoot: ["list"] },
 				},
 				{
 					title: "Deliverables",
 					url: "/deliverables",
+					icon: PackageIcon,
+					permissions: { deliverable: ["list"] },
 				},
 				{
 					title: "Tasks",
 					url: "/tasks",
+					icon: ListTodoIcon,
+					permissions: { task: ["list"] },
 				},
 				{
 					title: "Expenses",
 					url: "/expenses",
+					icon: BanknoteIcon,
+					permissions: { expense: ["list"] },
+				},
+				{
+					title: "Payments",
+					url: "/payments",
+					icon: Wallet2Icon,
+					permissions: { payment: ["list"] },
 				},
 				{
 					title: "Clients",
 					url: "/clients",
+					icon: SquareUserRoundIcon,
+					permissions: { client: ["list"] },
+				},
+				{
+					title: "Crews",
+					url: "/crews",
+					icon: UsersIcon,
+					permissions: { crew: ["list"] },
 				},
 			],
 		},
 
 		{
-			title: "Payments",
-			url: "/payments",
-			icon: Wallet2Icon,
-			// isActive: true,
-		},
-		{
-			title: "Crews",
-			url: "/crews",
-			icon: UsersIcon,
-			// isActive: true,
-		},
-		{
-			title: "Configurations",
-			url: "/configurations",
-			icon: Settings2Icon,
-			// isActive: true,
+			label: "System",
+			items: [
+				{
+					title: "Configurations",
+					url: "/configurations",
+					icon: Settings2Icon,
+					permissions: { configuration: ["list"] },
+				},
+				{
+					title: "Settings",
+					url: "/settings",
+					icon: SettingsIcon,
+				},
+			],
 		},
 	],
 	navSecondary: [
-		{
-			title: "Settings",
-			url: "/settings",
-			icon: SettingsIcon,
-		},
 		{
 			title: "Get Help",
 			url: "#",
 			icon: HelpCircleIcon,
 		},
-		// {
-		// 	title: "Search",
-		// 	url: "#",
-		// 	icon: SearchIcon,
-		// },
 	],
-	// bookings: [
-	// 	{
-	// 		name: "Celebrity Wedding",
-	// 		url: "#",
-	// 		// icon: Frame,
-	// 	},
-	// 	{
-	// 		name: "SPortsman Wedding",
-	// 		url: "#",
-	// 		// icon: PieChart,
-	// 	},
-	// ],
 };

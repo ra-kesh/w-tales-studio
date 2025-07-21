@@ -1,27 +1,29 @@
 "use client";
 
+import { XIcon } from "lucide-react";
 import React from "react";
-import { useCrewParams } from "@/hooks/use-crew-params";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import {
 	Sheet,
 	SheetContent,
 	SheetHeader,
 	SheetTitle,
 } from "@/components/ui/sheet";
-import { XIcon } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useCrewParams } from "@/hooks/use-crew-params";
 import { useCrewDetail, useUpdateCrewMutation } from "@/hooks/use-crews";
+import { usePermissions } from "@/hooks/use-permissions";
 import { CrewForm } from "./crew-form";
 import type { CrewFormValues } from "./crew-form-schema";
-import { toast } from "sonner";
 
 export function CrewEditSheet() {
 	const { setParams, crewId } = useCrewParams();
 	const updateCrewMutation = useUpdateCrewMutation();
+	const { canCreateAndUpdateCrew } = usePermissions();
 
 	const { data: crew, refetch, isLoading } = useCrewDetail(crewId as string);
 
-	const isOpen = Boolean(crewId);
+	const isOpen = Boolean(crewId) && canCreateAndUpdateCrew;
 
 	const handleSubmit = async (data: CrewFormValues) => {
 		try {

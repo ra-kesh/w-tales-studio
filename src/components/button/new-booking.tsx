@@ -11,10 +11,7 @@ const NewBookingButton = () => {
 			}}
 			prefetch={true}
 		>
-			<Button
-				size="sm"
-				className="bg-indigo-600  font-semibold text-white  hover:bg-indigo-500 cursor-pointer"
-			>
+			<Button size="sm" className="font-semibold cursor-pointer">
 				New Booking
 			</Button>
 		</Link>

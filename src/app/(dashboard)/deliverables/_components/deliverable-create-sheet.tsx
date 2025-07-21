@@ -1,23 +1,26 @@
 "use client";
 
+import { X } from "lucide-react";
 import React from "react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import {
 	Sheet,
 	SheetContent,
 	SheetHeader,
 	SheetTitle,
 } from "@/components/ui/sheet";
-import { Button } from "@/components/ui/button";
-import { X } from "lucide-react";
-import { useDeliverableParams } from "@/hooks/use-deliverable-params";
-import { DeliverableForm } from "./deliverable-form";
 import { useCreateDeliverableMutation } from "@/hooks/use-deliverable-mutation";
+import { useDeliverableParams } from "@/hooks/use-deliverable-params";
+import { usePermissions } from "@/hooks/use-permissions";
 import type { DeliverableFormValues } from "../deliverable-form-schema";
-import { toast } from "sonner";
+import { DeliverableForm } from "./deliverable-form";
 
 export function DeliverableCreateSheet() {
 	const { setParams, createDeliverable } = useDeliverableParams();
-	const isOpen = Boolean(createDeliverable);
+	const { canCreateAndUpdateDeliverable } = usePermissions();
+
+	const isOpen = Boolean(createDeliverable) && canCreateAndUpdateDeliverable;
 
 	const createDeliverableMutation = useCreateDeliverableMutation();
 

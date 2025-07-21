@@ -1,5 +1,7 @@
 "use client";
 
+import type { Row } from "@tanstack/react-table";
+import { MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
 	DropdownMenu,
@@ -8,14 +10,13 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal } from "lucide-react";
-import type { Row } from "@tanstack/react-table";
 import { useCrewParams } from "@/hooks/use-crew-params";
-import type { Crew } from "@/lib/db/schema";
 import { useDeleteCrewMutation } from "@/hooks/use-crews";
+import type { Crew } from "@/lib/db/schema";
+import type { CrewWithMember } from "@/types/crew";
 
 interface CrewTableRowActionsProps {
-	row: Row<Crew & { memberName?: string | null; memberEmail?: string | null }>;
+	row: Row<CrewWithMember>;
 }
 
 export function CrewTableRowActions({ row }: CrewTableRowActionsProps) {
@@ -37,14 +38,14 @@ export function CrewTableRowActions({ row }: CrewTableRowActionsProps) {
 						})
 					}
 				>
-					Edit crew member
+					Edit Crew Detail
 				</DropdownMenuItem>
 				<DropdownMenuSeparator />
 				<DropdownMenuItem
 					className="text-destructive"
 					onClick={() => deleteCrewMutation.mutate(row.original.id)}
 				>
-					Delete crew member
+					Delete crew
 				</DropdownMenuItem>
 			</DropdownMenuContent>
 		</DropdownMenu>

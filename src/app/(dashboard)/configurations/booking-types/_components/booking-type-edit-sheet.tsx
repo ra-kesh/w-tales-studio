@@ -1,37 +1,44 @@
 "use client";
 
+import { X } from "lucide-react";
 import React from "react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import {
 	Sheet,
 	SheetContent,
 	SheetHeader,
 	SheetTitle,
 } from "@/components/ui/sheet";
-import { X } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { useBookingTypesParams } from "@/hooks/use-booking-types-params";
-import { BookingTypeForm } from "./booking-type-form";
 import {
 	useBookingTypeDetail,
 	useUpdateBookingTypeMutation,
 } from "@/hooks/use-configs";
-import type { BookingFormValues } from "./booking-type-form-schema";
-import { toast } from "sonner";
+import { usePermissions } from "@/hooks/use-permissions";
+import { BookingTypeForm } from "./booking-type-form";
+import type {
+	BookingTypeFormValues,
+	BookingTypeMetadata,
+} from "./booking-type-form-schema";
 
 export function BookingTypeEditSheet() {
 	const { setParams, bookingTypeId } = useBookingTypesParams();
-	const isOpen = Boolean(bookingTypeId);
+	const { canCreateAndUpdateBookingTypes } = usePermissions();
+
+	const isOpen = Boolean(bookingTypeId) && canCreateAndUpdateBookingTypes;
 
 	const { data: bookingTypeData, isLoading } = useBookingTypeDetail(
 		bookingTypeId ?? "",
 	);
 	const updateBookingTypeMutation = useUpdateBookingTypeMutation();
 
-	const handleSubmit = async (data: BookingFormValues) => {
+	const handleSubmit = async (data: BookingTypeFormValues) => {
 		try {
 			await updateBookingTypeMutation.mutateAsync({
 				data: {
 					value: data.value,
+					metadata: data.metadata,
 				},
 				bookingTypeId: bookingTypeId as string,
 			});
@@ -45,12 +52,15 @@ export function BookingTypeEditSheet() {
 		}
 	};
 
-	const cleanedDefaultValues = bookingTypeData
-		? {
-				key: bookingTypeData.key,
-				value: bookingTypeData.value,
-			}
-		: undefined;
+	const cleanedDefaultValues = React.useMemo(() => {
+		if (!bookingTypeData) return undefined;
+		return {
+			value: bookingTypeData.value,
+			metadata: (bookingTypeData.metadata as BookingTypeMetadata) || {
+				roles: [],
+			},
+		};
+	}, [bookingTypeData]);
 
 	return (
 		<Sheet open={isOpen} onOpenChange={() => setParams(null)}>

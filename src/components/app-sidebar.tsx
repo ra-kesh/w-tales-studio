@@ -10,9 +10,10 @@ import {
 	SidebarHeader,
 	SidebarRail,
 } from "@/components/ui/sidebar";
-import { sidebarData } from "@/data/sidebar-data";
+import { useFilteredSidebar } from "@/hooks/use-filtered-sidebar";
 import type { ActiveOrganization, Session } from "@/types/auth";
 import { NavSecondary } from "./nav-secondary";
+import { NavUser } from "./nav-user";
 
 const OrganisationSwitcher = dynamic(
 	() =>
@@ -34,32 +35,31 @@ const OrganisationSwitcher = dynamic(
 );
 
 export function AppSidebar({
+	sessions,
 	session,
 	activeOrganization,
 }: {
+	sessions: Session[];
 	session: Session | null;
 	activeOrganization: ActiveOrganization | null;
 }) {
+	const { navMainSections, navSecondary } = useFilteredSidebar();
 	return (
 		<Sidebar variant="inset" collapsible="icon">
 			<SidebarHeader>
-				<div className="grid flex-1 text-left text-md leading-tight pl-2">
-					<span className="truncate font-bold">
-						{activeOrganization?.name ?? "Personal Studio"}
-					</span>
-				</div>
-			</SidebarHeader>
-			<SidebarContent>
-				<NavMain items={sidebarData.navMain} />
-				<NavSecondary items={sidebarData.navSecondary} className="mt-auto" />
-			</SidebarContent>
-
-			{/* <SidebarFooter>
 				<OrganisationSwitcher
 					session={session}
 					activeOrganization={activeOrganization}
 				/>
-			</SidebarFooter> */}
+			</SidebarHeader>
+			<SidebarContent className="gap-0">
+				<NavMain sections={navMainSections} />
+				{/* <NavSecondary items={navSecondary} className="mt-auto" /> */}
+			</SidebarContent>
+
+			<SidebarFooter>
+				<NavUser sessions={sessions} />
+			</SidebarFooter>
 			<SidebarRail />
 		</Sidebar>
 	);

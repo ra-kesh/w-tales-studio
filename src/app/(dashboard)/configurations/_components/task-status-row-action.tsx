@@ -7,6 +7,7 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { usePermissions } from "@/hooks/use-permissions";
 import type { TaskStatusRow } from "./task-status-table-columns";
 
 interface TaskStatusTableRowActions<TData> {
@@ -16,6 +17,8 @@ interface TaskStatusTableRowActions<TData> {
 export function TaskStatusTableRowActions<TData>({
 	row,
 }: TaskStatusTableRowActions<TData>) {
+	const { canCreateAndUpdateTaskStatus } = usePermissions();
+
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
@@ -28,15 +31,17 @@ export function TaskStatusTableRowActions<TData>({
 				</Button>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="end" className="w-[160px]">
-				<DropdownMenuItem
-					onClick={() => {
-						// @ts-ignore - we know id exists
-						row.original.id && row.original.onEdit(row.original.id);
-					}}
-				>
-					<Edit className="mr-2 h-4 w-4" />
-					Edit
-				</DropdownMenuItem>
+				{canCreateAndUpdateTaskStatus && (
+					<DropdownMenuItem
+						onClick={() => {
+							// @ts-ignore - we know id exists
+							row.original.id && row.original.onEdit(row.original.id);
+						}}
+					>
+						<Edit className="mr-2 h-4 w-4" />
+						Edit
+					</DropdownMenuItem>
+				)}
 				<DropdownMenuItem
 					onClick={() => {
 						// @ts-ignore - we know id exists

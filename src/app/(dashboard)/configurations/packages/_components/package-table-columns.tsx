@@ -1,19 +1,18 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { format } from "date-fns";
 import { ChevronRight, Package } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useBookingTypes } from "@/hooks/use-configs";
 import { cn, formatCurrency } from "@/lib/utils";
 import { PackageTableRowActions } from "./package-table-row-actions";
 
 interface PackageType {
 	id: number;
 	label: string;
-	value: string; //–– your “label”
-	// organizationId: string;
+	value: string;
 	isSystem: boolean;
 	createdAt: string;
 	updatedAt: string;
@@ -24,12 +23,15 @@ interface PackageType {
 			quantity: string;
 			is_package_included: boolean;
 		}[];
+		bookingType?: string;
 	};
 	onEdit?: (id: number) => void;
 	onDelete?: (id: number) => void;
 }
 
 export const usePackageColumns = () => {
+	const { data: bookingTypes = [] } = useBookingTypes();
+
 	const columns: ColumnDef<PackageType>[] = [
 		{
 			id: "select",
@@ -67,6 +69,27 @@ export const usePackageColumns = () => {
 					{formatCurrency(row.original.metadata.defaultCost)}
 				</div>
 			),
+		},
+
+		{
+			accessorKey: "metadata.bookingType",
+			header: "Booking Type",
+			cell: ({ row }) => {
+				const bookingTypeValue = row.original.metadata.bookingType;
+				if (!bookingTypeValue) {
+					return <span>—</span>;
+				}
+
+				const bookingTypeLabel = bookingTypes.find(
+					(type) => type.value === bookingTypeValue,
+				)?.label;
+
+				return (
+					<Badge variant="outline">
+						{bookingTypeLabel || bookingTypeValue}{" "}
+					</Badge>
+				);
+			},
 		},
 
 		{

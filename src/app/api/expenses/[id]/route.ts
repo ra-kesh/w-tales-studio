@@ -1,4 +1,8 @@
+import { and, eq, inArray, sql } from "drizzle-orm";
+import { headers } from "next/headers";
 import { NextResponse } from "next/server";
+import { ExpenseSchema } from "@/app/(dashboard)/expenses/expense-form-schema";
+import { auth } from "@/lib/auth";
 import { getServerSession } from "@/lib/dal";
 import { db } from "@/lib/db/drizzle";
 import {
@@ -7,8 +11,6 @@ import {
 	expenses,
 	expensesAssignments,
 } from "@/lib/db/schema";
-import { and, eq, inArray, sql } from "drizzle-orm";
-import { ExpenseSchema } from "@/app/(dashboard)/expenses/expense-form-schema";
 
 export async function GET(
 	request: Request,
@@ -87,7 +89,7 @@ export async function GET(
 
 export async function PUT(
 	request: Request,
-	{ params }: { params: { id: string } },
+	{ params }: { params: Promise<{ id: string }> },
 ) {
 	const { session } = await getServerSession();
 
@@ -101,6 +103,14 @@ export async function PUT(
 			{ message: "User not associated with an organization" },
 			{ status: 403 },
 		);
+	}
+
+	const canUpdate = await auth.api.hasPermission({
+		headers: await headers(),
+		body: { permissions: { expense: ["update"] } },
+	});
+	if (!canUpdate) {
+		return NextResponse.json({ message: "Forbidden" }, { status: 403 });
 	}
 
 	const { id } = await params;
@@ -174,7 +184,7 @@ export async function PUT(
 				.update(expenses)
 				.set({
 					bookingId: Number.parseInt(validatedData.bookingId),
-					billTo: validatedData.billTo,
+					billTo: validatedData.billTo as "Studio" | "Client",
 					category: validatedData.category,
 					amount: sql`${validatedData.amount}::numeric`,
 					date: validatedData.date,

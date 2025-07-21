@@ -3,10 +3,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 import type {
-	ReceivedPaymentsResponse,
 	PaymentSchedulesResponse,
+	ReceivedPaymentDetail,
+	ReceivedPaymentsResponse,
+	ScheduledPaymentDetail,
 } from "@/types/payments";
-
 
 export async function fetchReceivedPayments(
 	searchParams: URLSearchParams,
@@ -27,15 +28,34 @@ export async function fetchReceivedPayments(
 	return response.json();
 }
 
-
 export function useReceivedPayments() {
 	const searchParams = useSearchParams();
 
 	return useQuery<ReceivedPaymentsResponse, Error>({
-		// The query key is dynamic, ensuring refetches when filters change
 		queryKey: ["received-payments", "list", searchParams.toString()],
 		queryFn: () => fetchReceivedPayments(searchParams),
-		placeholderData: { data: [], total: 0, pageCount: 0 },
+	});
+}
+
+export function useReceivedPaymentDetail(paymentId: string) {
+	return useQuery<ReceivedPaymentDetail, Error>({
+		// The query key is an array that uniquely identifies this data.
+		queryKey: ["received-payment", paymentId],
+		queryFn: async () => {
+			if (!paymentId) {
+				throw new Error("Payment ID is required to fetch details.");
+			}
+			const response = await fetch(`/api/received-payments/${paymentId}`);
+
+			if (!response.ok) {
+				const errorData = await response.json();
+				throw new Error(
+					errorData.message || "Failed to fetch payment details.",
+				);
+			}
+			return response.json();
+		},
+		enabled: !!paymentId,
 	});
 }
 
@@ -58,13 +78,24 @@ export async function fetchPaymentSchedules(
 	return response.json();
 }
 
-
 export function usePaymentSchedules() {
 	const searchParams = useSearchParams();
 
 	return useQuery<PaymentSchedulesResponse, Error>({
 		queryKey: ["payment-schedules", "list", searchParams.toString()],
 		queryFn: () => fetchPaymentSchedules(searchParams),
-		placeholderData: { data: [], total: 0, pageCount: 0 },
+	});
+}
+
+export function useScheduledPaymentDetail(paymentId: string) {
+	return useQuery<ScheduledPaymentDetail, Error>({
+		queryKey: ["scheduled-payment", paymentId],
+		queryFn: async () => {
+			if (!paymentId) throw new Error("ID is required.");
+			const response = await fetch(`/api/payment-schedules/${paymentId}`);
+			if (!response.ok) throw new Error("Failed to fetch details.");
+			return response.json();
+		},
+		enabled: !!paymentId,
 	});
 }

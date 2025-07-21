@@ -1,11 +1,11 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-
-import { sanitizeEmptiness } from "@/lib/utils";
+import { toast } from "sonner";
+import type { BookingEditFormValues } from "@/app/(dashboard)/bookings/_components/booking-form/booking-edit-form-schema";
 import type { BookingFormValues } from "@/app/(dashboard)/bookings/_components/booking-form/booking-form-schema";
+import { sanitizeEmptiness } from "@/lib/utils";
 
 export const useBookingMutation = () => {
 	const queryClient = useQueryClient();
@@ -72,29 +72,29 @@ export const useBookingMutation = () => {
 	};
 };
 
-export const useUpdateBookingMutation = (id: string) => {
+export function useUpdateBookingMutation() {
 	const queryClient = useQueryClient();
 	const router = useRouter();
 
-	async function updateBooking(data: BookingFormValues) {
-		const response = await fetch(`/api/bookings/${id}`, {
-			method: "PUT",
-			body: JSON.stringify(sanitizeEmptiness(data)),
-			headers: {
-				"Content-Type": "application/json",
-			},
-		});
-
-		if (!response.ok) {
-			const error = await response.json();
-			throw new Error(error.message || "Failed to update booking");
-		}
-
-		return response.json();
-	}
-
 	return useMutation({
-		mutationFn: updateBooking,
+		mutationFn: async (variables: {
+			id: string;
+			data: BookingEditFormValues;
+		}) => {
+			const { id, data } = variables;
+
+			const response = await fetch(`/api/bookings/${id}`, {
+				method: "PUT",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(data),
+			});
+
+			if (!response.ok) {
+				const errorData = await response.json();
+				throw new Error(errorData.message || "Failed to update booking.");
+			}
+			return response.json();
+		},
 		onMutate: () => {
 			const toastId = toast.loading("Updating booking");
 			return { toastId };
@@ -110,14 +110,13 @@ export const useUpdateBookingMutation = (id: string) => {
 				toast.dismiss(context.toastId);
 			}
 
-			// Enhanced toast with action button
 			toast.success("Booking updated successfully", {
-				description: `${variables.bookingName} has been updated.`,
+				description: `${variables.data.bookingName} has been updated.`,
 				action: {
 					label: "View Details",
 					onClick: () => router.push(`/bookings/${data.data.bookingId}`),
 				},
-				duration: 5000, // Show for 5 seconds to give user time to click
+				duration: 5000,
 			});
 
 			queryClient.invalidateQueries({
@@ -132,4 +131,4 @@ export const useUpdateBookingMutation = (id: string) => {
 			queryClient.invalidateQueries({ queryKey: ["bookings", "list"] });
 		},
 	});
-};
+}

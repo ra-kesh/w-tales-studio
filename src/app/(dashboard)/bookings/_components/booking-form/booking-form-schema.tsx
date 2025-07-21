@@ -24,7 +24,7 @@ export const ParticipantSchema = z.object({
 	name: z.string().min(1, "Name is required"),
 	role: z.string().min(1, "Role is required"),
 	phone: z.string().optional(),
-	email: z.string().email("Invalid email address").optional(),
+	email: z.string().optional(),
 	address: z.string().optional(),
 	metadata: z.record(z.any()).optional(),
 });
@@ -47,7 +47,7 @@ export const BookingSchema = z.object({
 			z.object({
 				title: z.string().min(1, "Title is required"),
 				date: z.string().min(1, "Date is required"),
-				time: z.string(),
+				time: z.string().min(1, "Time is required"),
 				location: z.string().min(1, "Location is required"),
 				crews: z.array(z.string()).optional(),
 			}),
