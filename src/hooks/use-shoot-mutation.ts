@@ -17,11 +17,13 @@ export function useCreateShootMutation() {
 				body: JSON.stringify(data),
 			});
 
+			const responseData = await response.json();
+
 			if (!response.ok) {
-				throw new Error("Failed to create shoot");
+				throw new Error(responseData.message || "Failed to create shoot");
 			}
 
-			return response.json();
+			return responseData;
 		},
 		onSuccess: ({ data }) => {
 			queryClient.invalidateQueries({
@@ -79,11 +81,13 @@ export function useUpdateShootMutation() {
 				body: JSON.stringify(data),
 			});
 
+			const responseData = await response.json();
+
 			if (!response.ok) {
-				throw new Error("Failed to update shoot");
+				throw new Error(responseData.message || "Failed to update shoot");
 			}
 
-			return response.json();
+			return responseData;
 		},
 		onSuccess: ({ data }) => {
 			queryClient.invalidateQueries({

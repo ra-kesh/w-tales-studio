@@ -101,7 +101,7 @@ export function ExpenseForm({
 
 			return {
 				label: `${displayName}${role}${statusBadge}`,
-				value: `${displayName}${role}${statusBadge}`,
+				value: crew.id.toString(),
 			};
 		});
 	}, [crewData?.data]);
