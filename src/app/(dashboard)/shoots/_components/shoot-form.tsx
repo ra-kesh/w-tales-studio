@@ -79,6 +79,7 @@ export function ShootForm({
 	const bookings = MinimalBookings?.data;
 
 	const { data: crewData, isLoading: isLoadingCrew } = useCrews();
+
 	const crewOptions = React.useMemo(() => {
 		if (!crewData?.data) return [];
 		return crewData.data.map((crew) => {
@@ -89,7 +90,7 @@ export function ShootForm({
 
 			return {
 				label: `${displayName}${role}${statusBadge}`,
-				value: `${displayName}${role}${statusBadge}`,
+				value: crew.id.toString(),
 			};
 		});
 	}, [crewData?.data]);
