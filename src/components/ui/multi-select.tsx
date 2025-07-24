@@ -1,16 +1,9 @@
 "use client";
+import { CheckIcon, ChevronDown, X, XIcon } from "lucide-react";
 import * as React from "react";
-import { ChevronDown, XIcon, CheckIcon, X } from "lucide-react";
-
-import { cn } from "@/lib/utils";
-import { Separator } from "@/components/ui/separator";
-import { Button } from "@/components/ui/button";
+import { useEffect, useRef } from "react";
 import { Badge } from "@/components/ui/badge";
-import {
-	Popover,
-	PopoverContent,
-	PopoverTrigger,
-} from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
 import {
 	Command,
 	CommandEmpty,
@@ -20,13 +13,20 @@ import {
 	CommandList,
 	CommandSeparator,
 } from "@/components/ui/command";
-import { useEffect, useRef } from "react";
+import {
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+} from "@/components/ui/popover";
+import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
 
 interface Option {
 	label: string;
 	value: string; // should be unique, and not empty
 }
 
+// ... (interface Props remains the same) ...
 interface Props extends React.HTMLAttributes<HTMLDivElement> {
 	/**
 	 * An array of objects to be displayed in the Select.Option.
@@ -135,6 +135,22 @@ export const MultiAsyncSelect = React.forwardRef<HTMLDivElement, Props>(
 			React.useState<string[]>(defaultValue);
 		const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
 		const optionsRef = useRef<Record<string, Option>>({});
+
+		const optionsMap = React.useMemo(() => {
+			const map = new Map<string, string>();
+			for (const option of options) {
+				map.set(option.value, option.label);
+			}
+			return map;
+		}, [options]);
+
+		const customFilter = (value: string, search: string): number => {
+			const label = optionsMap.get(value);
+			if (label) {
+				return label.toLowerCase().includes(search.toLowerCase()) ? 1 : 0;
+			}
+			return 0;
+		};
 
 		const handleInputKeyDown = (
 			event: React.KeyboardEvent<HTMLInputElement>,
@@ -337,7 +353,7 @@ export const MultiAsyncSelect = React.forwardRef<HTMLDivElement, Props>(
 					align="start"
 					onEscapeKeyDown={() => setIsPopoverOpen(false)}
 				>
-					<Command shouldFilter={!async}>
+					<Command shouldFilter={!async} filter={customFilter}>
 						<CommandInput
 							placeholder={searchPlaceholder}
 							onValueChange={(value) => {
@@ -367,9 +383,7 @@ export const MultiAsyncSelect = React.forwardRef<HTMLDivElement, Props>(
 									</div>
 								)
 							) : (
-								<CommandEmpty>
-									{`No ${placeholder.toLowerCase()} found.`}
-								</CommandEmpty>
+								<CommandEmpty>{`No results found.`}</CommandEmpty>
 							)}
 							<CommandGroup>
 								{!async && (
@@ -396,6 +410,7 @@ export const MultiAsyncSelect = React.forwardRef<HTMLDivElement, Props>(
 									return (
 										<CommandItem
 											key={option.value}
+											value={option.value} // value must be present for filter to work
 											onSelect={() => toggleOption(option.value)}
 											className="cursor-pointer"
 										>
