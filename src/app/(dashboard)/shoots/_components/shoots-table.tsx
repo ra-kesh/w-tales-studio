@@ -76,19 +76,31 @@ export function ShootTable({ columns, table, children }: ShootTableProps) {
 																Assigned Crew
 															</h4>
 														</div>
-														<Badge
-															variant="secondary"
-															className="text-xs font-normal"
-														>
-															{
-																row.original.additionalDetails
-																	?.requiredCrewCount
-															}
-															{/* {row.original.shootsAssignments.length}{" "}
-															{row.original.shootsAssignments.length === 1
-																? "member"
-																: "members"} */}
-														</Badge>
+														<div className="flex items-center gap-2">
+															<Badge
+																variant="secondary"
+																className="text-xs font-normal"
+															>
+																{(() => {
+																	const assignedCount =
+																		row.original.shootsAssignments.length;
+																	const requiredCount =
+																		row.original.additionalDetails
+																			?.requiredCrewCount;
+
+																	if (
+																		requiredCount &&
+																		Number(requiredCount) > 0
+																	) {
+																		return `${assignedCount} / ${requiredCount} assigned`;
+																	}
+
+																	return `${assignedCount} ${
+																		assignedCount === 1 ? "member" : "members"
+																	}`;
+																})()}
+															</Badge>
+														</div>
 													</div>
 													<div className="space-y-3">
 														{row.original.shootsAssignments.map(

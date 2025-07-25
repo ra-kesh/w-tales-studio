@@ -1250,13 +1250,13 @@ export async function getShoots(
 		}
 	}
 
-	// --- Build Dynamic Order By Clause ---
 	const orderBy =
 		sortOptions && sortOptions.length > 0
 			? sortOptions.map((item) =>
 					item.desc ? desc(shoots[item.id]) : asc(shoots[item.id]),
 				)
-			: [desc(shoots.date), desc(shoots.createdAt)]; // Default sort
+			: [asc(shoots.date)];
+	// : [desc(shoots.date), desc(shoots.createdAt)];
 
 	const shootsData = await db.query.shoots.findMany({
 		where: and(...whereConditions),
@@ -1313,7 +1313,7 @@ export async function getShoots(
 export type TaskFilters = {
 	description?: string;
 	status?: string;
-	priority?: string; // The new priority filter
+	priority?: string;
 	bookingId?: string;
 	crewId?: string;
 	dueDate?: string;
