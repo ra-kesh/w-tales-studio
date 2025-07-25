@@ -229,31 +229,6 @@ export function ShootForm({
 					</div>
 				</div>
 
-				<div className="col-span-2">
-					<FormField
-						control={form.control}
-						name="crewMembers"
-						render={({ field }) => (
-							<FormItem>
-								<FormLabel>Assigned Crew</FormLabel>
-								<FormControl>
-									<MultiAsyncSelect
-										options={crewOptions}
-										onValueChange={field.onChange}
-										defaultValue={field.value}
-										maxCount={5}
-										placeholder="Select crew members"
-										searchPlaceholder="Search crew..."
-										className="w-full"
-										loading={isLoadingCrew}
-									/>
-								</FormControl>
-								<FormMessage />
-							</FormItem>
-						)}
-					/>
-				</div>
-
 				<div className="col-span-1">
 					<FormField
 						control={form.control}
@@ -309,19 +284,36 @@ export function ShootForm({
 				<div className="col-span-2">
 					<FormField
 						control={form.control}
-						name="additionalDetails.additionalServices"
+						name="location"
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>Additional Services</FormLabel>
+								<FormLabel>Location</FormLabel>
+								<FormControl>
+									<Textarea placeholder="Enter location" {...field} />
+								</FormControl>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
+				</div>
+
+				<div className="col-span-2">
+					<FormField
+						control={form.control}
+						name="crewMembers"
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel>Assigned Crew</FormLabel>
 								<FormControl>
 									<MultiAsyncSelect
-										options={additionalServicesOptions}
+										options={crewOptions}
 										onValueChange={field.onChange}
 										defaultValue={field.value}
-										placeholder="Select any additional services"
-										searchPlaceholder="Search services..."
+										maxCount={5}
+										placeholder="Select crew members"
+										searchPlaceholder="Search crew..."
 										className="w-full"
-										loading={false} // Data is static, so not loading
+										loading={isLoadingCrew}
 									/>
 								</FormControl>
 								<FormMessage />
@@ -333,12 +325,20 @@ export function ShootForm({
 				<div className="col-span-2">
 					<FormField
 						control={form.control}
-						name="location"
+						name="additionalDetails.additionalServices"
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>Location</FormLabel>
+								<FormLabel>Extra Services</FormLabel>
 								<FormControl>
-									<Input placeholder="Enter location" {...field} />
+									<MultiAsyncSelect
+										options={additionalServicesOptions}
+										onValueChange={field.onChange}
+										defaultValue={field.value}
+										placeholder="Select any additional services"
+										searchPlaceholder="Search services..."
+										className="w-full"
+										loading={false}
+									/>
 								</FormControl>
 								<FormMessage />
 							</FormItem>

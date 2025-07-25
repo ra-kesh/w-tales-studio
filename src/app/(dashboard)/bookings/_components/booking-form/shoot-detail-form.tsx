@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { MultiAsyncSelect } from "@/components/ui/multi-select";
+import { Textarea } from "@/components/ui/textarea";
 import { useCrews } from "@/hooks/use-crews";
 import type { BookingFormValues } from "./booking-form-schema";
 
@@ -27,6 +28,10 @@ interface ShootDetailFormProps {
 
 export const ShootDetailForm = () => {
 	const form = useFormContext();
+
+	const additionalServicesOptions = [
+		{ label: "Drone Service", value: "drone_service" },
+	];
 
 	const { fields, append, remove } = useFieldArray({
 		control: form.control,
@@ -61,9 +66,14 @@ export const ShootDetailForm = () => {
 						append({
 							title: "",
 							date: "",
-							time: "00:00",
+							time: "",
 							location: "",
 							crews: [],
+							notes: "",
+							additionalDetails: {
+								additionalServices: [],
+								requiredCrewCount: "",
+							},
 						})
 					}
 				>
@@ -93,67 +103,72 @@ export const ShootDetailForm = () => {
 							</Button>
 
 							<div className="grid grid-cols-12 gap-4 pt-6">
-								<div className="col-span-4">
-									<FormField
-										control={form.control}
-										name={`shoots.${index}.title`}
-										render={({ field }) => (
-											<FormItem>
-												<FormLabel>Title</FormLabel>
-												<FormControl>
-													<Input {...field} placeholder="Shoot title" />
-												</FormControl>
-												<FormMessage />
-											</FormItem>
-										)}
-									/>
+								<div className="col-span-8 grid-cols-8 grid gap-4">
+									<div className="col-span-6">
+										<FormField
+											control={form.control}
+											name={`shoots.${index}.title`}
+											render={({ field }) => (
+												<FormItem>
+													<FormLabel>Event</FormLabel>
+													<FormControl>
+														<Input {...field} placeholder="Event name" />
+													</FormControl>
+													<FormMessage />
+												</FormItem>
+											)}
+										/>
+									</div>
+									<div className="col-span-2">
+										<FormField
+											control={form.control}
+											name={`shoots.${index}.additionalDetails.requiredCrewCount`}
+											render={({ field }) => (
+												<FormItem>
+													<FormLabel>No. of Crews</FormLabel>
+													<FormControl>
+														<Input {...field} placeholder="e.g 3" />
+													</FormControl>
+													<FormMessage />
+												</FormItem>
+											)}
+										/>
+									</div>
 								</div>
-								<div className="col-span-4">
-									<FormField
-										control={form.control}
-										name={`shoots.${index}.location`}
-										render={({ field }) => (
-											<FormItem>
-												<FormLabel>Location</FormLabel>
-												<FormControl>
-													<Input {...field} placeholder="Location" />
-												</FormControl>
-												<FormMessage />
-											</FormItem>
-										)}
-									/>
+								<div className="col-span-4 grid grid-cols-4 gap-4">
+									<div className="col-span-2">
+										<FormField
+											control={form.control}
+											name={`shoots.${index}.date`}
+											render={({ field }) => (
+												<FormItem>
+													<FormLabel>Date</FormLabel>
+													<FormControl>
+														<Input type="date" {...field} />
+													</FormControl>
+													<FormMessage />
+												</FormItem>
+											)}
+										/>
+									</div>
+									<div className="col-span-2">
+										<FormField
+											control={form.control}
+											name={`shoots.${index}.time`}
+											render={({ field }) => (
+												<FormItem>
+													<FormLabel>Time</FormLabel>
+													<FormControl>
+														<Input type="time" {...field} />
+													</FormControl>
+													<FormMessage />
+												</FormItem>
+											)}
+										/>
+									</div>
 								</div>
-								<div className="col-span-2">
-									<FormField
-										control={form.control}
-										name={`shoots.${index}.date`}
-										render={({ field }) => (
-											<FormItem>
-												<FormLabel>Date</FormLabel>
-												<FormControl>
-													<Input type="date" {...field} />
-												</FormControl>
-												<FormMessage />
-											</FormItem>
-										)}
-									/>
-								</div>
-								<div className="col-span-2">
-									<FormField
-										control={form.control}
-										name={`shoots.${index}.time`}
-										render={({ field }) => (
-											<FormItem>
-												<FormLabel>Time</FormLabel>
-												<FormControl>
-													<Input type="time" {...field} />
-												</FormControl>
-												<FormMessage />
-											</FormItem>
-										)}
-									/>
-								</div>
-								<div className="col-span-12">
+
+								<div className="col-span-8">
 									<FormField
 										control={form.control}
 										name={`shoots.${index}.crews`}
@@ -170,6 +185,67 @@ export const ShootDetailForm = () => {
 														searchPlaceholder="Search crew..."
 														className="w-full"
 														loading={isLoading}
+													/>
+												</FormControl>
+												<FormMessage />
+											</FormItem>
+										)}
+									/>
+								</div>
+								<div className="col-span-4">
+									<FormField
+										control={form.control}
+										name={`shoots.${index}.additionalDetails.additionalServices`}
+										render={({ field }) => (
+											<FormItem>
+												<FormLabel>Extra Services</FormLabel>
+												<FormControl>
+													<MultiAsyncSelect
+														options={additionalServicesOptions}
+														onValueChange={field.onChange}
+														defaultValue={field.value}
+														placeholder="Select extra services"
+														searchPlaceholder="Search services..."
+														className="w-full"
+														loading={false}
+													/>
+												</FormControl>
+												<FormMessage />
+											</FormItem>
+										)}
+									/>
+								</div>
+
+								<div className="col-span-8">
+									<FormField
+										control={form.control}
+										name={`shoots.${index}.notes`}
+										render={({ field }) => (
+											<FormItem>
+												<FormLabel>Notes</FormLabel>
+												<FormControl>
+													<Textarea
+														{...field}
+														placeholder="Any additional shoot specific request"
+													/>
+												</FormControl>
+												<FormMessage />
+											</FormItem>
+										)}
+									/>
+								</div>
+
+								<div className="col-span-4">
+									<FormField
+										control={form.control}
+										name={`shoots.${index}.location`}
+										render={({ field }) => (
+											<FormItem>
+												<FormLabel>Location</FormLabel>
+												<FormControl>
+													<Textarea
+														{...field}
+														placeholder="Google map location preferably"
 													/>
 												</FormControl>
 												<FormMessage />

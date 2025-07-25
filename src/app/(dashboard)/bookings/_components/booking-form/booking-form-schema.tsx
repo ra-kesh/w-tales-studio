@@ -43,16 +43,23 @@ export const BookingSchema = z.object({
 		.min(1, "At least one participant is required"),
 	note: z.string().optional(),
 	shoots: z
-		.array(
-			z.object({
-				title: z.string().min(1, "Title is required"),
-				date: z.string().min(1, "Date is required"),
-				time: z.string().min(1, "Time is required"),
-				location: z.string().min(1, "Location is required"),
-				crews: z.array(z.string()).optional(),
-			}),
-		)
-		.optional(),
+    .array(
+      z.object({
+        title: z.string().min(1, "Title is required"),
+        date: z.string().optional(),
+        time: z.string().optional(),
+        location: z.string().optional(),
+        notes: z.string().optional(),
+        additionalDetails: z
+          .object({
+            additionalServices: z.array(z.string()).optional(),
+            requiredCrewCount: z.string().optional(),
+          })
+          .optional(),
+        crews: z.array(z.string()).optional(),
+      }),
+    )
+    .optional(),
 	deliverables: z
 		.array(
 			z.object({
