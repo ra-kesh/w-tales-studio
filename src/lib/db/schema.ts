@@ -4,6 +4,7 @@ import {
 	check,
 	date,
 	decimal,
+	index,
 	integer,
 	jsonb,
 	pgEnum,
@@ -147,19 +148,23 @@ export const configurations = pgTable("configurations", {
 	updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export const clients = pgTable("clients", {
-	id: serial("id").primaryKey(),
-	organizationId: text("organization_id")
-		.notNull()
-		.references(() => organizations.id, { onDelete: "cascade" }),
-	name: text("name").notNull(),
-	phoneNumber: text("phone_number"),
-	email: text("email"),
-	address: text("address"),
-	metadata: jsonb("metadata"),
-	createdAt: timestamp("created_at").defaultNow(),
-	updatedAt: timestamp("updated_at").defaultNow(),
-});
+export const clients = pgTable(
+	"clients",
+	{
+		id: serial("id").primaryKey(),
+		organizationId: text("organization_id")
+			.notNull()
+			.references(() => organizations.id, { onDelete: "cascade" }),
+		name: text("name").notNull(),
+		phoneNumber: text("phone_number"),
+		email: text("email"),
+		address: text("address"),
+		metadata: jsonb("metadata"),
+		createdAt: timestamp("created_at").defaultNow(),
+		updatedAt: timestamp("updated_at").defaultNow(),
+	},
+	(table) => [index("client_organization_idx").on(table.organizationId)],
+);
 
 export const bookingPhaseEnum = pgEnum("booking_phase", [
 	"new",
@@ -257,8 +262,8 @@ export const shoots = pgTable("shoots", {
 		.notNull()
 		.references(() => organizations.id, { onDelete: "cascade" }),
 	title: text("title").notNull(),
-	date: date("date").notNull(),
-	time: text("time").notNull(),
+	date: text("date"),
+	time: text("time"),
 	reportingTime: time("reporting_time"),
 	duration: text("duration"),
 	location: jsonb("location"),

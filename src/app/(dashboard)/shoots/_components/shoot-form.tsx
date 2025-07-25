@@ -6,7 +6,6 @@ import { useParams } from "next/navigation";
 import * as React from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
 	Command,
 	CommandEmpty,
@@ -55,6 +54,10 @@ export function ShootForm({
 	const params = useParams();
 	const bookingIdFromParams = params.id ? params.id.toString() : "";
 
+	const additionalServicesOptions = [
+		{ label: "Drone Service", value: "drone_service" },
+	];
+
 	const cleanedDefaultValues = {
 		bookingId: defaultValues.bookingId?.toString() || bookingIdFromParams || "",
 		title: defaultValues.title || "",
@@ -64,8 +67,10 @@ export function ShootForm({
 		location: defaultValues.location || "",
 		notes: defaultValues.notes || "",
 		additionalDetails: {
-			isDroneUsed: defaultValues.additionalDetails?.isDroneUsed || false,
-			requiredCrewCount: defaultValues.additionalDetails?.requiredCrewCount,
+			additionalServices:
+				defaultValues.additionalDetails?.additionalServices || [],
+			requiredCrewCount:
+				defaultValues.additionalDetails?.requiredCrewCount?.toString() || "",
 		},
 	};
 
@@ -198,9 +203,9 @@ export function ShootForm({
 							name="title"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Title</FormLabel>
+									<FormLabel>Event</FormLabel>
 									<FormControl>
-										<Input placeholder="Enter shoot title" {...field} />
+										<Input placeholder="Enter event name" {...field} />
 									</FormControl>
 									<FormMessage />
 								</FormItem>
@@ -215,19 +220,7 @@ export function ShootForm({
 								<FormItem>
 									<FormLabel>No. of Crews</FormLabel>
 									<FormControl>
-										<Input
-											type="number"
-											placeholder="e.g., 3"
-											{...field}
-											onChange={(e) =>
-												field.onChange(
-													e.target.value === ""
-														? undefined
-														: Number(e.target.value),
-												)
-											}
-											value={field.value ?? ""}
-										/>
+										<Input type="number" placeholder="e.g., 3" {...field} />
 									</FormControl>
 									<FormMessage />
 								</FormItem>
@@ -293,7 +286,7 @@ export function ShootForm({
 					/>
 				</div>
 
-				<div className="col-span-2">
+				{/* <div className="col-span-2">
 					<FormField
 						control={form.control}
 						name="additionalDetails.isDroneUsed"
@@ -308,6 +301,30 @@ export function ShootForm({
 										onCheckedChange={field.onChange}
 									/>
 								</FormControl>
+							</FormItem>
+						)}
+					/>
+				</div> */}
+
+				<div className="col-span-2">
+					<FormField
+						control={form.control}
+						name="additionalDetails.additionalServices"
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel>Additional Services</FormLabel>
+								<FormControl>
+									<MultiAsyncSelect
+										options={additionalServicesOptions}
+										onValueChange={field.onChange}
+										defaultValue={field.value}
+										placeholder="Select any additional services"
+										searchPlaceholder="Search services..."
+										className="w-full"
+										loading={false} // Data is static, so not loading
+									/>
+								</FormControl>
+								<FormMessage />
 							</FormItem>
 						)}
 					/>

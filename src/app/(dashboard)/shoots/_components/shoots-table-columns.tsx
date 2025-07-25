@@ -6,6 +6,7 @@ import {
 	CalendarIcon,
 	CameraIcon,
 	ChevronRight,
+	Sparkles, // ADDED: Icon for the new column
 	TextIcon,
 	Users,
 } from "lucide-react";
@@ -17,6 +18,15 @@ import type { ShootRowData } from "@/types/shoots";
 import { DataTableColumnHeader } from "../../tasks/_components/task-table-column-header";
 import { ShootTableRowActions } from "./shoots-table-row-actions";
 
+// ADDED: Helper to make service names user-friendly
+const serviceDisplayNames: Record<string, string> = {
+	drone_service: "Drone Service",
+	same_day_edit: "Same-Day Edit",
+	photo_album: "Photo Album",
+	bts_video: "Behind the Scenes Video",
+	extra_hour: "Extra Hour of Coverage",
+};
+
 export const useShootColumns = ({
 	minimalBookings,
 	isMininmalBookingLoading,
@@ -25,6 +35,7 @@ export const useShootColumns = ({
 	isMininmalBookingLoading: boolean;
 }) => {
 	const columns: ColumnDef<ShootRowData>[] = [
+		// Select Column - No changes
 		{
 			id: "select",
 			header: ({ table }) => (
@@ -44,6 +55,7 @@ export const useShootColumns = ({
 			enableSorting: false,
 			enableHiding: false,
 		},
+		// Title Column - No changes
 		{
 			id: "title",
 			accessorKey: "title",
@@ -53,9 +65,6 @@ export const useShootColumns = ({
 			cell: ({ row }) => (
 				<div>
 					<div className="font-medium">{row.original.title}</div>
-					{/* <div className="text-sm text-muted-foreground">
-						{row.original.booking.name}
-					</div> */}
 				</div>
 			),
 			meta: {
@@ -67,7 +76,7 @@ export const useShootColumns = ({
 			enableColumnFilter: true,
 			enableSorting: true,
 		},
-
+		// BookingId Column - No changes
 		{
 			id: "bookingId",
 			accessorKey: "booking.name",
@@ -92,6 +101,7 @@ export const useShootColumns = ({
 			enableSorting: false,
 			enableHiding: false,
 		},
+		// Date Column - No changes
 		{
 			id: "date",
 			accessorKey: "date",
@@ -112,8 +122,7 @@ export const useShootColumns = ({
 			enableColumnFilter: true,
 			enableSorting: true,
 		},
-
-		// },
+		// Location Column - No changes
 		{
 			accessorKey: "location",
 			header: "Location",
@@ -121,6 +130,51 @@ export const useShootColumns = ({
 				<div>{(row.original.location as string) ?? "N/a"}</div>
 			),
 		},
+
+		// --- ADDED: Additional Details Column ---
+		{
+			id: "additionalDetails",
+			header: ({ column }) => (
+				<DataTableColumnHeader column={column} title="Add-ons" />
+			),
+			cell: ({ row }) => {
+				const services =
+					row.original.additionalDetails?.additionalServices ?? [];
+				const requiredCrew = row.original.additionalDetails?.requiredCrewCount;
+
+				if (services.length === 0 && !requiredCrew) {
+					return <span className="text-muted-foreground">None</span>;
+				}
+
+				return (
+					<div className="flex flex-wrap gap-1 items-center max-w-[250px]">
+						{/* {requiredCrew && (
+							<Badge variant="secondary" className="whitespace-nowrap">
+								Crew Needed: {requiredCrew}
+							</Badge>
+						)} */}
+						{services.map((serviceKey) => (
+							<Badge
+								key={serviceKey}
+								variant="outline"
+								className="whitespace-nowrap"
+							>
+								{serviceDisplayNames[serviceKey] ?? serviceKey}
+							</Badge>
+						))}
+					</div>
+				);
+			},
+			meta: {
+				label: "Add-ons",
+				icon: Sparkles,
+			},
+			enableSorting: false, // Sorting a complex object is non-trivial
+			enableHiding: true,
+		},
+		// -----------------------------------------
+
+		// Crew Column - No changes
 		{
 			id: "crew",
 			accessorKey: "shootsAssignments",
@@ -134,6 +188,8 @@ export const useShootColumns = ({
 				const assignments = row.original.shootsAssignments;
 				const count = assignments?.length || 0;
 				const hasAssignments = count > 0;
+
+				const requiredCrew = row.original.additionalDetails?.requiredCrewCount;
 
 				return (
 					<div className="relative">
@@ -165,7 +221,7 @@ export const useShootColumns = ({
 							<div className="flex flex-col items-start">
 								<span className="tabular-nums font-medium">
 									{count
-										? `${count} crew member${count > 1 ? "s" : ""} assigned`
+										? `${count} crew${count > 1 ? "s" : ""} assigned`
 										: "No crew assigned"}
 								</span>
 							</div>
@@ -174,6 +230,7 @@ export const useShootColumns = ({
 				);
 			},
 		},
+		// Actions Column - No changes
 		{
 			id: "actions",
 			cell: ({ row }) => <ShootTableRowActions row={row} />,

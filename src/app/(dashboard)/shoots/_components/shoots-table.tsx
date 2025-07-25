@@ -1,12 +1,14 @@
 "use client";
 
-import * as React from "react";
 import {
-	type Table as TanstackTable,
 	type ColumnDef,
 	flexRender,
+	type Table as TanstackTable,
 } from "@tanstack/react-table";
-
+import { Crown, Users } from "lucide-react";
+import * as React from "react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import {
 	Table,
 	TableBody,
@@ -15,10 +17,6 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
-
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Crown, Users } from "lucide-react";
 import type { ShootRowData } from "@/types/shoots";
 
 interface ShootTableProps {
@@ -66,7 +64,7 @@ export function ShootTable({ columns, table, children }: ShootTableProps) {
 									</TableRow>
 									{row.getIsExpanded() && (
 										<TableRow className="bg-muted/30">
-											<TableCell className="p-0" colSpan={5} />
+											<TableCell className="p-0" colSpan={6} />
 											<TableCell className="p-0" colSpan={1}>
 												<div className="p-4 rounded-md bg-card border border-border/50 m-2 shadow-sm">
 													<div className="flex items-center justify-between mb-4">
@@ -82,10 +80,14 @@ export function ShootTable({ columns, table, children }: ShootTableProps) {
 															variant="secondary"
 															className="text-xs font-normal"
 														>
-															{row.original.shootsAssignments.length}{" "}
+															{
+																row.original.additionalDetails
+																	?.requiredCrewCount
+															}
+															{/* {row.original.shootsAssignments.length}{" "}
 															{row.original.shootsAssignments.length === 1
 																? "member"
-																: "members"}
+																: "members"} */}
 														</Badge>
 													</div>
 													<div className="space-y-3">
