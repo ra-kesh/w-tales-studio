@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import type { DeliverablesResponse } from "@/types/deliverables";
 import { useSearchParams } from "next/navigation";
+import type { DeliverablesResponse } from "@/types/deliverables";
 
 export async function fetchDeliverables(
 	searchParams: URLSearchParams,
@@ -22,7 +22,6 @@ export function useDeliverables() {
 	return useQuery({
 		queryKey: ["bookings", "deliverable", "list", searchParams.toString()],
 		queryFn: () => fetchDeliverables(searchParams),
-		// placeholderData: { data: [], total: 0 },
 	});
 }
 
@@ -46,5 +45,32 @@ export function useDeliverable(id: string | null) {
 		],
 		queryFn: () => fetchDeliverable(id as string),
 		enabled: Boolean(id),
+	});
+}
+
+async function fetchMinimalDeliverables(
+	bookingId: string,
+): Promise<DeliverablesResponse> {
+	const response = await fetch(
+		`/api/deliverables/minimal?bookingId=${bookingId}`,
+	);
+	if (!response.ok) {
+		throw new Error("Failed to fetch minimal deliverables");
+	}
+	return response.json();
+}
+
+export function useMinimalDeliverables(bookingId: string | null) {
+	return useQuery({
+		queryKey: [
+			"bookings",
+			"deliverable",
+			"minimal",
+			{
+				bookingId,
+			},
+		],
+		queryFn: () => fetchMinimalDeliverables(bookingId as string),
+		enabled: Boolean(bookingId),
 	});
 }

@@ -34,6 +34,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useMinimalBookings } from "@/hooks/use-bookings";
 import { useTaskConfigs } from "@/hooks/use-configs";
 import { useCrews } from "@/hooks/use-crews";
+import { useMinimalDeliverables } from "@/hooks/use-deliverables";
 import { cn } from "@/lib/utils";
 import {
 	defaultTask,
@@ -57,9 +58,11 @@ export function TaskForm({
 
 	const cleanedDefaultValues = {
 		bookingId: defaultValues.bookingId?.toString() || bookingIdFromParams || "",
+		deliverableId: defaultValues.deliverableId?.toString() || "",
 		description: defaultValues.description ?? "",
 		priority: defaultValues.priority ?? "",
 		status: defaultValues.status ?? "todo",
+		startDate: defaultValues.startDate ?? "",
 		dueDate: defaultValues.dueDate ?? "",
 		crewMembers: defaultValues.crewMembers ?? [],
 	};
@@ -72,6 +75,12 @@ export function TaskForm({
 
 	const { data: MinimalBookings } = useMinimalBookings();
 	const bookings = MinimalBookings?.data;
+
+	const selectedBookingId = form.watch("bookingId");
+	const { data: MinimalDeliverables, isLoading: isLoadingDeliverables } =
+		useMinimalDeliverables(selectedBookingId);
+	const deliverables = MinimalDeliverables?.data;
+
 	const { statuses, priorities } = useTaskConfigs();
 	const { data: crewData, isLoading: isLoadingCrew } = useCrews();
 
@@ -94,9 +103,9 @@ export function TaskForm({
 		<Form {...form}>
 			<form
 				onSubmit={form.handleSubmit(onSubmit)}
-				className="grid grid-cols-3 gap-6 px-4"
+				className="grid grid-cols-4 gap-6 px-4"
 			>
-				<div className="col-span-3">
+				<div className="col-span-4">
 					<FormField
 						control={form.control}
 						name="bookingId"
@@ -184,7 +193,80 @@ export function TaskForm({
 					/>
 				</div>
 
-				<div className="col-span-3">
+				<div className="col-span-4">
+					<FormField
+						control={form.control}
+						name="deliverableId"
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel>Deliverable </FormLabel>
+								<Popover>
+									<PopoverTrigger asChild>
+										<FormControl>
+											<Button
+												variant="outline"
+												className={cn(
+													"w-full justify-between",
+													!field.value && "text-muted-foreground",
+												)}
+												disabled={!selectedBookingId || isLoadingDeliverables}
+											>
+												{isLoadingDeliverables
+													? "Loading..."
+													: field.value
+														? deliverables?.find(
+																(d) => d.id.toString() === field.value,
+															)?.title
+														: "Select a deliverable"}
+												<ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+											</Button>
+										</FormControl>
+									</PopoverTrigger>
+									<PopoverContent className="w-full p-0 relative z-50">
+										<Command>
+											<CommandInput placeholder="Search deliverables..." />
+											<CommandList>
+												<ScrollArea className="h-48">
+													<CommandEmpty>
+														No deliverables found for this booking.
+													</CommandEmpty>
+													<CommandGroup>
+														{deliverables?.map((deliverable) => (
+															<CommandItem
+																key={deliverable.id}
+																value={deliverable.id.toString()}
+																onSelect={() => {
+																	form.setValue(
+																		"deliverableId",
+																		deliverable.id.toString(),
+																		{ shouldValidate: true, shouldDirty: true },
+																	);
+																}}
+															>
+																<Check
+																	className={cn(
+																		"mr-2 h-4 w-4",
+																		field.value === deliverable.id.toString()
+																			? "opacity-100"
+																			: "opacity-0",
+																	)}
+																/>
+																{deliverable.title}
+															</CommandItem>
+														))}
+													</CommandGroup>
+												</ScrollArea>
+											</CommandList>
+										</Command>
+									</PopoverContent>
+								</Popover>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
+				</div>
+
+				<div className="col-span-4">
 					<FormField
 						control={form.control}
 						name="description"
@@ -204,7 +286,22 @@ export function TaskForm({
 					/>
 				</div>
 
-				<div className="col-span-1">
+				<div className="col-span-2">
+					<FormField
+						control={form.control}
+						name="startDate"
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel>Start Date</FormLabel>
+								<FormControl>
+									<Input type="date" {...field} />
+								</FormControl>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
+				</div>
+				<div className="col-span-2">
 					<FormField
 						control={form.control}
 						name="dueDate"
@@ -220,7 +317,7 @@ export function TaskForm({
 					/>
 				</div>
 
-				<div className="col-span-1">
+				<div className="col-span-2">
 					<FormField
 						control={form.control}
 						name="status"
@@ -261,19 +358,10 @@ export function TaskForm({
 																key={status.value}
 																value={status.value}
 																onSelect={() => {
-																	form.setValue(
-																		"status",
-																		status.value as
-																			| "todo"
-																			| "in_progress"
-																			| "in_review"
-																			| "in_revision"
-																			| "completed",
-																		{
-																			shouldValidate: true,
-																			shouldDirty: true,
-																		},
-																	);
+																	form.setValue("status", status.value, {
+																		shouldValidate: true,
+																		shouldDirty: true,
+																	});
 																}}
 															>
 																<Check
@@ -299,7 +387,7 @@ export function TaskForm({
 					/>
 				</div>
 
-				<div className="col-span-1">
+				<div className="col-span-2">
 					<FormField
 						control={form.control}
 						name="priority"
@@ -377,7 +465,7 @@ export function TaskForm({
 					/>
 				</div>
 
-				<div className="col-span-3">
+				<div className="col-span-4">
 					<FormField
 						control={form.control}
 						name="crewMembers"
@@ -402,7 +490,7 @@ export function TaskForm({
 					/>
 				</div>
 
-				<div className="col-span-3 mt-6">
+				<div className="col-span-4 mt-6">
 					<Button
 						type="submit"
 						className="min-w-full"

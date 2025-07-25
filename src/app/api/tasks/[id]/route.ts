@@ -1,9 +1,9 @@
+import { and, eq, inArray } from "drizzle-orm";
 import { NextResponse } from "next/server";
+import { TaskSchema } from "@/app/(dashboard)/tasks/task-form-schema";
 import { getServerSession } from "@/lib/dal";
 import { db } from "@/lib/db/drizzle";
-import { and, eq, inArray } from "drizzle-orm";
 import { bookings, crews, tasks, tasksAssignments } from "@/lib/db/schema";
-import { TaskSchema } from "@/app/(dashboard)/tasks/task-form-schema";
 
 export async function GET(
 	request: Request,
@@ -163,8 +163,12 @@ export async function PUT(
 				.update(tasks)
 				.set({
 					bookingId: Number.parseInt(validatedData.bookingId),
+					deliverableId: validatedData.deliverableId
+						? Number.parseInt(validatedData.deliverableId)
+						: null,
 					priority: validatedData.priority,
 					description: validatedData.description,
+					startDate: validatedData.startDate,
 					dueDate: validatedData.dueDate,
 					status: validatedData.status,
 					updatedAt: new Date(),
