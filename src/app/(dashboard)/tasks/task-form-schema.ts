@@ -1,18 +1,24 @@
-import { z } from "zod";
+import { z } from "zod/v4";
 
 export const TaskSchema = z.object({
-	bookingId: z.string().min(1, { message: "Booking is required" }),
-	description: z.string().min(1, { message: "Description is required" }),
+	bookingId: z.string().min(1, {
+        error: "Booking is required"
+    }),
+	description: z.string().min(1, {
+        error: "Description is required"
+    }),
 	priority: z.enum(["low", "medium", "high", "critical"], {
-		required_error: "Priority is required",
-	}),
+        error: (issue) => issue.input === undefined ? "Priority is required" : undefined
+    }),
 	status: z.enum(
 		["todo", "in_progress", "in_review", "in_revision", "completed"],
 		{
-			required_error: "Status is required",
-		},
+            error: (issue) => issue.input === undefined ? "Status is required" : undefined
+        },
 	),
-	dueDate: z.string().min(1, { message: "Due date is required" }),
+	dueDate: z.string().min(1, {
+        error: "Due date is required"
+    }),
 	crewMembers: z.array(z.string()).optional(),
 });
 

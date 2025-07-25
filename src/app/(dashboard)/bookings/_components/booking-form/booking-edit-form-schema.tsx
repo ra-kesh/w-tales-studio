@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "zod/v4";
 
 // This schema ONLY defines the fields that can be edited.
 export const BookingEditSchema = z.object({

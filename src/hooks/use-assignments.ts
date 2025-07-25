@@ -8,7 +8,7 @@ import type {
 	TasksAssignment,
 } from "@/lib/db/schema";
 import { useQuery } from "@tanstack/react-query";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 interface Booking {
 	id: number;

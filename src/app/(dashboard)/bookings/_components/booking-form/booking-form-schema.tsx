@@ -1,25 +1,20 @@
 import { formOptions } from "@tanstack/react-form";
-import { z } from "zod";
+import { z } from "zod/v4";
 
-// ————————————————————————————————
-// Reusable “decimal in string form” type
-// ————————————————————————————————
 export const DecimalString = z.string().transform((val, ctx) => {
 	const cleaned = val.replace(/[^\d.]/g, "");
 	const parsed = Number.parseFloat(cleaned);
 	if (Number.isNaN(parsed)) {
-		ctx.addIssue({
+		ctx.issues.push({
 			code: z.ZodIssueCode.custom,
-			message: "Must be a valid number",
+			error: "Must be a valid number",
+			input: "",
 		});
 		return z.NEVER;
 	}
 	return parsed.toFixed(2);
 });
 
-// ————————————————————————————————
-// A single participant: name + role + optional contact info
-// ————————————————————————————————
 export const ParticipantSchema = z.object({
 	name: z.string().min(1, "Name is required"),
 	role: z.string().min(1, "Role is required"),
@@ -30,9 +25,6 @@ export const ParticipantSchema = z.object({
 });
 export type Participant = z.infer<typeof ParticipantSchema>;
 
-// ————————————————————————————————
-// Main booking form schema
-// ————————————————————————————————
 export const BookingSchema = z.object({
 	bookingName: z.string().min(1, "Booking Name is required"),
 	bookingType: z.string().min(1, "Booking Type is required"),
@@ -43,23 +35,23 @@ export const BookingSchema = z.object({
 		.min(1, "At least one participant is required"),
 	note: z.string().optional(),
 	shoots: z
-    .array(
-      z.object({
-        title: z.string().min(1, "Title is required"),
-        date: z.string().optional(),
-        time: z.string().optional(),
-        location: z.string().optional(),
-        notes: z.string().optional(),
-        additionalDetails: z
-          .object({
-            additionalServices: z.array(z.string()).optional(),
-            requiredCrewCount: z.string().optional(),
-          })
-          .optional(),
-        crews: z.array(z.string()).optional(),
-      }),
-    )
-    .optional(),
+		.array(
+			z.object({
+				title: z.string().min(1, "Title is required"),
+				date: z.string().optional(),
+				time: z.string().optional(),
+				location: z.string().optional(),
+				notes: z.string().optional(),
+				additionalDetails: z
+					.object({
+						additionalServices: z.array(z.string()).optional(),
+						requiredCrewCount: z.string().optional(),
+					})
+					.optional(),
+				crews: z.array(z.string()).optional(),
+			}),
+		)
+		.optional(),
 	deliverables: z
 		.array(
 			z.object({
@@ -91,9 +83,6 @@ export const BookingSchema = z.object({
 });
 export type BookingFormValues = z.infer<typeof BookingSchema>;
 
-// ————————————————————————————————
-// Default form values
-// ————————————————————————————————
 export const defaultBooking: BookingFormValues = {
 	bookingName: "",
 	bookingType: "",

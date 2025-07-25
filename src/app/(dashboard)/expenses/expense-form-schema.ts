@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "zod/v4";
 import { BillTo } from "@/lib/db/schema";
 
 export const ExpenseSchema = z.object({

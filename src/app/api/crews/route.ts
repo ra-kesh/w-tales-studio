@@ -1,7 +1,7 @@
 import { and, eq, or } from "drizzle-orm";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
-import { ZodError } from "zod";
+import { ZodError } from "zod/v4";
 import { CrewSchema } from "@/app/(dashboard)/crews/_components/crew-form-schema";
 import { auth } from "@/lib/auth";
 import { getServerSession } from "@/lib/dal";

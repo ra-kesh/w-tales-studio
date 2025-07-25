@@ -1,7 +1,7 @@
 import { and, eq, inArray, ne, not, sum } from "drizzle-orm";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
-import { ZodError } from "zod";
+import { ZodError } from "zod/v4";
 import { BookingEditSchema } from "@/app/(dashboard)/bookings/_components/booking-form/booking-edit-form-schema";
 import { auth } from "@/lib/auth";
 import { getServerSession } from "@/lib/dal";

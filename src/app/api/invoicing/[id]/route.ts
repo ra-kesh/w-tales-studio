@@ -4,7 +4,7 @@ import { getServerSession } from "@/lib/dal";
 import { db } from "@/lib/db/drizzle";
 import { invoices, invoice_line_items } from "@/lib/db/schema";
 import { and, eq } from "drizzle-orm";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 const InvoiceUpdateSchema = z.object({
   invoice_number: z.string().optional(),

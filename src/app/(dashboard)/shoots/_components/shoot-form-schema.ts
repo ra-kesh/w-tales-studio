@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "zod/v4";
 
 export const ShootAdditionalDetailSchema = z.object({
 	additionalServices: z.array(z.string()).optional(),
@@ -6,8 +6,12 @@ export const ShootAdditionalDetailSchema = z.object({
 });
 
 export const ShootSchema = z.object({
-	title: z.string().min(1, { message: "Title is required" }),
-	bookingId: z.string().min(1, { message: "Booking is required" }),
+	title: z.string().min(1, {
+        error: "Title is required"
+    }),
+	bookingId: z.string().min(1, {
+        error: "Booking is required"
+    }),
 	crewMembers: z.array(z.string()).optional(),
 	date: z.string().optional(),
 	time: z.string().optional(),

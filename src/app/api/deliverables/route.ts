@@ -1,24 +1,22 @@
+import { and, eq, inArray } from "drizzle-orm";
+import { headers } from "next/headers";
 import { NextResponse } from "next/server";
+import { DeliverableSchema } from "@/app/(dashboard)/deliverables/deliverable-form-schema";
+import { auth } from "@/lib/auth";
+import { getServerSession } from "@/lib/dal";
+import { db } from "@/lib/db/drizzle";
 import {
 	type AllowedDeliverableSortFields,
 	type DeliverableFilters,
 	type DeliverableSortOption,
 	getDeliverables,
 } from "@/lib/db/queries";
-import { getServerSession } from "@/lib/dal";
-
-import { db } from "@/lib/db/drizzle";
 import {
-	deliverables,
 	bookings,
 	crews,
+	deliverables,
 	deliverablesAssignments,
 } from "@/lib/db/schema";
-import { eq, and, inArray } from "drizzle-orm";
-
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
-import { DeliverableSchema } from "@/app/(dashboard)/deliverables/deliverable-form-schema";
 
 export async function GET(request: Request) {
 	const { session } = await getServerSession();
@@ -41,7 +39,7 @@ export async function GET(request: Request) {
 		const limit = Number.parseInt(searchParams.get("limit") || "10", 10);
 
 		const sortParam = searchParams.get("sort");
-		let sortOptions: DeliverableSortOption[] | undefined = undefined;
+		let sortOptions: DeliverableSortOption[] | undefined;
 		if (sortParam) {
 			try {
 				const parsedSort = JSON.parse(sortParam);
@@ -127,7 +125,7 @@ export async function POST(request: Request) {
 
 	if (!validation.success) {
 		return NextResponse.json(
-			{ message: "Validation error", errors: validation.error.errors },
+			{ message: "Validation error", errors: validation.error.issues },
 			{ status: 400 },
 		);
 	}
