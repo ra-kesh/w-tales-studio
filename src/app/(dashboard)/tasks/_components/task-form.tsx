@@ -77,6 +77,8 @@ export function TaskForm({
 	const bookings = MinimalBookings?.data;
 
 	const selectedBookingId = form.watch("bookingId");
+	const selectedDeliverableId = form.watch("deliverableId");
+
 	const { data: MinimalDeliverables, isLoading: isLoadingDeliverables } =
 		useMinimalDeliverables(selectedBookingId);
 	const deliverables = MinimalDeliverables?.data;
@@ -92,12 +94,23 @@ export function TaskForm({
 			const statusBadge =
 				crew.status !== "available" ? ` [${crew.status}]` : "";
 
+			const isAssigned =
+				selectedDeliverableId &&
+				deliverables?.some(
+					(deliverable) =>
+						deliverable.id.toString() === selectedDeliverableId &&
+						deliverable.deliverablesAssignments?.some(
+							(assignment) => assignment.crewId === crew.id,
+						),
+				);
+			const assignedBadge = isAssigned ? " [assigned]" : "";
+
 			return {
-				label: `${displayName}${role}${statusBadge}`,
+				label: `${displayName}${role}${statusBadge}${assignedBadge}`,
 				value: crew.id.toString(),
 			};
 		});
-	}, [crewData?.data]);
+	}, [crewData?.data, selectedDeliverableId, deliverables]);
 
 	return (
 		<Form {...form}>
@@ -210,14 +223,17 @@ export function TaskForm({
 													!field.value && "text-muted-foreground",
 												)}
 												disabled={!selectedBookingId || isLoadingDeliverables}
+												type="button"
 											>
-												{isLoadingDeliverables
-													? "Loading..."
-													: field.value
-														? deliverables?.find(
-																(d) => d.id.toString() === field.value,
-															)?.title
-														: "Select a deliverable"}
+												<span className="truncate">
+													{isLoadingDeliverables
+														? "Loading..."
+														: field.value
+															? deliverables?.find(
+																	(d) => d.id.toString() === field.value,
+																)?.title || "Select a deliverable"
+															: "Select a deliverable"}
+												</span>
 												<ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
 											</Button>
 										</FormControl>
