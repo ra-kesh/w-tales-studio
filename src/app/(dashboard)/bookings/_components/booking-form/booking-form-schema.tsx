@@ -26,7 +26,7 @@ export const ParticipantSchema = z.object({
 	phone: z.string().optional(),
 	email: z.string().optional(),
 	address: z.string().optional(),
-	metadata: z.record(z.any()).optional(),
+	metadata: z.record(z.string(), z.any()).optional(),
 });
 export type Participant = z.infer<typeof ParticipantSchema>;
 
