@@ -166,7 +166,7 @@ export async function getDeliverables(
 			? sortOptions.map((item) =>
 					item.desc ? desc(deliverables[item.id]) : asc(deliverables[item.id]),
 				)
-			: [desc(deliverables.updatedAt), desc(deliverables.createdAt)];
+			: [asc(deliverables.dueDate)];
 
 	const deliverableData = await db.query.deliverables.findMany({
 		where: and(...whereConditions),

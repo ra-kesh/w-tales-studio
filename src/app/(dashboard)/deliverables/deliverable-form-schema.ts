@@ -9,9 +9,7 @@ export const DeliverableSchema = z
 			error: "Booking is required",
 		}),
 		notes: z.string().optional(),
-		dueDate: z.string().min(1, {
-			error: "Due date is required",
-		}),
+		dueDate: z.string().optional(),
 		isPackageIncluded: z.boolean(),
 		quantity: z.string().min(1, {
 			error: "Quantity is required",

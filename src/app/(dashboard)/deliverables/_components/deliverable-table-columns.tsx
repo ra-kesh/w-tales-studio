@@ -1,25 +1,22 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { Checkbox } from "@/components/ui/checkbox";
-import { DeliverableTableRowActions } from "./deliverable-table-row-actions";
-import type { DeliverableRowData } from "@/types/deliverables";
 import { format } from "date-fns";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
-	Calendar,
 	CalendarIcon,
 	CameraIcon,
 	ChevronRight,
 	CircleDashed,
-	Package2,
 	TextIcon,
 	Users,
 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { cn, formatCurrency } from "@/lib/utils";
+import type { DeliverableRowData } from "@/types/deliverables";
 import { DataTableColumnHeader } from "../../tasks/_components/task-table-column-header";
-import { deliverables, Task, tasks } from "@/lib/db/schema";
+import { DeliverableTableRowActions } from "./deliverable-table-row-actions";
 
 export const useDeliverableColumns = ({
 	statusOptions,
@@ -114,26 +111,7 @@ export const useDeliverableColumns = ({
 				</div>
 			),
 		},
-		// {
-		// 	id: "cost",
-		// 	header: () => (
-		// 		<div className="flex items-center gap-1">
-		// 			<Package2 className="h-4 w-4" />
-		// 			<span>Extra cost</span>
-		// 		</div>
-		// 	),
-		// 	cell: ({ row }) => (
-		// 		<div className="flex items-center gap-3">
-		// 			{!row.original.isPackageIncluded && row.original.cost ? (
-		// 				<span className="tabular-nums text-sm">
-		// 					${Number(row.original.cost).toLocaleString()}
-		// 				</span>
-		// 			) : (
-		// 				<span className=" text-sm">N/a</span>
-		// 			)}
-		// 		</div>
-		// 	),
-		// },
+
 		{
 			id: "status",
 			accessorKey: "status",
@@ -170,15 +148,21 @@ export const useDeliverableColumns = ({
 		{
 			id: "dueDate",
 			accessorKey: "dueDate",
-			header: () => (
-				<div className="flex items-center gap-1">
-					<Calendar className="h-4 w-4" />
-					<span>Due Date</span>
-				</div>
+			header: ({ column }) => (
+				<DataTableColumnHeader column={column} title="Due Date" />
 			),
-			cell: ({ row }) => (
-				<div>{format(new Date(row.getValue("dueDate")), "MMM dd, yyyy")}</div>
-			),
+			cell: ({ row }) => {
+				const date = row.getValue("dueDate") as string | undefined;
+
+				if (!date) {
+					return <div className="text-muted-foreground">Unscheduled</div>;
+				}
+
+				const content = format(new Date(date), "MMM dd, yyyy");
+
+				return <div>{content}</div>;
+			},
+
 			meta: {
 				label: "Due Date",
 				variant: "dateRange",
@@ -186,6 +170,7 @@ export const useDeliverableColumns = ({
 			},
 			enableColumnFilter: true,
 			enableSorting: true,
+			enableHiding: false,
 		},
 		{
 			accessorKey: "deliverablesAssignments",

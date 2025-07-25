@@ -285,7 +285,7 @@ export const deliverables = pgTable("deliverables", {
 	isPackageIncluded: boolean("is_package_included").notNull().default(false),
 	cost: decimal("cost", { precision: 10, scale: 2 }),
 	quantity: integer("quantity").notNull(),
-	dueDate: date("due_date"),
+	dueDate: text("due_date"),
 	notes: text("notes"),
 	status: text("status").notNull().default("pending"),
 	priority: text("priority").notNull().default("medium"),
@@ -557,7 +557,8 @@ export const tasks = pgTable("tasks", {
 	status: text("status").notNull().default("todo"),
 	description: text("description").notNull(),
 	priority: text("priority").notNull().default("medium"),
-	dueDate: date("due_date"),
+	startDate: text("start_date"),
+	dueDate: text("due_date"),
 	createdAt: timestamp("created_at").defaultNow().notNull(),
 	updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
