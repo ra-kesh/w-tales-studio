@@ -1498,6 +1498,11 @@ export async function getTasks(
 					name: true,
 				},
 			},
+			deliverable: {
+				columns: {
+					title: true,
+				},
+			},
 			tasksAssignments: {
 				columns: {
 					id: true,
