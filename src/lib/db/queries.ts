@@ -1466,13 +1466,27 @@ export async function getTasks(
 			);
 		}
 	}
+	if (filters.startDate) {
+		const dates = filters.startDate
+			.split(",")
+			.map((date) => date.trim())
+			.filter(Boolean);
+		if (dates.length === 2) {
+			whereConditions.push(
+				gte(tasks.startDate, new Date(dates[0]).toISOString().slice(0, 10)),
+			);
+			whereConditions.push(
+				lte(tasks.startDate, new Date(dates[1]).toISOString().slice(0, 10)),
+			);
+		}
+	}
 
 	const orderBy =
 		sortOptions && sortOptions.length > 0
 			? sortOptions.map((item) =>
 					item.desc ? desc(tasks[item.id]) : asc(tasks[item.id]),
 				)
-			: [desc(tasks.updatedAt), desc(tasks.createdAt)];
+			: [asc(tasks.startDate), asc(tasks.dueDate)];
 
 	const tasksData = await db.query.tasks.findMany({
 		where: and(...whereConditions),
