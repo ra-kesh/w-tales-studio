@@ -1,67 +1,69 @@
-import { NextResponse } from "next/server";
 import { headers } from "next/headers";
+import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { getServerSession } from "@/lib/dal";
 import { getMinimalDeliverables } from "@/lib/db/queries";
 
-export async function GET(
-  request: Request,
-) {
-  const { session } = await getServerSession();
+export async function GET(request: Request) {
+	const { session } = await getServerSession();
 
-  if (!session || !session.user) {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-  }
+	if (!session || !session.user) {
+		return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+	}
 
-  const userOrganizationId = session.session.activeOrganizationId;
+	const userOrganizationId = session.session.activeOrganizationId;
 
-  if (!userOrganizationId) {
-    return NextResponse.json(
-      { message: "User not associated with an organization" },
-      { status: 403 },
-    );
-  }
+	if (!userOrganizationId) {
+		return NextResponse.json(
+			{ message: "User not associated with an organization" },
+			{ status: 403 },
+		);
+	}
 
-  const canReadDeliverables = await auth.api.hasPermission({
-    headers: await headers(),
-    body: {
-      permissions: {
-        deliverable: ["read"],
-      },
-    },
-  });
+	const canReadDeliverables = await auth.api.hasPermission({
+		headers: await headers(),
+		body: {
+			permissions: {
+				deliverable: ["read"],
+			},
+		},
+	});
 
-  if (!canReadDeliverables) {
-    return NextResponse.json(
-      { message: "You do not have permission to read deliverables." },
-      { status: 403 },
-    );
-  }
+	if (!canReadDeliverables) {
+		return NextResponse.json(
+			{ message: "You do not have permission to read deliverables." },
+			{ status: 403 },
+		);
+	}
 
-  try {
-    const url = new URL(request.url);
-    const bookingId = url.searchParams.get("bookingId");
+	try {
+		const url = new URL(request.url);
+		const bookingIdParam = url.searchParams.get("bookingId");
 
-    if (!bookingId) {
-      return NextResponse.json(
-        { message: "Booking ID is required" },
-        { status: 400 },
-      );
-    }
+		const bookingId = bookingIdParam
+			? Number.parseInt(bookingIdParam, 10)
+			: undefined;
 
-    const response = await getMinimalDeliverables(
-      userOrganizationId,
-      Number.parseInt(bookingId, 10),
-    );
+		if (bookingIdParam && Number.isNaN(bookingId)) {
+			return NextResponse.json(
+				{ message: "Invalid Booking ID format" },
+				{ status: 400 },
+			);
+		}
 
-    return NextResponse.json(response, { status: 200 });
-  } catch (error: unknown) {
-    console.error("Error fetching minimal deliverables:", error);
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    return NextResponse.json(
-      { message: "Internal server error", error: errorMessage },
-      { status: 500 },
-    );
-  }
+		const response = await getMinimalDeliverables(
+			userOrganizationId,
+			bookingId,
+		);
+
+		return NextResponse.json(response, { status: 200 });
+	} catch (error: unknown) {
+		console.error("Error fetching minimal deliverables:", error);
+		const errorMessage =
+			error instanceof Error ? error.message : "Unknown error";
+		return NextResponse.json(
+			{ message: "Internal server error", error: errorMessage },
+			{ status: 500 },
+		);
+	}
 }

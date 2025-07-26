@@ -233,6 +233,9 @@ export async function getDeliverables(
 export type MinimalDeliverable = {
 	id: number;
 	title: string;
+	deliverablesAssignments: Array<{
+		crewId: number;
+	}>;
 };
 
 export type MinimalDeliverablesResponse = {
@@ -241,21 +244,20 @@ export type MinimalDeliverablesResponse = {
 
 export async function getMinimalDeliverables(
 	userOrganizationId: string,
-	bookingId: number,
+	bookingId?: number,
 ): Promise<MinimalDeliverablesResponse> {
 	if (!userOrganizationId) {
 		throw new Error("Organization ID is required");
-	}
-
-	if (!bookingId || Number.isNaN(bookingId)) {
-		throw new Error("Valid booking ID is required");
 	}
 
 	try {
 		const whereConditions = [
 			eq(deliverables.organizationId, userOrganizationId),
 		];
-		whereConditions.push(eq(deliverables.bookingId, bookingId));
+
+		if (bookingId && !Number.isNaN(bookingId)) {
+			whereConditions.push(eq(deliverables.bookingId, bookingId));
+		}
 
 		const deliverablesData = await db.query.deliverables.findMany({
 			where: and(...whereConditions),
