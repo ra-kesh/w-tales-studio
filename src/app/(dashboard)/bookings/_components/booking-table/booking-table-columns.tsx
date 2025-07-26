@@ -211,6 +211,8 @@ export const useBookingColumns = ({
         icon: CalendarIcon,
       },
       enableColumnFilter: true,
+      enableSorting: true,
+      enableHiding: false,
     },
 
     {

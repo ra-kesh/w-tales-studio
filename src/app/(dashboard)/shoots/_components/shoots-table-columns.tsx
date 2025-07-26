@@ -13,6 +13,11 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import type { ShootRowData } from "@/types/shoots";
 import { DataTableColumnHeader } from "../../tasks/_components/task-table-column-header";
@@ -132,7 +137,26 @@ export const useShootColumns = ({
 			accessorKey: "location",
 			header: "Location",
 			cell: ({ row }) => (
-				<div>{(row.original.location as string) ?? "N/a"}</div>
+				<div className="max-w-[200px]">
+					{row.original.location ? (
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<div className=" flex items-center max-w-fit">
+									<span className="truncate">
+										{(row.original.location as string) ?? "N/a"}
+									</span>
+								</div>
+							</TooltipTrigger>
+							<TooltipContent className="max-w-xs text-balance">
+								<p className="font-semibold">
+									{(row.original.location as string) ?? "N/a"}
+								</p>
+							</TooltipContent>
+						</Tooltip>
+					) : (
+						"N/a"
+					)}
+				</div>
 			),
 		},
 
