@@ -1,15 +1,19 @@
 import { z } from "zod/v4";
 
 export const CrewSchema = z.object({
-	name: z.string().optional(),
-	email: z.email().optional(),
-	phoneNumber: z.string().optional(),
+	name: z.string().min(1, {
+		error: "Name is required",
+	}),
+	email: z.string().optional(),
+	phoneNumber: z.string().min(1, {
+		error: "Phone Number is required",
+	}),
 	equipment: z.array(z.string()).optional(),
 	specialization: z.string().optional(),
 	role: z.string().optional(),
 	status: z.string().min(1, {
-        error: "Status is required"
-    }),
+		error: "Status is required",
+	}),
 });
 
 export type CrewFormValues = z.infer<typeof CrewSchema>;

@@ -78,8 +78,15 @@ export async function POST(request: Request) {
 
 		const validatedData = CrewSchema.parse(body);
 
-		const { name, email, phoneNumber, equipment, role, specialization } =
-			validatedData;
+		const {
+			name,
+			email,
+			phoneNumber,
+			equipment,
+			role,
+			specialization,
+			status,
+		} = validatedData;
 
 		if (email || phoneNumber) {
 			const existingCrew = await db.query.crews.findFirst({
@@ -101,20 +108,20 @@ export async function POST(request: Request) {
 			.insert(crews)
 			.values({
 				organizationId: userOrganizationId,
-				name: name || null,
-				email: email || null,
-				phoneNumber: phoneNumber || null,
+				name: name,
+				email: email ?? "",
+				phoneNumber: phoneNumber,
 				equipment: equipment || [],
 				role: role || "crew",
-				specialization: specialization || null,
-				status: "available", // Default status
+				specialization: specialization || "",
+				status: status,
 			})
 			.returning();
 
 		return NextResponse.json(newCrew[0], { status: 201 });
 	} catch (error: unknown) {
 		if (error instanceof ZodError) {
-			return NextResponse.json({ errors: error.errors }, { status: 400 });
+			return NextResponse.json({ errors: error.issues }, { status: 400 });
 		}
 		const errorMessage =
 			error instanceof Error ? error.message : "Unknown error";

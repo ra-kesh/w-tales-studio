@@ -15,7 +15,13 @@ import {
 	FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import {
 	type CrewFormValues,
 	CrewSchema,
@@ -44,8 +50,8 @@ export function CrewForm({
 	return (
 		<Form {...form}>
 			<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 px-4">
-				<div className="grid grid-cols-2 gap-6">
-					<div className="col-span-2">
+				<div className="grid grid-cols-6 gap-6">
+					<div className="col-span-4">
 						<FormField
 							control={form.control}
 							name="name"
@@ -55,44 +61,81 @@ export function CrewForm({
 									<FormControl>
 										<Input placeholder="e.g., John Doe" {...field} />
 									</FormControl>
-									<FormDescription>
+									{/* <FormDescription>
 										The name of the external crew member or freelancer.
-									</FormDescription>
+									</FormDescription> */}
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
+					</div>
+					<div className="col-span-2">
+						<FormField
+							control={form.control}
+							name="status"
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>Status</FormLabel>
+									<Select
+										onValueChange={field.onChange}
+										defaultValue={field.value}
+									>
+										<FormControl>
+											<SelectTrigger className="min-w-full">
+												<SelectValue placeholder="Crew status" />
+											</SelectTrigger>
+										</FormControl>
+										<SelectContent>
+											<SelectItem value="available">Available</SelectItem>
+											<SelectItem value="unavailable">Unavailable</SelectItem>
+										</SelectContent>
+									</Select>
+									{/* <FormDescription>
+										Crew member's current availability.
+									</FormDescription> */}
 									<FormMessage />
 								</FormItem>
 							)}
 						/>
 					</div>
 
-					<FormField
-						control={form.control}
-						name="email"
-						render={({ field }) => (
-							<FormItem>
-								<FormLabel>Email</FormLabel>
-								<FormControl>
-									<Input placeholder="crew@example.com" {...field} />
-								</FormControl>
-								<FormMessage />
-							</FormItem>
-						)}
-					/>
+					<div className="col-span-3">
+						<FormField
+							control={form.control}
+							name="phoneNumber"
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>Phone Number</FormLabel>
+									<FormControl>
+										<Input placeholder="+1 234 567 890" {...field} />
+									</FormControl>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
+					</div>
 
-					<FormField
-						control={form.control}
-						name="phoneNumber"
-						render={({ field }) => (
-							<FormItem>
-								<FormLabel>Phone Number</FormLabel>
-								<FormControl>
-									<Input placeholder="+1 234 567 890" {...field} />
-								</FormControl>
-								<FormMessage />
-							</FormItem>
-						)}
-					/>
+					<div className="col-span-3">
+						<FormField
+							control={form.control}
+							name="email"
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>Email</FormLabel>
+									<FormControl>
+										<Input
+											type="email"
+											placeholder="crew@example.com"
+											{...field}
+										/>
+									</FormControl>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
+					</div>
 
-					<div className="col-span-2">
+					<div className="col-span-6">
 						<FormField
 							control={form.control}
 							name="specialization"
@@ -111,7 +154,7 @@ export function CrewForm({
 						/>
 					</div>
 
-					<div className="col-span-2 space-y-4">
+					<div className="col-span-6 space-y-4">
 						<div className="flex items-center justify-between">
 							<FormLabel>Equipment</FormLabel>
 							<Button
@@ -164,11 +207,15 @@ export function CrewForm({
 					</div>
 				</div>
 
-				<div className="flex justify-end space-x-2">
-					<Button type="button" variant="outline">
+				<div className="col-span-6 mt-4">
+					{/* <Button type="button" variant="outline">
 						Cancel
-					</Button>
-					<Button type="submit" disabled={form.formState.isSubmitting}>
+					</Button> */}
+					<Button
+						className="min-w-full"
+						type="submit"
+						disabled={form.formState.isSubmitting}
+					>
 						{form.formState.isSubmitting ? (
 							<>
 								<Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...
