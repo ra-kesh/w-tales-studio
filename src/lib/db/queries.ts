@@ -2522,7 +2522,7 @@ export async function getAllUserShootAssignments(
 			.leftJoin(shoots, eq(shootsAssignments.shootId, shoots.id))
 			.leftJoin(bookings, eq(shoots.bookingId, bookings.id))
 			.where(and(...conditions))
-			.orderBy(desc(shoots.date))
+			.orderBy(asc(shoots.date))
 			.limit(pageSize)
 			.offset(offset),
 		db
@@ -2592,7 +2592,7 @@ export async function getAllUserTaskAssignments(
 			.leftJoin(bookings, eq(tasks.bookingId, bookings.id))
 			.leftJoin(deliverables, eq(tasks.deliverableId, deliverables.id))
 			.where(and(...conditions))
-			.orderBy(desc(tasks.dueDate)) // Order by due date for history
+			.orderBy(asc(tasks.dueDate)) // Order by due date for history
 			.limit(pageSize)
 			.offset(offset),
 		db
@@ -2663,7 +2663,7 @@ export async function getAllUserDeliverableAssignments(
 			)
 			.leftJoin(bookings, eq(deliverables.bookingId, bookings.id))
 			.where(and(...conditions))
-			.orderBy(desc(deliverables.dueDate)) // Order by due date for history
+			.orderBy(asc(deliverables.dueDate)) // Order by due date for history
 			.limit(pageSize)
 			.offset(offset),
 		db
