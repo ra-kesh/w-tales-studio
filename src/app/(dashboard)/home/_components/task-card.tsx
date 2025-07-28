@@ -1,10 +1,10 @@
+"use client";
+
 import { format, isPast, isToday } from "date-fns";
-import { AlertTriangle, ArrowRightIcon, CalendarIcon } from "lucide-react";
-import {
-	Tooltip,
-	TooltipContent,
-	TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { AlertTriangle, CalendarIcon, Edit } from "lucide-react";
+import { Button } from "@/components/ui/button";
+
+import { useTaskReviewParams } from "@/hooks/use-task-review-params";
 
 const statusColors = {
 	pending: "text-amber-700 bg-amber-50 ring-amber-600/20",
@@ -20,6 +20,7 @@ const priorityColors = {
 };
 
 export function TaskCard({ assignment }) {
+	const { setParams } = useTaskReviewParams();
 	const { task } = assignment;
 	const dueDate = task.dueDate ? new Date(task.dueDate) : null;
 	const isValidDate = dueDate && !isNaN(dueDate.getTime());
@@ -29,9 +30,13 @@ export function TaskCard({ assignment }) {
 		!isToday(dueDate) &&
 		task.status !== "completed";
 
+	const handleUpdateClick = () => {
+		setParams({ reviewTaskId: assignment.id.toString() });
+	};
+
 	return (
 		<li className="flex items-center justify-between gap-x-6 py-5">
-			<div className="min-w-full">
+			<div className="min-w-0 flex-auto">
 				<div className="flex items-center gap-x-3">
 					<p className="text-md font-semibold text-gray-900">
 						{task.description}
@@ -102,6 +107,17 @@ export function TaskCard({ assignment }) {
 						<p className="text-xs text-gray-600">{task.notes}</p>
 					</div>
 				)}
+			</div>
+			<div className="flex flex-none items-center">
+				<Button
+					variant="outline"
+					size="sm"
+					onClick={handleUpdateClick}
+					className="gap-2"
+				>
+					<Edit className="h-3 w-3" />
+					Update
+				</Button>
 			</div>
 		</li>
 	);
