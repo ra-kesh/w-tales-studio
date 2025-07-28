@@ -273,30 +273,6 @@ export const shoots = pgTable("shoots", {
 	updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export const deliverables = pgTable("deliverables", {
-	id: serial("id").primaryKey(),
-	bookingId: integer("booking_id")
-		.notNull()
-		.references(() => bookings.id, { onDelete: "cascade" }),
-	organizationId: text("organization_id")
-		.notNull()
-		.references(() => organizations.id, { onDelete: "cascade" }),
-	title: text("title").notNull(),
-	isPackageIncluded: boolean("is_package_included").notNull().default(false),
-	cost: decimal("cost", { precision: 10, scale: 2 }),
-	quantity: integer("quantity").notNull(),
-	dueDate: text("due_date"),
-	notes: text("notes"),
-	status: text("status").notNull().default("pending"),
-	priority: text("priority").notNull().default("medium"),
-	fileUrl: text("file_url"),
-	clientFeedback: text("client_feedback"),
-	revisionCount: integer("revision_count").notNull().default(0),
-	deliveredAt: timestamp("delivered_at"),
-	createdAt: timestamp("created_at").defaultNow(),
-	updatedAt: timestamp("updated_at").defaultNow(),
-});
-
 export const receivedAmounts = pgTable("received_amounts", {
 	id: serial("id").primaryKey(),
 	bookingId: integer("booking_id")
@@ -412,6 +388,33 @@ export const expensesAssignmentsRelations = relations(
 	}),
 );
 
+export const shootsAssignments = pgTable(
+	"shoots_assignments",
+	{
+		id: serial("id").primaryKey(),
+		shootId: integer("shoot_id")
+			.notNull()
+			.references(() => shoots.id, { onDelete: "cascade" }),
+		crewId: integer("crew_id")
+			.notNull()
+			.references(() => crews.id, { onDelete: "cascade" }),
+		isLead: boolean("is_lead").notNull().default(false),
+		organizationId: text("organization_id")
+			.notNull()
+			.references(() => organizations.id, { onDelete: "cascade" }),
+		assignedAt: timestamp("assigned_at").defaultNow(),
+		createdAt: timestamp("created_at").defaultNow(),
+		updatedAt: timestamp("updated_at").defaultNow(),
+	},
+	(t) => [
+		uniqueIndex("shoots_assignments_unique_idx").on(
+			t.shootId,
+			t.crewId,
+			t.organizationId,
+		),
+	],
+);
+
 export const crews = pgTable(
 	"crews",
 	{
@@ -453,61 +456,225 @@ export const crewRelations = relations(crews, ({ one, many }) => ({
 	tasksAssignments: many(tasksAssignments),
 	deliverablesAssignments: many(deliverablesAssignments),
 	expensesAssignments: many(expensesAssignments),
+	feedbackSummary: many(crewFeedbackSummary),
 }));
 
-export const shootsAssignments = pgTable(
-	"shoots_assignments",
-	{
-		id: serial("id").primaryKey(),
-		shootId: integer("shoot_id")
-			.notNull()
-			.references(() => shoots.id, { onDelete: "cascade" }),
-		crewId: integer("crew_id")
-			.notNull()
-			.references(() => crews.id, { onDelete: "cascade" }),
-		isLead: boolean("is_lead").notNull().default(false),
-		organizationId: text("organization_id")
-			.notNull()
-			.references(() => organizations.id, { onDelete: "cascade" }),
-		assignedAt: timestamp("assigned_at").defaultNow(),
-		createdAt: timestamp("created_at").defaultNow(),
-		updatedAt: timestamp("updated_at").defaultNow(),
-	},
-	(t) => [
-		uniqueIndex("shoots_assignments_unique_idx").on(
-			t.shootId,
-			t.crewId,
-			t.organizationId,
-		),
-	],
+export const assignmentActivities = pgTable("assignment_activities", {
+	id: serial("id").primaryKey(),
+	assignmentType: text("assignment_type").notNull(),
+	assignmentId: integer("assignment_id").notNull(),
+	actionType: text("action_type").notNull(),
+	payload: jsonb("payload"),
+	performedBy: integer("performed_by")
+		.notNull()
+		.references(() => crews.id, { onDelete: "cascade" }),
+	performedAt: timestamp("performed_at").defaultNow(),
+});
+
+export const assignmentActivitiesRelations = relations(
+	assignmentActivities,
+	({ one }) => ({
+		performedByUser: one(crews, {
+			fields: [assignmentActivities.performedBy],
+			references: [crews.id],
+		}),
+	}),
 );
 
-export const deliverablesAssignments = pgTable(
-	"deliverables_assignments",
-	{
-		id: serial("id").primaryKey(),
-		deliverableId: integer("deliverable_id")
-			.notNull()
-			.references(() => deliverables.id, { onDelete: "cascade" }),
-		crewId: integer("crew_id")
-			.notNull()
-			.references(() => crews.id, { onDelete: "cascade" }),
-		isLead: boolean("is_lead").notNull().default(false),
-		organizationId: text("organization_id")
-			.notNull()
-			.references(() => organizations.id, { onDelete: "cascade" }),
-		assignedAt: timestamp("assigned_at").defaultNow(),
-		createdAt: timestamp("created_at").defaultNow(),
-		updatedAt: timestamp("updated_at").defaultNow(),
-	},
-	(t) => [
-		uniqueIndex("deliverables_assignments_unique_idx").on(
-			t.deliverableId,
-			t.crewId,
-			t.organizationId,
-		),
-	],
+export const crewFeedbackSummary = pgTable("crew_feedback_summary", {
+	id: serial("id").primaryKey(),
+	crewId: integer("crew_id")
+		.notNull()
+		.references(() => crews.id, { onDelete: "cascade" }),
+	category: text("category").notNull(),
+	totalFeedbackCount: integer("total_feedback_count").default(0),
+	positiveCount: integer("positive_count").default(0),
+	constructiveCount: integer("constructive_count").default(0),
+	criticalCount: integer("critical_count").default(0),
+	lastFeedbackDate: timestamp("last_feedback_date"),
+	updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const crewFeedbackSummaryRelations = relations(
+	crewFeedbackSummary,
+	({ one }) => ({
+		crew: one(crews, {
+			fields: [crewFeedbackSummary.crewId],
+			references: [crews.id],
+		}),
+	}),
 );
+
+export const notifications = pgTable("notifications", {
+	id: serial("id").primaryKey(),
+	crewId: integer("crew_id")
+		.notNull()
+		.references(() => crews.id, { onDelete: "cascade" }),
+	notificationType: text("notification_type").notNull(),
+	assignmentType: text("assignment_type").notNull(),
+	assignmentId: integer("assignment_id").notNull(),
+	message: text("message").notNull(),
+	readAt: timestamp("read_at"),
+	createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const notificationsRelations = relations(notifications, ({ one }) => ({
+	user: one(crews, {
+		fields: [notifications.crewId],
+		references: [crews.id],
+	}),
+}));
+
+export const assignmentSubmissions = pgTable("assignment_submissions", {
+	id: serial("id").primaryKey(),
+	assignmentType: text("assignment_type").notNull(),
+	assignmentId: integer("assignment_id").notNull(),
+	version: integer("version").notNull().default(1),
+	status: text("status").notNull(),
+	comment: text("comment"),
+	powLinks: jsonb("pow_links"),
+	submittedBy: integer("submitted_by")
+		.notNull()
+		.references(() => crews.id, { onDelete: "set null" }),
+	submittedAt: timestamp("submitted_at").defaultNow(),
+	reviewedBy: integer("reviewed_by").references(() => crews.id, {
+		onDelete: "set null",
+	}),
+	reviewComment: integer("review_comment").references(() => crews.id, {
+		onDelete: "set null",
+	}),
+	createdAt: timestamp("created_at").defaultNow(),
+	updatedAt: timestamp("updated_at").defaultNow(),
+	currentReviewer: integer("current_reviewer").references(() => crews.id, {
+		onDelete: "set null",
+	}),
+});
+
+export const assignmentSubmissionsRelations = relations(
+	assignmentSubmissions,
+	({ one, many }) => ({
+		task: one(tasks, {
+			fields: [assignmentSubmissions.assignmentId],
+			references: [tasks.id],
+			relationName: "taskSubmissions",
+		}),
+		deliverable: one(deliverables, {
+			fields: [assignmentSubmissions.assignmentId],
+			references: [deliverables.id],
+			relationName: "deliverableSubmissions",
+		}),
+
+		submittedBy: one(crews, {
+			fields: [assignmentSubmissions.submittedBy],
+			references: [crews.id],
+			relationName: "submittedBy",
+		}),
+		reviewedBy: one(crews, {
+			fields: [assignmentSubmissions.reviewedBy],
+			references: [crews.id],
+			relationName: "reviewedBy",
+		}),
+		currentReviewer: one(crews, {
+			fields: [assignmentSubmissions.currentReviewer],
+			references: [crews.id],
+			relationName: "currentReviewer",
+		}),
+		files: many(submissionFiles),
+		feedback: many(submissionFeedback),
+	}),
+);
+
+export const submissionFiles = pgTable("submission_files", {
+	id: serial("id").primaryKey(),
+	submissionId: integer("submission_id")
+		.notNull()
+		.references(() => assignmentSubmissions.id, { onDelete: "cascade" }),
+	fileName: text("file_name").notNull(),
+	filePath: text("file_path").notNull(),
+	fileSize: integer("file_size").notNull(),
+	mimeType: text("mime_type"),
+	uploadedBy: integer("uploaded_by")
+		.notNull()
+		.references(() => crews.id, { onDelete: "set null" }),
+	uploadedAt: timestamp("uploaded_at").defaultNow(),
+});
+
+export const submissionFilesRelations = relations(
+	submissionFiles,
+	({ one }) => ({
+		submission: one(assignmentSubmissions, {
+			fields: [submissionFiles.submissionId],
+			references: [assignmentSubmissions.id],
+		}),
+		uploadedByUser: one(crews, {
+			fields: [submissionFiles.uploadedBy],
+			references: [crews.id],
+		}),
+	}),
+);
+
+export const submissionFeedback = pgTable("submission_feedback", {
+	id: serial("id").primaryKey(),
+	submissionId: integer("submission_id")
+		.notNull()
+		.references(() => assignmentSubmissions.id, { onDelete: "cascade" }),
+	feedbackType: text("feedback_type").notNull(),
+	category: text("category").notNull(),
+	feedbackText: text("feedback_text").notNull(),
+	isPrivate: boolean("is_private").default(false),
+	givenBy: integer("given_by")
+		.notNull()
+		.references(() => crews.id, { onDelete: "set null" }),
+	givenAt: timestamp("given_at").defaultNow(),
+});
+
+export const submissionFeedbackRelations = relations(
+	submissionFeedback,
+	({ one }) => ({
+		submission: one(assignmentSubmissions, {
+			fields: [submissionFeedback.submissionId],
+			references: [assignmentSubmissions.id],
+		}),
+		givenByUser: one(crews, {
+			fields: [submissionFeedback.givenBy],
+			references: [crews.id],
+		}),
+	}),
+);
+
+export const deliverables = pgTable("deliverables", {
+	id: serial("id").primaryKey(),
+	bookingId: integer("booking_id")
+		.notNull()
+		.references(() => bookings.id, { onDelete: "cascade" }),
+	organizationId: text("organization_id")
+		.notNull()
+		.references(() => organizations.id, { onDelete: "cascade" }),
+	title: text("title").notNull(),
+	isPackageIncluded: boolean("is_package_included").notNull().default(false),
+	cost: decimal("cost", { precision: 10, scale: 2 }),
+	quantity: integer("quantity").notNull(),
+	dueDate: text("due_date"),
+	notes: text("notes"),
+	status: text("status").notNull().default("pending"),
+	priority: text("priority").notNull().default("medium"),
+	fileUrl: text("file_url"),
+	clientFeedback: text("client_feedback"),
+	revisionCount: integer("revision_count").notNull().default(0),
+	deliveredAt: timestamp("delivered_at"),
+	createdAt: timestamp("created_at").defaultNow(),
+	updatedAt: timestamp("updated_at").defaultNow(),
+	workflowStatus: text("workflow_status"),
+
+	approvedSubmissionId: integer("approved_submission_id"),
+	approvedAt: timestamp("approved_at"),
+
+	lastStatusUpdateBy: integer("last_status_update_by").references(
+		() => crews.id,
+		{ onDelete: "set null" },
+	),
+	lastStatusUpdatedAt: timestamp("last_status_update_at"),
+});
 
 export const deliverablesRelations = relations(
 	deliverables,
@@ -522,7 +689,49 @@ export const deliverablesRelations = relations(
 		}),
 		tasks: many(tasks),
 		deliverablesAssignments: many(deliverablesAssignments),
+		approvedSubmission: one(assignmentSubmissions, {
+			fields: [deliverables.approvedSubmissionId],
+			references: [assignmentSubmissions.id],
+		}),
+		submissions: many(assignmentSubmissions, {
+			relationName: "deliverableSubmissions",
+		}),
+
+		lastStatusUpdateByUser: one(crews, {
+			fields: [deliverables.lastStatusUpdateBy],
+			references: [crews.id],
+		}),
 	}),
+);
+
+export const deliverablesAssignments = pgTable(
+	"deliverables_assignments",
+	{
+		id: serial("id").primaryKey(),
+		deliverableId: integer("deliverable_id")
+			.notNull()
+			.references(() => deliverables.id, { onDelete: "cascade" }),
+		crewId: integer("crew_id")
+			.notNull()
+			.references(() => crews.id, { onDelete: "set null" }),
+		isLead: boolean("is_lead").notNull().default(false),
+		organizationId: text("organization_id")
+			.notNull()
+			.references(() => organizations.id, { onDelete: "cascade" }),
+		assignedAt: timestamp("assigned_at").defaultNow(),
+		assignedBy: integer("assigned_by")
+			// .notNull()
+			.references(() => crews.id, { onDelete: "set null" }),
+		createdAt: timestamp("created_at").defaultNow(),
+		updatedAt: timestamp("updated_at").defaultNow(),
+	},
+	(t) => [
+		uniqueIndex("deliverables_assignments_unique_idx").on(
+			t.deliverableId,
+			t.crewId,
+			t.organizationId,
+		),
+	],
 );
 
 export const deliverablesAssignmentsRelations = relations(
@@ -539,6 +748,10 @@ export const deliverablesAssignmentsRelations = relations(
 		organization: one(organizations, {
 			fields: [deliverablesAssignments.organizationId],
 			references: [organizations.id],
+		}),
+		assignedBy: one(crews, {
+			fields: [deliverablesAssignments.assignedBy],
+			references: [crews.id],
 		}),
 	}),
 );
@@ -561,7 +774,49 @@ export const tasks = pgTable("tasks", {
 	dueDate: text("due_date"),
 	createdAt: timestamp("created_at").defaultNow().notNull(),
 	updatedAt: timestamp("updated_at").defaultNow().notNull(),
+	workflowStatus: text("workflow_status"),
+
+	approvedSubmissionId: integer("approved_submission_id").references(
+		() => assignmentSubmissions.id,
+		{ onDelete: "set null" },
+	),
+
+	approvedAt: timestamp("approved_at"),
+
+	lastStatusUpdateBy: integer("last_status_update_by").references(
+		() => crews.id,
+		{ onDelete: "set null" },
+	),
+
+	lastStatusUpdatedAt: timestamp("last_status_update_at"),
 });
+
+export const tasksRelations = relations(tasks, ({ one, many }) => ({
+	booking: one(bookings, {
+		fields: [tasks.bookingId],
+		references: [bookings.id],
+	}),
+	organization: one(organizations, {
+		fields: [tasks.organizationId],
+		references: [organizations.id],
+	}),
+	deliverable: one(deliverables, {
+		fields: [tasks.deliverableId],
+		references: [deliverables.id],
+	}),
+	tasksAssignments: many(tasksAssignments),
+	approvedSubmission: one(assignmentSubmissions, {
+		fields: [tasks.approvedSubmissionId],
+		references: [assignmentSubmissions.id],
+	}),
+
+	submissions: many(assignmentSubmissions),
+
+	lastStatusUpdateByUser: one(crews, {
+		fields: [tasks.lastStatusUpdateBy],
+		references: [crews.id],
+	}),
+}));
 
 export const tasksAssignments = pgTable(
 	"tasks_assignments",
@@ -577,6 +832,9 @@ export const tasksAssignments = pgTable(
 			.notNull()
 			.references(() => organizations.id, { onDelete: "cascade" }),
 		assignedAt: timestamp("assigned_at").defaultNow().notNull(),
+		assignedBy: integer("assigned_by")
+			// .notNull()
+			.references(() => crews.id, { onDelete: "set null" }),
 		createdAt: timestamp("created_at").defaultNow().notNull(),
 		updatedAt: timestamp("updated_at").defaultNow().notNull(),
 	},
@@ -588,21 +846,6 @@ export const tasksAssignments = pgTable(
 		),
 	],
 );
-export const tasksRelations = relations(tasks, ({ one, many }) => ({
-	booking: one(bookings, {
-		fields: [tasks.bookingId],
-		references: [bookings.id],
-	}),
-	organization: one(organizations, {
-		fields: [tasks.organizationId],
-		references: [organizations.id],
-	}),
-	deliverable: one(deliverables, {
-		fields: [tasks.deliverableId],
-		references: [deliverables.id],
-	}),
-	tasksAssignments: many(tasksAssignments),
-}));
 
 export const tasksAssignmentsRelations = relations(
 	tasksAssignments,
@@ -618,6 +861,10 @@ export const tasksAssignmentsRelations = relations(
 		organization: one(organizations, {
 			fields: [tasksAssignments.organizationId],
 			references: [organizations.id],
+		}),
+		assignedBy: one(crews, {
+			fields: [tasksAssignments.assignedBy],
+			references: [crews.id],
 		}),
 	}),
 );
