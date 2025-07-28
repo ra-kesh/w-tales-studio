@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import { z } from "zod/v4";
 import { getServerSession } from "@/lib/dal";
 import { getUserAssignments } from "@/lib/db/queries";
 
@@ -11,8 +11,8 @@ const assignmentsQuerySchema = z.object({
 	status: z.string().optional(),
 	startDate: z.string().optional(),
 	endDate: z.string().optional(),
-	page: z.coerce.number().int().min(1).default(1),
-	pageSize: z.coerce.number().int().min(1).max(100).default(10),
+	page: z.int().min(1).prefault(1),
+	pageSize: z.int().min(1).max(100).prefault(10),
 });
 
 export async function GET(request: Request) {
@@ -40,7 +40,7 @@ export async function GET(request: Request) {
 			return NextResponse.json(
 				{
 					message: "Invalid query parameters",
-					errors: queryParams.error.flatten().fieldErrors,
+					errors: z.treeifyError(queryParams.error).fieldErrors,
 				},
 				{ status: 400 },
 			);

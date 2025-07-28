@@ -1,8 +1,25 @@
-import type { Shoot, ShootsAssignment } from "@/lib/db/schema";
+import type { Crew, Member, Shoot, ShootsAssignment, User } from "@/lib/db/schema";
 
-export type ShootRowData = Shoot & {
+export interface ShootAdditionalDetails {
+	additionalServices?: string[];
+	requiredCrewCount?: string;
+}
+
+export type ShootData = Omit<Shoot, "additionalDetails"> & {
+	additionalDetails?: ShootAdditionalDetails | null;
+};
+
+type CrewWithDetails = Crew & {
+	member?: (Member & { user: Pick<User, "id" | "name" | "email"> | null }) | null;
+};
+
+export type ShootsAssignmentWithCrew = ShootsAssignment & {
+	crew: CrewWithDetails;
+};
+
+export type ShootRowData = ShootData & {
 	booking: { name: string };
-	shootsAssignments: ShootsAssignment[];
+	shootsAssignments: ShootsAssignmentWithCrew[];
 };
 
 export interface ShootsResponse {

@@ -7,7 +7,7 @@ import {
 } from "nuqs/server";
 import { getSortingStateParser } from "./parsers";
 import type { Booking } from "./db/schema";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 export const bookingSearchParamsCache = createSearchParamsCache({
 	// filterFlag: parseAsStringEnum(

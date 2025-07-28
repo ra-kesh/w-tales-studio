@@ -6,16 +6,30 @@ import {
 	CalendarIcon,
 	CameraIcon,
 	ChevronRight,
+	Sparkles,
 	TextIcon,
 	Users,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import type { ShootRowData } from "@/types/shoots";
 import { DataTableColumnHeader } from "../../tasks/_components/task-table-column-header";
 import { ShootTableRowActions } from "./shoots-table-row-actions";
+
+const serviceDisplayNames: Record<string, string> = {
+	drone_service: "Drone Service",
+	// same_day_edit: "Same-Day Edit",
+	// photo_album: "Photo Album",
+	// bts_video: "Behind the Scenes Video",
+	// extra_hour: "Extra Hour of Coverage",
+};
 
 export const useShootColumns = ({
 	minimalBookings,
@@ -53,9 +67,6 @@ export const useShootColumns = ({
 			cell: ({ row }) => (
 				<div>
 					<div className="font-medium">{row.original.title}</div>
-					{/* <div className="text-sm text-muted-foreground">
-						{row.original.booking.name}
-					</div> */}
 				</div>
 			),
 			meta: {
@@ -66,8 +77,8 @@ export const useShootColumns = ({
 			},
 			enableColumnFilter: true,
 			enableSorting: true,
+			enableHiding: false,
 		},
-
 		{
 			id: "bookingId",
 			accessorKey: "booking.name",
@@ -98,12 +109,21 @@ export const useShootColumns = ({
 			header: ({ column }) => (
 				<DataTableColumnHeader column={column} title="Date" />
 			),
-			cell: ({ row }) => (
-				<div>
-					{format(new Date(row.getValue("date")), "MMM dd, yyyy")} at{" "}
-					{row.original.time}{" "}
-				</div>
-			),
+			cell: ({ row }) => {
+				const date = row.getValue("date") as string | undefined;
+				const { time } = row.original;
+
+				if (!date) {
+					return <div className="text-muted-foreground">Unscheduled</div>;
+				}
+
+				let content = format(new Date(date), "MMM dd, yyyy");
+				if (time) {
+					content += ` at ${time}`;
+				}
+
+				return <div>{content}</div>;
+			},
 			meta: {
 				label: "Date",
 				variant: "dateRange",
@@ -111,16 +131,70 @@ export const useShootColumns = ({
 			},
 			enableColumnFilter: true,
 			enableSorting: true,
+			enableHiding: false,
 		},
-
-		// },
 		{
 			accessorKey: "location",
 			header: "Location",
 			cell: ({ row }) => (
-				<div>{(row.original.location as string) ?? "N/a"}</div>
+				<div className="max-w-[200px]">
+					{row.original.location ? (
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<div className=" flex items-center max-w-fit">
+									<span className="truncate">
+										{(row.original.location as string) ?? "N/a"}
+									</span>
+								</div>
+							</TooltipTrigger>
+							<TooltipContent className="max-w-xs text-balance">
+								<p className="font-semibold">
+									{(row.original.location as string) ?? "N/a"}
+								</p>
+							</TooltipContent>
+						</Tooltip>
+					) : (
+						"N/a"
+					)}
+				</div>
 			),
 		},
+
+		{
+			id: "additionalDetails",
+			header: ({ column }) => (
+				<DataTableColumnHeader column={column} title="Extra Services" />
+			),
+			cell: ({ row }) => {
+				const services =
+					row.original.additionalDetails?.additionalServices ?? [];
+
+				if (services.length === 0) {
+					return <span className="text-muted-foreground">None</span>;
+				}
+
+				return (
+					<div className="flex flex-wrap gap-1 items-center max-w-[250px]">
+						{services.map((serviceKey) => (
+							<Badge
+								key={serviceKey}
+								variant="outline"
+								className="whitespace-nowrap"
+							>
+								{serviceDisplayNames[serviceKey] ?? serviceKey}
+							</Badge>
+						))}
+					</div>
+				);
+			},
+			meta: {
+				label: "Extra Services",
+				icon: Sparkles,
+			},
+			enableSorting: false,
+			enableHiding: false,
+		},
+
 		{
 			id: "crew",
 			accessorKey: "shootsAssignments",
@@ -165,7 +239,7 @@ export const useShootColumns = ({
 							<div className="flex flex-col items-start">
 								<span className="tabular-nums font-medium">
 									{count
-										? `${count} crew member${count > 1 ? "s" : ""} assigned`
+										? `${count} crew${count > 1 ? "s" : ""} assigned`
 										: "No crew assigned"}
 								</span>
 							</div>

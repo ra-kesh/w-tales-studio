@@ -1,4 +1,4 @@
-import { clsx, type ClassValue } from "clsx";
+import { type ClassValue, clsx } from "clsx";
 import { format } from "date-fns";
 import { twMerge } from "tailwind-merge";
 
@@ -122,4 +122,13 @@ export const formatCurrency = (value: string | number) => {
 		currency: "INR",
 		maximumFractionDigits: 0,
 	}).format(Number(value));
+};
+
+export const isUrl = (text: string): boolean => {
+	try {
+		new URL(text);
+		return true;
+	} catch {
+		return false;
+	}
 };

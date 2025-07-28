@@ -122,7 +122,6 @@ export function DeliverableForm({
 										<FormControl>
 											<Button
 												variant="outline"
-												// biome-ignore lint/a11y/useSemanticElements: <explanation>
 												role="combobox"
 												className={cn(
 													"w-full justify-between",

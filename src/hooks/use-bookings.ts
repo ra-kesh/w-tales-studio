@@ -102,7 +102,6 @@ export function useBookingFormData(bookingId: string) {
 		error,
 	} = useBookingDetail(bookingId);
 
-	// Only re‐compute when booking changes
 	const data = useMemo(
 		() => (booking ? transformBookingToFormData(booking) : undefined),
 		[booking],
@@ -112,56 +111,12 @@ export function useBookingFormData(bookingId: string) {
 }
 
 export function transformBookingToFormData(booking: BookingDetail) {
-	// const participants: Participant[] = booking.participants.map((pp) => ({
-	// 	name: pp.client.name,
-	// 	role: pp.role,
-	// 	phone: pp.client.phoneNumber ?? "",
-	// 	email: pp.client.email ?? "",
-	// 	address: pp.client.address ?? "",
-	// 	metadata: pp.client.metadata ?? {},
-	// }));
-
 	return {
 		bookingName: booking.name,
-		bookingType: booking.bookingTypeKey, // the raw key
-		packageType: booking.packageTypeKey, // the raw key
+		bookingType: booking.bookingTypeKey,
+		packageType: booking.packageTypeKey,
 		packageCost: booking.packageCost,
 		note: booking.note,
 		status: booking.status,
-
-		// // new participants array
-		// participants,
-
-		// note: booking.note ?? "",
-
-		// shoots: booking.shoots.map((s) => ({
-		// 	title: s.title ?? "",
-		// 	date: s.date ?? "",
-		// 	time: s.time ?? "",
-		// 	location:
-		// 		typeof s.location === "string"
-		// 			? s.location
-		// 			: JSON.stringify(s.location),
-		// 	crews: s.shootsAssignments?.map((a) => a.crew.id.toString()) ?? [],
-		// })),
-
-		// deliverables: booking.deliverables.map((d) => ({
-		// 	title: d.title ?? "",
-		// 	cost: d.cost ?? "0.00",
-		// 	quantity: d.quantity.toString(),
-		// 	dueDate: d.dueDate ?? "",
-		// })),
-
-		// payments: booking.receivedAmounts.map((r) => ({
-		// 	amount: r.amount,
-		// 	description: r.description ?? "",
-		// 	date: r.paidOn ?? "",
-		// })),
-
-		// scheduledPayments: booking.paymentSchedules.map((p) => ({
-		// 	amount: p.amount,
-		// 	description: p.description ?? "",
-		// 	dueDate: p.dueDate ?? "",
-		// })),
 	};
 }

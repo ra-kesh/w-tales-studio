@@ -10,6 +10,7 @@ import {
 	type BookingStats as BookingStatsType,
 	getConfigs,
 	getMinimalBookings,
+	getMinimalDeliverables,
 	getTasks,
 	getTasksStats,
 	type ShootStats as ShootsStatsType,
@@ -57,6 +58,12 @@ const TaskLayout = async ({ children }: { children: React.ReactNode }) => {
 		queryFn: () =>
 			getMinimalBookings(session?.session.activeOrganizationId as string),
 	});
+
+	// await queryClient.prefetchQuery({
+	//   queryKey: ["bookings", "deliverables", "minimal"],
+	//   queryFn: () =>
+	//     getMinimalDeliverables(session?.session.activeOrganizationId as string),
+	// });
 
 	await queryClient.prefetchQuery({
 		queryKey: ["configurations", "task_status"],

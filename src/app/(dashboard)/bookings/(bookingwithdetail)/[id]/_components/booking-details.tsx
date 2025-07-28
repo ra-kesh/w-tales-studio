@@ -88,7 +88,7 @@ export function BookingDetails({ id }: { id: string }) {
 							<Button
 								size="sm"
 								className="font-semibold cursor-pointer"
-								onClick={() => setParams({ bookingId: id })}
+								onClick={() => setParams({ updateBookingId: id })}
 								disabled={!canCreateAndUpdateBooking}
 							>
 								Edit Booking

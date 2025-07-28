@@ -1,8 +1,8 @@
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { useCreateCrewMutation, useUpdateCrewMutation } from "./use-crews";
+import { useForm } from "react-hook-form";
+import * as z from "zod/v4";
 import type { Crew } from "@/lib/db/schema";
+import { useCreateCrewMutation, useUpdateCrewMutation } from "./use-crews";
 
 const crewFormSchema = z.object({
 	name: z.string().min(2, {
@@ -49,8 +49,13 @@ export function useCrewForm({ crew, onSuccess }: UseCrewFormProps = {}) {
 		resolver: zodResolver(crewFormSchema),
 		defaultValues: crew
 			? {
-					...crew,
-					equipment: crew.equipment?.join(", "),
+					name: crew.name ?? "",
+					email: crew.email ?? "",
+					role: crew.role ?? "",
+					specialization: crew.specialization ?? "",
+					phoneNumber: crew.phoneNumber ?? "",
+					equipment: crew.equipment ? crew.equipment.join(", ") : "",
+					status: crew.status ?? "available",
 				}
 			: defaultValues,
 	});

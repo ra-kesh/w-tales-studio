@@ -1,7 +1,7 @@
 import { and, eq, ne, sum } from "drizzle-orm";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
-import { ZodError } from "zod";
+import { ZodError } from "zod/v4";
 import { updateScheduledPaymentSchema } from "@/app/(dashboard)/payments/_component/scheduled-payment-form-schema";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db/drizzle";

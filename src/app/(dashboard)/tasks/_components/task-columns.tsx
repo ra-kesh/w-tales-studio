@@ -4,7 +4,6 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import {
 	ArrowUpDown,
-	Calendar,
 	CalendarIcon,
 	CameraIcon,
 	CircleDashed,
@@ -23,12 +22,16 @@ export function useTaskColumns({
 	statusOptions,
 	priorityOptions,
 	minimalBookings,
+	minimalDeliverables,
 	isMininmalBookingLoading,
+	isMinimalDeliverableLoading,
 }: {
 	statusOptions: Array<{ label: string; value: string }>;
 	priorityOptions: Array<{ label: string; value: string }>;
 	minimalBookings: Array<{ id: string | number; name: string }>;
+	minimalDeliverables: Array<{ id: string | number; title: string }>;
 	isMininmalBookingLoading: boolean;
+	isMinimalDeliverableLoading: boolean;
 }) {
 	const { statuses, priorities } = useTaskConfigs();
 
@@ -107,6 +110,34 @@ export function useTaskColumns({
 				icon: CameraIcon,
 			},
 			enableColumnFilter: true,
+			enableSorting: false,
+			enableHiding: false,
+		},
+		{
+			id: "deliverableId",
+			accessorKey: "deliverable.title",
+			header: ({ column }) => (
+				<DataTableColumnHeader column={column} title="Deliverable" />
+			),
+			cell: ({ row }) => {
+				return (
+					<span className="text-md whitespace-nowrap">
+						{row.original.deliverable?.title || "N/a"}
+					</span>
+				);
+			},
+			// meta: {
+			//   label: "Deliverable",
+			//   variant: "multiSelect",
+			//   options: isMinimalDeliverableLoading
+			//     ? []
+			//     : (minimalDeliverables.map((deliverable) => ({
+			//         label: deliverable.title,
+			//         value: String(deliverable.id),
+			//       })) ?? []),
+			//   icon: CameraIcon,
+			// },
+			// enableColumnFilter: true,
 			enableSorting: false,
 			enableHiding: false,
 		},
@@ -243,17 +274,47 @@ export function useTaskColumns({
 		},
 
 		{
+			id: "startDate",
+			accessorKey: "startDate",
+			header: ({ column }) => (
+				<DataTableColumnHeader column={column} title="Start Date" />
+			),
+			cell: ({ row }) => {
+				const date = row.getValue("startDate") as string | undefined;
+
+				if (!date) {
+					return <div className="text-muted-foreground">Unscheduled</div>;
+				}
+
+				const content = format(new Date(date), "MMM dd, yyyy");
+
+				return <div>{content}</div>;
+			},
+			meta: {
+				label: "Start Date",
+				variant: "dateRange",
+				icon: CalendarIcon,
+			},
+			enableColumnFilter: true,
+			enableSorting: true,
+		},
+		{
 			id: "dueDate",
 			accessorKey: "dueDate",
-			header: () => (
-				<div className="flex items-center gap-1">
-					<Calendar className="h-4 w-4" />
-					<span>Due Date</span>
-				</div>
+			header: ({ column }) => (
+				<DataTableColumnHeader column={column} title="Due Date" />
 			),
-			cell: ({ row }) => (
-				<div>{format(new Date(row.getValue("dueDate")), "MMM dd, yyyy")}</div>
-			),
+			cell: ({ row }) => {
+				const date = row.getValue("dueDate") as string | undefined;
+
+				if (!date) {
+					return <div className="text-muted-foreground">Unscheduled</div>;
+				}
+
+				const content = format(new Date(date), "MMM dd, yyyy");
+
+				return <div>{content}</div>;
+			},
 			meta: {
 				label: "Due Date",
 				variant: "dateRange",

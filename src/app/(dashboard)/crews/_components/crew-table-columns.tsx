@@ -87,6 +87,11 @@ export function useCrewColumns<TData>() {
 			},
 		},
 		{
+			accessorKey: "phoneNumber",
+			header: "Phone",
+			cell: ({ row }) => <div>{row.getValue("phoneNumber") ?? "N/A"}</div>,
+		},
+		{
 			id: "roles",
 			header: "Role",
 			cell: ({ row }) => {

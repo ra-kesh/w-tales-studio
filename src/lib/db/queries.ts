@@ -166,7 +166,7 @@ export async function getDeliverables(
 			? sortOptions.map((item) =>
 					item.desc ? desc(deliverables[item.id]) : asc(deliverables[item.id]),
 				)
-			: [desc(deliverables.updatedAt), desc(deliverables.createdAt)];
+			: [asc(deliverables.dueDate)];
 
 	const deliverableData = await db.query.deliverables.findMany({
 		where: and(...whereConditions),
@@ -228,6 +228,61 @@ export async function getDeliverables(
 		pageCount: Math.ceil(total / limit),
 		limit,
 	};
+}
+
+export type MinimalDeliverable = {
+	id: number;
+	title: string;
+	deliverablesAssignments: Array<{
+		crewId: number;
+	}>;
+};
+
+export type MinimalDeliverablesResponse = {
+	data: MinimalDeliverable[];
+};
+
+export async function getMinimalDeliverables(
+	userOrganizationId: string,
+	bookingId?: number,
+): Promise<MinimalDeliverablesResponse> {
+	if (!userOrganizationId) {
+		throw new Error("Organization ID is required");
+	}
+
+	try {
+		const whereConditions = [
+			eq(deliverables.organizationId, userOrganizationId),
+		];
+
+		if (bookingId && !Number.isNaN(bookingId)) {
+			whereConditions.push(eq(deliverables.bookingId, bookingId));
+		}
+
+		const deliverablesData = await db.query.deliverables.findMany({
+			where: and(...whereConditions),
+			columns: {
+				id: true,
+				title: true,
+			},
+			with: {
+				deliverablesAssignments: {
+					columns: {
+						crewId: true,
+					},
+				},
+			},
+
+			orderBy: (deliverables, { asc }) => [asc(deliverables.title)],
+		});
+
+		return {
+			data: deliverablesData,
+		};
+	} catch (error) {
+		console.error("Error fetching minimal deliverables:", error);
+		throw error;
+	}
 }
 
 // 1. Define the new interface for TaskStats
@@ -764,6 +819,146 @@ export async function getMinimalBookings(
 // 	};
 // }
 
+// export interface ClientBookingRow {
+// 	id: number;
+// 	name: string;
+// 	email: string | null;
+// 	phoneNumber: string | null;
+// 	address: string | null;
+// 	bookingId: number;
+// 	bookingName: string;
+// 	packageType: string;
+// 	packageCost: string;
+// 	bookingStatus: string;
+// 	bookingCreatedAt: Date | null;
+// }
+
+// export interface ClientsPage {
+// 	data: ClientBookingRow[];
+// 	total: number;
+// 	page: number;
+// 	limit: number;
+// 	pageCount: number;
+// }
+
+// // 1. Define the types for our filters and sorting
+// export type ClientFilters = {
+// 	name?: string;
+// 	bookingId?: string; // Filtering by booking name is more user-friendly for text search
+// 	packageType?: string; // Will be a comma-separated string of package types
+// };
+
+// // Note: Sorting requires mapping to the correct table's column
+// export type AllowedClientSortFields =
+// 	| "name"
+// 	| "bookingName"
+// 	| "packageCost"
+// 	| "status"
+// 	| "bookingCreatedAt";
+// export type ClientSortOption = { id: AllowedClientSortFields; desc: boolean };
+// /**
+//  * Fetch a paginated list of CLIENT+BOOKING rows for an org.
+//  */
+// export async function getClients(
+// 	userOrganizationId: string,
+// 	page = 1,
+// 	limit = 10,
+// 	sortOptions: ClientSortOption[] | undefined = undefined,
+// 	filters: ClientFilters = {},
+// ): Promise<ClientsPage> {
+// 	const offset = (page - 1) * limit;
+
+// 	const whereConditions = [eq(clients.organizationId, userOrganizationId)];
+
+// 	if (filters.name) {
+// 		whereConditions.push(ilike(clients.name, `%${filters.name}%`));
+// 	}
+
+// 	if (filters.bookingId) {
+// 		const bookingIds = filters.bookingId
+// 			.split(",")
+// 			.map((id) => Number.parseInt(id.trim(), 10))
+// 			.filter((id) => !Number.isNaN(id));
+
+// 		if (bookingIds.length > 0) {
+// 			whereConditions.push(inArray(bookings.id, bookingIds));
+// 		}
+// 	}
+
+// 	if (filters.packageType) {
+// 		const packageTypes = filters.packageType.split(",").map((p) => p.trim());
+// 		if (packageTypes.length > 0) {
+// 			// Filter on the joined 'bookings' table
+// 			whereConditions.push(inArray(bookings.packageType, packageTypes));
+// 		}
+// 	}
+
+// 	const orderByClauses =
+// 		sortOptions && sortOptions.length > 0
+// 			? sortOptions.map((item) => {
+// 					const direction = item.desc ? desc : asc;
+// 					// Map the sort key to the correct table and column
+// 					switch (item.id) {
+// 						case "name":
+// 							return direction(clients.name);
+// 						case "bookingName":
+// 							return direction(bookings.name);
+// 						case "packageCost":
+// 							return direction(bookings.packageCost);
+// 						case "status":
+// 							return direction(bookings.status);
+// 						case "bookingCreatedAt":
+// 							return direction(bookings.createdAt);
+// 						default:
+// 							// Fallback or ignore invalid sort keys
+// 							return desc(bookings.updatedAt);
+// 					}
+// 				})
+// 			: [desc(bookings.updatedAt)];
+
+// 	// 1) Fetch the page of rows
+// 	const data = await db
+// 		.select({
+// 			id: clients.id,
+// 			name: clients.name,
+// 			email: clients.email,
+// 			phoneNumber: clients.phoneNumber,
+// 			address: clients.address,
+// 			bookingId: bookings.id,
+// 			bookingName: bookings.name,
+// 			packageType: bookings.packageType,
+// 			packageCost: bookings.packageCost,
+// 			bookingStatus: bookings.status,
+// 			bookingCreatedAt: bookings.createdAt,
+// 		})
+// 		.from(bookingParticipants)
+// 		.innerJoin(clients, eq(bookingParticipants.clientId, clients.id))
+// 		.innerJoin(bookings, eq(bookingParticipants.bookingId, bookings.id))
+// 		.where(and(...whereConditions)) // Apply all filters here
+// 		.orderBy(...orderByClauses)
+// 		.limit(limit)
+// 		.offset(offset);
+
+// 	// 2) Count total matching rows
+// 	const totalResult = await db
+// 		.select({ count: count() })
+// 		.from(bookingParticipants)
+// 		.innerJoin(clients, eq(bookingParticipants.clientId, clients.id))
+// 		.innerJoin(bookings, eq(bookingParticipants.bookingId, bookings.id))
+// 		.where(and(...whereConditions)); // Use the exact same where clause
+
+// 	const total = totalResult[0]?.count ?? 0;
+// 	const pageCount = Math.ceil(total / limit);
+
+// 	return {
+// 		data,
+// 		total,
+// 		page,
+// 		limit,
+// 		pageCount,
+// 	};
+// }
+
 export interface ClientBookingRow {
 	id: number;
 	name: string;
@@ -776,6 +971,9 @@ export interface ClientBookingRow {
 	packageCost: string;
 	bookingStatus: string;
 	bookingCreatedAt: Date | null;
+	totalReceived: number | null;
+	totalScheduled: number | null;
+	totalExpenses: number | null;
 }
 
 export interface ClientsPage {
@@ -786,23 +984,24 @@ export interface ClientsPage {
 	pageCount: number;
 }
 
-// 1. Define the types for our filters and sorting
+// Filter and Sort types remain the same
 export type ClientFilters = {
 	name?: string;
-	bookingId?: string; // Filtering by booking name is more user-friendly for text search
-	packageType?: string; // Will be a comma-separated string of package types
+	bookingId?: string;
+	packageType?: string;
 };
 
-// Note: Sorting requires mapping to the correct table's column
 export type AllowedClientSortFields =
 	| "name"
 	| "bookingName"
 	| "packageCost"
 	| "status"
 	| "bookingCreatedAt";
+// You could add sorting for the new financial fields here if desired in the future.
 export type ClientSortOption = { id: AllowedClientSortFields; desc: boolean };
+
 /**
- * Fetch a paginated list of CLIENT+BOOKING rows for an org.
+ * Fetch a paginated list of CLIENT+BOOKING rows for an org, enriched with financial data.
  */
 export async function getClients(
 	userOrganizationId: string,
@@ -813,56 +1012,81 @@ export async function getClients(
 ): Promise<ClientsPage> {
 	const offset = (page - 1) * limit;
 
-	const whereConditions = [eq(clients.organizationId, userOrganizationId)];
+	const receivedTotals = db
+		.select({
+			bookingId: receivedAmounts.bookingId,
+			totalReceived: sql`sum(${receivedAmounts.amount})`
+				.mapWith(Number)
+				.as("total_received"),
+		})
+		.from(receivedAmounts)
+		.groupBy(receivedAmounts.bookingId)
+		.as("received_totals");
 
+	const scheduledTotals = db
+		.select({
+			bookingId: paymentSchedules.bookingId,
+			totalScheduled: sql`sum(${paymentSchedules.amount})`
+				.mapWith(Number)
+				.as("total_scheduled"),
+		})
+		.from(paymentSchedules)
+		.groupBy(paymentSchedules.bookingId)
+		.as("scheduled_totals");
+
+	const clientExpenses = db
+		.select({
+			bookingId: expenses.bookingId,
+			totalExpenses: sql`sum(${expenses.amount})`
+				.mapWith(Number)
+				.as("total_expenses"),
+		})
+		.from(expenses)
+		.where(eq(expenses.billTo, "Client"))
+		.groupBy(expenses.bookingId)
+		.as("client_expenses");
+
+	const whereConditions = [eq(clients.organizationId, userOrganizationId)];
 	if (filters.name) {
 		whereConditions.push(ilike(clients.name, `%${filters.name}%`));
 	}
-
 	if (filters.bookingId) {
 		const bookingIds = filters.bookingId
 			.split(",")
-			.map((id) => Number.parseInt(id.trim(), 10))
-			.filter((id) => !Number.isNaN(id));
-
+			.map((id) => parseInt(id.trim(), 10))
+			.filter((id) => !isNaN(id));
 		if (bookingIds.length > 0) {
 			whereConditions.push(inArray(bookings.id, bookingIds));
 		}
 	}
-
 	if (filters.packageType) {
 		const packageTypes = filters.packageType.split(",").map((p) => p.trim());
 		if (packageTypes.length > 0) {
-			// Filter on the joined 'bookings' table
 			whereConditions.push(inArray(bookings.packageType, packageTypes));
 		}
 	}
+	const orderByClauses = sortOptions?.length
+		? sortOptions.map((item) => {
+				const direction = item.desc ? desc : asc;
+				switch (item.id) {
+					case "name":
+						return direction(clients.name);
+					case "bookingName":
+						return direction(bookings.name);
+					case "packageCost":
+						return direction(bookings.packageCost);
+					case "status":
+						return direction(bookings.status);
+					case "bookingCreatedAt":
+						return direction(bookings.createdAt);
+					default:
+						return desc(bookings.updatedAt);
+				}
+			})
+		: [asc(bookings.createdAt)];
 
-	const orderByClauses =
-		sortOptions && sortOptions.length > 0
-			? sortOptions.map((item) => {
-					const direction = item.desc ? desc : asc;
-					// Map the sort key to the correct table and column
-					switch (item.id) {
-						case "name":
-							return direction(clients.name);
-						case "bookingName":
-							return direction(bookings.name);
-						case "packageCost":
-							return direction(bookings.packageCost);
-						case "status":
-							return direction(bookings.status);
-						case "bookingCreatedAt":
-							return direction(bookings.createdAt);
-						default:
-							// Fallback or ignore invalid sort keys
-							return desc(bookings.updatedAt);
-					}
-				})
-			: [desc(bookings.updatedAt)];
-
-	// 1) Fetch the page of rows
 	const data = await db
+		.with(receivedTotals, scheduledTotals, clientExpenses)
 		.select({
 			id: clients.id,
 			name: clients.name,
@@ -875,22 +1099,27 @@ export async function getClients(
 			packageCost: bookings.packageCost,
 			bookingStatus: bookings.status,
 			bookingCreatedAt: bookings.createdAt,
+			totalReceived: receivedTotals.totalReceived,
+			totalScheduled: scheduledTotals.totalScheduled,
+			totalExpenses: clientExpenses.totalExpenses,
 		})
 		.from(bookingParticipants)
 		.innerJoin(clients, eq(bookingParticipants.clientId, clients.id))
 		.innerJoin(bookings, eq(bookingParticipants.bookingId, bookings.id))
-		.where(and(...whereConditions)) // Apply all filters here
+		.leftJoin(receivedTotals, eq(bookings.id, receivedTotals.bookingId))
+		.leftJoin(scheduledTotals, eq(bookings.id, scheduledTotals.bookingId))
+		.leftJoin(clientExpenses, eq(bookings.id, clientExpenses.bookingId))
+		.where(and(...whereConditions))
 		.orderBy(...orderByClauses)
 		.limit(limit)
 		.offset(offset);
 
-	// 2) Count total matching rows
 	const totalResult = await db
 		.select({ count: count() })
 		.from(bookingParticipants)
 		.innerJoin(clients, eq(bookingParticipants.clientId, clients.id))
 		.innerJoin(bookings, eq(bookingParticipants.bookingId, bookings.id))
-		.where(and(...whereConditions)); // Use the exact same where clause
+		.where(and(...whereConditions));
 
 	const total = totalResult[0]?.count ?? 0;
 	const pageCount = Math.ceil(total / limit);
@@ -1250,13 +1479,13 @@ export async function getShoots(
 		}
 	}
 
-	// --- Build Dynamic Order By Clause ---
 	const orderBy =
 		sortOptions && sortOptions.length > 0
 			? sortOptions.map((item) =>
 					item.desc ? desc(shoots[item.id]) : asc(shoots[item.id]),
 				)
-			: [desc(shoots.date), desc(shoots.createdAt)]; // Default sort
+			: [asc(shoots.date)];
+	// : [desc(shoots.date), desc(shoots.createdAt)];
 
 	const shootsData = await db.query.shoots.findMany({
 		where: and(...whereConditions),
@@ -1313,10 +1542,12 @@ export async function getShoots(
 export type TaskFilters = {
 	description?: string;
 	status?: string;
-	priority?: string; // The new priority filter
+	priority?: string;
 	bookingId?: string;
 	crewId?: string;
 	dueDate?: string;
+	startDate?: string;
+	deliverableId?: string;
 };
 
 export type AllowedTaskSortFields =
@@ -1324,6 +1555,7 @@ export type AllowedTaskSortFields =
 	| "status"
 	| "priority"
 	| "dueDate"
+	| "startDate"
 	| "createdAt"
 	| "updatedAt";
 export type TaskSortOption = { id: AllowedTaskSortFields; desc: boolean };
@@ -1410,13 +1642,27 @@ export async function getTasks(
 			);
 		}
 	}
+	if (filters.startDate) {
+		const dates = filters.startDate
+			.split(",")
+			.map((date) => date.trim())
+			.filter(Boolean);
+		if (dates.length === 2) {
+			whereConditions.push(
+				gte(tasks.startDate, new Date(dates[0]).toISOString().slice(0, 10)),
+			);
+			whereConditions.push(
+				lte(tasks.startDate, new Date(dates[1]).toISOString().slice(0, 10)),
+			);
+		}
+	}
 
 	const orderBy =
 		sortOptions && sortOptions.length > 0
 			? sortOptions.map((item) =>
 					item.desc ? desc(tasks[item.id]) : asc(tasks[item.id]),
 				)
-			: [desc(tasks.updatedAt), desc(tasks.createdAt)];
+			: [asc(tasks.startDate), asc(tasks.dueDate)];
 
 	const tasksData = await db.query.tasks.findMany({
 		where: and(...whereConditions),
@@ -1424,6 +1670,11 @@ export async function getTasks(
 			booking: {
 				columns: {
 					name: true,
+				},
+			},
+			deliverable: {
+				columns: {
+					title: true,
 				},
 			},
 			tasksAssignments: {
@@ -2271,7 +2522,7 @@ export async function getAllUserShootAssignments(
 			.leftJoin(shoots, eq(shootsAssignments.shootId, shoots.id))
 			.leftJoin(bookings, eq(shoots.bookingId, bookings.id))
 			.where(and(...conditions))
-			.orderBy(desc(shoots.date))
+			.orderBy(asc(shoots.date))
 			.limit(pageSize)
 			.offset(offset),
 		db
@@ -2341,7 +2592,7 @@ export async function getAllUserTaskAssignments(
 			.leftJoin(bookings, eq(tasks.bookingId, bookings.id))
 			.leftJoin(deliverables, eq(tasks.deliverableId, deliverables.id))
 			.where(and(...conditions))
-			.orderBy(desc(tasks.dueDate)) // Order by due date for history
+			.orderBy(asc(tasks.dueDate)) // Order by due date for history
 			.limit(pageSize)
 			.offset(offset),
 		db
@@ -2412,7 +2663,7 @@ export async function getAllUserDeliverableAssignments(
 			)
 			.leftJoin(bookings, eq(deliverables.bookingId, bookings.id))
 			.where(and(...conditions))
-			.orderBy(desc(deliverables.dueDate)) // Order by due date for history
+			.orderBy(asc(deliverables.dueDate)) // Order by due date for history
 			.limit(pageSize)
 			.offset(offset),
 		db
