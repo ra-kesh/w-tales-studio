@@ -3,13 +3,24 @@
 import {
 	CheckCircle2,
 	File as FileIcon,
+	FileImage,
+	FileText,
+	FileVideo,
+	Loader2,
+	Package,
+	Trash,
 	UploadCloud,
 	XCircle,
 } from "lucide-react";
 import React, { useCallback, useState } from "react";
-import { useDropzone } from "react-dropzone";
+import { type FileRejection, useDropzone } from "react-dropzone";
+import { toast } from "sonner";
+import { Button } from "./ui/button";
 
-// These interfaces remain the same
+const MAX_FILES = 4;
+const MAX_FILE_SIZE_MB = 5;
+const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+
 export interface UploadedFile {
 	key: string;
 	name: string;
@@ -20,23 +31,62 @@ interface FileToUpload {
 	file: File;
 	progress: number;
 	status: "pending" | "uploading" | "success" | "error";
+	key?: string;
 	source: XMLHttpRequest | null;
 }
-
-// The props are now generic
 interface FileUploaderProps {
 	uploadContext: "submissions" | "receipts" | "logos";
 	onUploadComplete: (files: UploadedFile[]) => void;
+	onFileRemoved: (key: string) => void;
 }
+
+// --- Helper Function for Icons (Unchanged) ---
+const getFileIcon = (fileName: string) => {
+	const extension = fileName.split(".").pop()?.toLowerCase();
+	if (["jpg", "jpeg", "png", "gif", "webp"].includes(extension!)) {
+		return <FileImage className="size-5 text-gray-500" />;
+	}
+	if (["pdf", "doc", "docx", "txt"].includes(extension!)) {
+		return <FileText className="size-5 text-gray-500" />;
+	}
+	if (["mp4", "mov", "avi", "mkv"].includes(extension!)) {
+		return <FileVideo className="size-5 text-gray-500" />;
+	}
+	if (["zip", "rar", "7z"].includes(extension!)) {
+		return <Package className="size-5 text-gray-500" />;
+	}
+	return <FileIcon className="size-5 text-gray-500" />;
+};
 
 export function FileUploader({
 	uploadContext,
 	onUploadComplete,
+	onFileRemoved,
 }: FileUploaderProps) {
 	const [filesToUpload, setFilesToUpload] = useState<FileToUpload[]>([]);
+	const [deletingKey, setDeletingKey] = useState<string | null>(null);
 
 	const onDrop = useCallback(
-		(acceptedFiles: File[]) => {
+		(acceptedFiles: File[], fileRejections: FileRejection[]) => {
+			fileRejections.forEach(({ file, errors }) => {
+				if (errors[0].code === "file-too-large") {
+					toast.error("File too large", {
+						description: `${file.name} is larger than ${MAX_FILE_SIZE_MB}MB.`,
+					});
+				}
+				if (errors[0].code === "too-many-files") {
+					toast.error("Too many files", {
+						description: `You can only upload a maximum of ${MAX_FILES} files.`,
+					});
+				}
+			});
+			const currentAndNewFiles = [...filesToUpload, ...acceptedFiles];
+			if (currentAndNewFiles.length > MAX_FILES) {
+				toast.error("Too many files", {
+					description: `You can only upload a maximum of ${MAX_FILES} files in total.`,
+				});
+				return;
+			}
 			const newFiles = acceptedFiles.map((file) => ({
 				file,
 				progress: 0,
@@ -46,23 +96,22 @@ export function FileUploader({
 			setFilesToUpload((prev) => [...prev, ...newFiles]);
 			newFiles.forEach(uploadFile);
 		},
-		[uploadContext],
-	); // Depend on uploadContext
+		[uploadContext, filesToUpload],
+	);
 
 	const uploadFile = (fileToUpload: FileToUpload) => {
-		// Pass the context to the API
 		fetch("/api/uploads/presigned-url", {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({
 				fileName: fileToUpload.file.name,
 				fileType: fileToUpload.file.type,
-				context: uploadContext, // <-- The crucial change
+				context: uploadContext,
 			}),
 		})
 			.then((res) => res.json())
 			.then(({ url, key }) => {
-				// The rest of the upload logic is identical
+				updateFileState(fileToUpload.file, { key });
 				const xhr = new XMLHttpRequest();
 				fileToUpload.source = xhr;
 				xhr.open("PUT", url);
@@ -70,12 +119,18 @@ export function FileUploader({
 				xhr.upload.onprogress = (event) => {
 					if (event.lengthComputable) {
 						const progress = Math.round((event.loaded / event.total) * 100);
-						updateFileProgress(fileToUpload.file, progress, "uploading");
+						updateFileState(fileToUpload.file, {
+							progress,
+							status: "uploading",
+						});
 					}
 				};
 				xhr.onload = () => {
 					if (xhr.status === 200) {
-						updateFileProgress(fileToUpload.file, 100, "success");
+						updateFileState(fileToUpload.file, {
+							progress: 100,
+							status: "success",
+						});
 						const finalUrl = url.split("?")[0];
 						onUploadComplete([
 							{
@@ -85,82 +140,139 @@ export function FileUploader({
 								url: finalUrl,
 							},
 						]);
+						toast.success("File uploaded", {
+							description: fileToUpload.file.name,
+						});
 					} else {
-						updateFileProgress(fileToUpload.file, 0, "error");
+						updateFileState(fileToUpload.file, { status: "error" });
+						toast.error("Upload Failed", {
+							description: `Could not upload ${fileToUpload.file.name}.`,
+						});
 					}
 				};
 				xhr.onerror = () => {
-					updateFileProgress(fileToUpload.file, 0, "error");
+					updateFileState(fileToUpload.file, { status: "error" });
+					toast.error("Network Error", {
+						description: `Could not upload ${fileToUpload.file.name}.`,
+					});
 				};
 				xhr.send(fileToUpload.file);
 			})
 			.catch(() => {
-				updateFileProgress(fileToUpload.file, 0, "error");
+				updateFileState(fileToUpload.file, { status: "error" });
+				toast.error("Upload Failed", {
+					description: `Could not get an upload URL for ${fileToUpload.file.name}.`,
+				});
 			});
 	};
 
-	const updateFileProgress = (
-		file: File,
-		progress: number,
-		status: FileToUpload["status"],
-	) => {
+	const updateFileState = (file: File, updates: Partial<FileToUpload>) => {
 		setFilesToUpload((prev) =>
-			prev.map((f) => (f.file === file ? { ...f, progress, status } : f)),
+			prev.map((f) => (f.file === file ? { ...f, ...updates } : f)),
 		);
+	};
+
+	const removeFile = async (fileToRemove: FileToUpload) => {
+		if (fileToRemove.source) fileToRemove.source.abort();
+
+		if (fileToRemove.status === "success" && fileToRemove.key) {
+			setDeletingKey(fileToRemove.key);
+			try {
+				await fetch("/api/uploads/file", {
+					method: "DELETE",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({ key: fileToRemove.key }),
+				});
+				onFileRemoved(fileToRemove.key);
+				toast.success("File removed successfully.");
+				setFilesToUpload((prev) =>
+					prev.filter((f) => f.key !== fileToRemove.key),
+				);
+			} catch (error) {
+				toast.error("Error removing file from storage.");
+			} finally {
+				setDeletingKey(null);
+			}
+		} else {
+			setFilesToUpload((prev) =>
+				prev.filter((f) => f.file !== fileToRemove.file),
+			);
+		}
 	};
 
 	const { getRootProps, getInputProps, isDragActive } = useDropzone({
 		onDrop,
-		// You can add mime type restrictions here if needed for a specific use-case
-		// accept: { 'image/png': ['.png'], 'image/jpeg': ['.jpg', '.jpeg'] }
+		maxFiles: MAX_FILES,
+		maxSize: MAX_FILE_SIZE_BYTES,
 	});
 
-	// The JSX remains the same
 	return (
 		<div className="space-y-4">
 			<div
 				{...getRootProps()}
-				className={`flex flex-col items-center justify-center w-full p-6 border-2 border-dashed rounded-lg cursor-pointer hover:bg-gray-50 ${
-					isDragActive ? "border-blue-500 bg-blue-50" : "border-gray-300"
+				className={`flex flex-col items-center justify-center w-full p-6 border-2 border-dashed rounded-lg cursor-pointer hover:bg-gray-50/50 ${
+					isDragActive ? "border-primary bg-primary/10" : "border-gray-300"
 				}`}
 			>
 				<input {...getInputProps()} />
-				<UploadCloud className="w-10 h-10 text-gray-500" />
+				<UploadCloud className="size-10 text-gray-500" />
 				<p className="mt-2 text-sm text-gray-600">
 					{isDragActive
-						? "Drop the files here ..."
-						: "Drag 'n' drop some files here, or click to select files"}
+						? "Drop the files here..."
+						: "Drag & drop files here, or click to select"}
+				</p>
+				<p className="text-xs text-gray-400 mt-1">
+					Up to {MAX_FILES} files, {MAX_FILE_SIZE_MB}MB each
 				</p>
 			</div>
+
 			{filesToUpload.length > 0 && (
 				<div className="space-y-2">
-					{filesToUpload.map(({ file, progress, status }, index) => (
-						<div
-							key={index}
-							className="flex items-center p-2 border rounded-lg"
-						>
-							<FileIcon className="w-6 h-6 text-gray-500" />
-							<div className="flex-1 ml-3">
-								<p className="text-sm font-medium">{file.name}</p>
-								<div className="w-full bg-gray-200 rounded-full h-1.5 mt-1">
-									<div
-										className={`h-1.5 rounded-full ${
-											status === "error" ? "bg-red-500" : "bg-blue-500"
-										}`}
-										style={{ width: `${progress}%` }}
-									/>
+					<div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+						{filesToUpload.map((item, index) => (
+							<div
+								key={index}
+								className=" flex items-center p-2 space-x-2 bg-white border rounded-md shadow-sm col-span-1 lg:col-span-2 "
+							>
+								<div className="flex-shrink-0">
+									{getFileIcon(item.file.name)}
 								</div>
-							</div>
-							<div className="ml-3">
-								{status === "success" && (
-									<CheckCircle2 className="w-5 h-5 text-green-500" />
+								<div className="flex-1 min-w-0">
+									<p className="text-xs font-semibold truncate">
+										{item.file.name}
+									</p>
+									<div className="flex items-center gap-2">
+										<div className="w-full bg-gray-200 rounded-full h-1.5">
+											<div
+												className={`h-1.5 rounded-full transition-all duration-300 ${
+													item.status === "error" ? "bg-red-500" : "bg-primary"
+												}`}
+												style={{ width: `${item.progress}%` }}
+											/>
+										</div>
+									</div>
+								</div>
+
+								{item.status === "success" && (
+									<Button
+										size={"sm"}
+										variant={"outline"}
+										onClick={() => removeFile(item)}
+										disabled={deletingKey === item.key}
+									>
+										{deletingKey === item.key ? (
+											<Loader2 className="size-4 animate-spin" />
+										) : (
+											<Trash className="size-4" />
+										)}
+									</Button>
 								)}
-								{status === "error" && (
-									<XCircle className="w-5 h-5 text-red-500" />
+								{item.status === "error" && (
+									<XCircle className="inline-block size-4 text-red-500" />
 								)}
 							</div>
-						</div>
-					))}
+						))}
+					</div>
 				</div>
 			)}
 		</div>

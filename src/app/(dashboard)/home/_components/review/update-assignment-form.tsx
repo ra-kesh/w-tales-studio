@@ -6,7 +6,7 @@ import { Link as LinkIcon, Upload, X } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { FileUploader } from "@/components/file-uploader";
+import { FileUploader, type UploadedFile } from "@/components/file-uploader";
 import { Button } from "@/components/ui/button";
 import {
 	Form,
@@ -47,14 +47,7 @@ export function AssignmentUpdateForm({
 }: AssignmentUpdateFormProps) {
 	const [submissionLinks, setSubmissionLinks] = useState<string[]>([]);
 
-	type UploadedFile = {
-		name: string;
-		url: string;
-		// Add other fields if necessary
-	};
-
 	const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
-	// const [isSubmitting, setIsSubmitting] = useState(false);
 
 	const handleUploadComplete = (newFiles: UploadedFile[]) => {
 		setUploadedFiles((prev) => [...prev, ...newFiles]);
@@ -91,6 +84,10 @@ export function AssignmentUpdateForm({
 		setSubmissionLinks(submissionLinks.filter((_, i) => i !== index));
 	};
 
+	const handleFileRemoved = (key: string) => {
+		setUploadedFiles((prev) => prev.filter((file) => file.key !== key));
+	};
+
 	const onSubmit = async (data: AssignmentUpdateFormData) => {
 		try {
 			const payload = {
@@ -116,10 +113,12 @@ export function AssignmentUpdateForm({
 	};
 
 	return (
-		<div className="mt-6">
-			<Form {...form}>
-				<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-					{/* Status Selection */}
+		<Form {...form}>
+			<form
+				onSubmit={form.handleSubmit(onSubmit)}
+				className="grid grid-cols-6 gap-6 px-4"
+			>
+				<div className="col-span-6">
 					<FormField
 						control={form.control}
 						name="status"
@@ -131,7 +130,7 @@ export function AssignmentUpdateForm({
 									defaultValue={field.value}
 								>
 									<FormControl>
-										<SelectTrigger>
+										<SelectTrigger className="min-w-full">
 											<SelectValue placeholder="Select new status" />
 										</SelectTrigger>
 									</FormControl>
@@ -147,8 +146,9 @@ export function AssignmentUpdateForm({
 							</FormItem>
 						)}
 					/>
+				</div>
 
-					{/* Comments */}
+				<div className="col-span-6">
 					<FormField
 						control={form.control}
 						name="comment"
@@ -166,60 +166,60 @@ export function AssignmentUpdateForm({
 							</FormItem>
 						)}
 					/>
+				</div>
 
-					{/* Submission Links - Only for ready_for_review */}
-					{isReadyForReview && (
-						<div className="space-y-4">
-							<div className="flex items-center justify-between">
-								<FormLabel>Submission Links</FormLabel>
+				{isReadyForReview && (
+					<div className="col-span-6">
+						<div className="flex items-center justify-between">
+							<FormLabel>Submission Links</FormLabel>
+							<Button
+								type="button"
+								variant="outline"
+								size="sm"
+								onClick={addLink}
+								className="gap-2"
+							>
+								<LinkIcon className="h-3 w-3" />
+								Add Link
+							</Button>
+						</div>
+
+						{submissionLinks.map((link, index) => (
+							<div key={index} className="flex gap-2">
+								<Input
+									placeholder="e.g https://drive.google.com/..."
+									value={link}
+									onChange={(e) => updateLink(index, e.target.value)}
+								/>
 								<Button
 									type="button"
 									variant="outline"
 									size="sm"
-									onClick={addLink}
-									className="gap-2"
+									onClick={() => removeLink(index)}
 								>
-									<LinkIcon className="h-3 w-3" />
-									Add Link
+									<X className="h-3 w-3" />
 								</Button>
 							</div>
-
-							{submissionLinks.map((link, index) => (
-								<div key={index} className="flex gap-2">
-									<Input
-										placeholder="https://drive.google.com/..."
-										value={link}
-										onChange={(e) => updateLink(index, e.target.value)}
-									/>
-									<Button
-										type="button"
-										variant="outline"
-										size="sm"
-										onClick={() => removeLink(index)}
-									>
-										<X className="h-3 w-3" />
-									</Button>
-								</div>
-							))}
-						</div>
-					)}
-
-					{isReadyForReview && (
-						<div className="space-y-2">
-							<FormLabel>Proof of Work</FormLabel>
-							<FileUploader
-								uploadContext="submissions"
-								onUploadComplete={handleUploadComplete}
-							/>
-						</div>
-					)}
-					<div className="flex gap-3 pt-6">
-						<Button type="submit">
-							Update {type === "task" ? "Task" : "Deliverable"}
-						</Button>
+						))}
 					</div>
-				</form>
-			</Form>
-		</div>
+				)}
+
+				{isReadyForReview && (
+					<div className="col-span-6">
+						<FormLabel>Proof of Work</FormLabel>
+						<FileUploader
+							uploadContext="submissions"
+							onUploadComplete={handleUploadComplete}
+							onFileRemoved={handleFileRemoved}
+						/>
+					</div>
+				)}
+				<div className="col-span-6 mt-6">
+					<Button type="submit" className="w-full">
+						Update {type === "task" ? "Task" : "Deliverable"}
+					</Button>
+				</div>
+			</form>
+		</Form>
 	);
 }
