@@ -1,7 +1,6 @@
 "use client";
 
 import {
-	CheckCircle2,
 	File as FileIcon,
 	FileImage,
 	FileText,
@@ -207,15 +206,15 @@ export function FileUploader({
 	});
 
 	return (
-		<div className="space-y-4">
+		<div className="space-y-3">
 			<div
 				{...getRootProps()}
-				className={`flex flex-col items-center justify-center w-full p-6 border-2 border-dashed rounded-lg cursor-pointer hover:bg-gray-50/50 ${
+				className={`flex flex-col items-center justify-center w-full p-4 border-2 border-dashed rounded-lg cursor-pointer hover:bg-gray-50/50 ${
 					isDragActive ? "border-primary bg-primary/10" : "border-gray-300"
 				}`}
 			>
 				<input {...getInputProps()} />
-				<UploadCloud className="size-10 text-gray-500" />
+				<UploadCloud className="size-6 text-gray-500" />
 				<p className="mt-2 text-sm text-gray-600">
 					{isDragActive
 						? "Drop the files here..."

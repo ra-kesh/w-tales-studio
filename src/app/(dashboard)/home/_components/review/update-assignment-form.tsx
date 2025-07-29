@@ -1,10 +1,11 @@
-// components/assignments/assignment-update-form.tsx
+// components/assignments/assignment-update-form.tsx (Final Version)
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Link as LinkIcon, Upload, X } from "lucide-react";
-import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { Link as LinkIcon, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useFieldArray, useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { z } from "zod";
 import { FileUploader, type UploadedFile } from "@/components/file-uploader";
 import { Button } from "@/components/ui/button";
@@ -29,7 +30,18 @@ import { Textarea } from "@/components/ui/textarea";
 const updateAssignmentSchema = z.object({
 	status: z.string().min(1, "Please select a status"),
 	comment: z.string().optional(),
-	submissionLinks: z.array(z.string()).optional(),
+	submissionLinks: z
+		.array(
+			z.object({
+				value: z
+					.union([
+						z.url({ message: "Please enter a valid URL." }),
+						z.literal(""),
+					])
+					.optional(),
+			}),
+		)
+		.optional(),
 });
 
 type AssignmentUpdateFormData = z.infer<typeof updateAssignmentSchema>;
@@ -45,43 +57,33 @@ export function AssignmentUpdateForm({
 	assignmentId,
 	onSuccess,
 }: AssignmentUpdateFormProps) {
-	const [submissionLinks, setSubmissionLinks] = useState<string[]>([]);
-
 	const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
-
-	const handleUploadComplete = (newFiles: UploadedFile[]) => {
-		setUploadedFiles((prev) => [...prev, ...newFiles]);
-	};
 
 	const form = useForm<AssignmentUpdateFormData>({
 		resolver: zodResolver(updateAssignmentSchema),
 		defaultValues: {
 			status: "",
 			comment: "",
+			submissionLinks: [],
 		},
+	});
+
+	const { fields, append, remove } = useFieldArray({
+		control: form.control,
+		name: "submissionLinks",
 	});
 
 	const selectedStatus = form.watch("status");
 	const isReadyForReview = selectedStatus === "ready_for_review";
 
-	const statusOptions = [
-		{ value: "in_progress", label: "In Progress" },
-		{ value: "blocked", label: "Blocked" },
-		{ value: "ready_for_review", label: "Ready for Review" },
-	];
+	useEffect(() => {
+		if (isReadyForReview && fields.length === 0) {
+			append({ value: "" });
+		}
+	}, [isReadyForReview, fields.length, append]);
 
-	const addLink = () => {
-		setSubmissionLinks([...submissionLinks, ""]);
-	};
-
-	const updateLink = (index: number, value: string) => {
-		const newLinks = [...submissionLinks];
-		newLinks[index] = value;
-		setSubmissionLinks(newLinks);
-	};
-
-	const removeLink = (index: number) => {
-		setSubmissionLinks(submissionLinks.filter((_, i) => i !== index));
+	const handleUploadComplete = (newFiles: UploadedFile[]) => {
+		setUploadedFiles((prev) => [...prev, ...newFiles]);
 	};
 
 	const handleFileRemoved = (key: string) => {
@@ -91,11 +93,16 @@ export function AssignmentUpdateForm({
 	const onSubmit = async (data: AssignmentUpdateFormData) => {
 		try {
 			const payload = {
-				...data,
 				assignmentType: type,
-				assignmentId,
-				submissionLinks: submissionLinks.filter((link) => link.trim()),
+				status: data.status,
+				comment: data.comment,
+				submissionLinks: data.submissionLinks
+					?.map((link) => link.value)
+					.filter((link) => link && link.trim()),
 				files: uploadedFiles,
+				...(type === "task"
+					? { taskId: assignmentId }
+					: { deliverableId: assignmentId }),
 			};
 
 			const response = await fetch("/api/submissions", {
@@ -104,13 +111,26 @@ export function AssignmentUpdateForm({
 				body: JSON.stringify(payload),
 			});
 
-			if (!response.ok) throw new Error("Submission failed");
+			if (!response.ok) {
+				const errorData = await response.json();
+				throw new Error(errorData.message || "Submission failed");
+			}
+
+			toast.success("Assignment updated successfully!");
 			onSuccess();
 		} catch (error) {
-			console.error("Failed to update assignment:", error);
-		} finally {
+			toast.error("Update Failed", {
+				description:
+					error instanceof Error ? error.message : "An unknown error occurred.",
+			});
 		}
 	};
+
+	const statusOptions = [
+		{ value: "in_progress", label: "In Progress" },
+		{ value: "blocked", label: "Blocked" },
+		{ value: "ready_for_review", label: "Ready for Review" },
+	];
 
 	return (
 		<Form {...form}>
@@ -169,43 +189,53 @@ export function AssignmentUpdateForm({
 				</div>
 
 				{isReadyForReview && (
-					<div className="col-span-6">
+					<div className="col-span-6 space-y-3">
 						<div className="flex items-center justify-between">
 							<FormLabel>Submission Links</FormLabel>
 							<Button
 								type="button"
 								variant="outline"
 								size="sm"
-								onClick={addLink}
-								className="gap-2"
+								onClick={() => append({ value: "" })}
 							>
 								<LinkIcon className="h-3 w-3" />
 								Add Link
 							</Button>
 						</div>
 
-						{submissionLinks.map((link, index) => (
-							<div key={index} className="flex gap-2">
-								<Input
-									placeholder="e.g https://drive.google.com/..."
-									value={link}
-									onChange={(e) => updateLink(index, e.target.value)}
-								/>
-								<Button
-									type="button"
-									variant="outline"
-									size="sm"
-									onClick={() => removeLink(index)}
-								>
-									<X className="h-3 w-3" />
-								</Button>
-							</div>
+						{fields.map((field, index) => (
+							<FormField
+								key={field.id}
+								control={form.control}
+								name={`submissionLinks.${index}.value`}
+								render={({ field }) => (
+									<FormItem>
+										<div className="flex items-center gap-2">
+											<FormControl>
+												<Input
+													placeholder="e.g https://drive.google.com/..."
+													{...field}
+												/>
+											</FormControl>
+											<Button
+												type="button"
+												variant="outline"
+												size="icon"
+												onClick={() => remove(index)}
+											>
+												<X className="h-4 w-4" />
+											</Button>
+										</div>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
 						))}
 					</div>
 				)}
 
 				{isReadyForReview && (
-					<div className="col-span-6">
+					<div className="col-span-6 space-y-3">
 						<FormLabel>Proof of Work</FormLabel>
 						<FileUploader
 							uploadContext="submissions"
@@ -215,8 +245,16 @@ export function AssignmentUpdateForm({
 					</div>
 				)}
 				<div className="col-span-6 mt-6">
-					<Button type="submit" className="w-full">
-						Update {type === "task" ? "Task" : "Deliverable"}
+					<Button
+						type="submit"
+						className="min-w-full"
+						disabled={form.formState.isSubmitting}
+					>
+						{form.formState.isSubmitting
+							? type === "task"
+								? "Upadating Task..."
+								: "Updating Deliverable..."
+							: `Update ${type === "task" ? "Task" : "Deliverable"}`}
 					</Button>
 				</div>
 			</form>
