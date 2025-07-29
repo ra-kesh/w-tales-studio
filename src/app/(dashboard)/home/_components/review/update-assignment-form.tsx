@@ -6,6 +6,7 @@ import { Link as LinkIcon, Upload, X } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { FileUploader } from "@/components/file-uploader";
 import { Button } from "@/components/ui/button";
 import {
 	Form,
@@ -45,7 +46,19 @@ export function AssignmentUpdateForm({
 	onSuccess,
 }: AssignmentUpdateFormProps) {
 	const [submissionLinks, setSubmissionLinks] = useState<string[]>([]);
-	const [files, setFiles] = useState<File[]>([]);
+
+	type UploadedFile = {
+		name: string;
+		url: string;
+		// Add other fields if necessary
+	};
+
+	const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
+	// const [isSubmitting, setIsSubmitting] = useState(false);
+
+	const handleUploadComplete = (newFiles: UploadedFile[]) => {
+		setUploadedFiles((prev) => [...prev, ...newFiles]);
+	};
 
 	const form = useForm<AssignmentUpdateFormData>({
 		resolver: zodResolver(updateAssignmentSchema),
@@ -58,7 +71,6 @@ export function AssignmentUpdateForm({
 	const selectedStatus = form.watch("status");
 	const isReadyForReview = selectedStatus === "ready_for_review";
 
-	// Status options - you can customize this based on your business logic
 	const statusOptions = [
 		{ value: "in_progress", label: "In Progress" },
 		{ value: "blocked", label: "Blocked" },
@@ -81,18 +93,25 @@ export function AssignmentUpdateForm({
 
 	const onSubmit = async (data: AssignmentUpdateFormData) => {
 		try {
-			// TODO: Implement API call
-			console.log("Updating assignment:", {
-				type,
-				assignmentId,
+			const payload = {
 				...data,
+				assignmentType: type,
+				assignmentId,
 				submissionLinks: submissionLinks.filter((link) => link.trim()),
-				files,
+				files: uploadedFiles,
+			};
+
+			const response = await fetch("/api/submissions", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(payload),
 			});
 
+			if (!response.ok) throw new Error("Submission failed");
 			onSuccess();
 		} catch (error) {
 			console.error("Failed to update assignment:", error);
+		} finally {
 		}
 	};
 
@@ -185,11 +204,16 @@ export function AssignmentUpdateForm({
 						</div>
 					)}
 
-					{/* Submit Buttons */}
+					{isReadyForReview && (
+						<div className="space-y-2">
+							<FormLabel>Proof of Work</FormLabel>
+							<FileUploader
+								uploadContext="submissions"
+								onUploadComplete={handleUploadComplete}
+							/>
+						</div>
+					)}
 					<div className="flex gap-3 pt-6">
-						<Button type="button" variant="outline" onClick={onSuccess}>
-							Cancel
-						</Button>
 						<Button type="submit">
 							Update {type === "task" ? "Task" : "Deliverable"}
 						</Button>
