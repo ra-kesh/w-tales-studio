@@ -21,6 +21,8 @@ const statement = {
 		"list",
 		"assign_crew",
 		"update_status",
+		"submission",
+		"review",
 	],
 	task: [
 		"create",
@@ -30,6 +32,8 @@ const statement = {
 		"list",
 		"assign_crew",
 		"update_status",
+		"submission",
+		"review",
 	],
 	expense: ["create", "read", "update", "delete", "list"],
 	payment: ["create", "read", "update", "delete", "list"],
@@ -66,6 +70,8 @@ export const owner = ac.newRole({
 		"list",
 		"assign_crew",
 		"update_status",
+		"submission",
+		"review",
 	],
 	task: [
 		"create",
@@ -75,6 +81,8 @@ export const owner = ac.newRole({
 		"list",
 		"assign_crew",
 		"update_status",
+		"submission",
+		"review",
 	],
 	expense: ["create", "read", "update", "delete", "list"],
 	payment: ["create", "read", "update", "delete", "list"],
@@ -110,6 +118,8 @@ export const studio_admin = ac.newRole({
 		"list",
 		"assign_crew",
 		"update_status",
+		"submission",
+		"review",
 	],
 	task: [
 		"create",
@@ -119,6 +129,8 @@ export const studio_admin = ac.newRole({
 		"list",
 		"assign_crew",
 		"update_status",
+		"submission",
+		"review",
 	],
 	expense: ["create", "read", "update", "delete", "list"],
 	payment: ["create", "read", "update", "delete", "list"],
@@ -143,14 +155,14 @@ export const studio_admin = ac.newRole({
 });
 
 export const member = ac.newRole({
-	task: ["read", "list", "update_status"],
-	deliverable: ["read", "list", "update_status"],
+	task: ["read", "list", "update_status", "submission"],
+	deliverable: ["read", "list", "update_status", "submission"],
 	shoot: ["read", "list"],
 	...memberAc.statements,
 });
 
 export const crew = ac.newRole({
-	task: ["read", "list", "update_status"],
+	task: ["read", "list", "update_status", "submission"],
 	// deliverable: ["read", "list", "update_status"],
 	// shoot: ["read", "list"],
 });
@@ -160,16 +172,56 @@ export const manager = ac.newRole({
 	// booking: ["read", "list"],
 	// client: ["read", "list"],
 	shoot: ["create", "read", "update", "list", "assign_crew"],
-	deliverable: ["create", "read", "update", "list", "assign_crew"],
-	task: ["create", "read", "update", "list", "assign_crew"],
+	deliverable: [
+		"create",
+		"read",
+		"update",
+		"delete",
+		"list",
+		"assign_crew",
+		"update_status",
+		"submission",
+		"review",
+	],
+	task: [
+		"create",
+		"read",
+		"update",
+		"delete",
+		"list",
+		"assign_crew",
+		"update_status",
+		"submission",
+		"review",
+	],
 	// expense: ["read", "list"], // Can see expenses but not manage them
 });
 
 export const post_production_manager = ac.newRole({
 	// dashboard: ["read"],
 	// shoot: ["read", "list"], // Read-only access to see shoot context
-	deliverable: ["create", "read", "update", "list", "assign_crew"],
-	task: ["create", "read", "update", "list", "assign_crew"],
+	deliverable: [
+		"create",
+		"read",
+		"update",
+		"delete",
+		"list",
+		"assign_crew",
+		"update_status",
+		"submission",
+		"review",
+	],
+	task: [
+		"create",
+		"read",
+		"update",
+		"delete",
+		"list",
+		"assign_crew",
+		"update_status",
+		"submission",
+		"review",
+	],
 });
 
 export const hr = ac.newRole({
