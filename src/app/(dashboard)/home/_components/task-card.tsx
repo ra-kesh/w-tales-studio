@@ -5,6 +5,7 @@ import { AlertTriangle, CalendarIcon, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 import { useTaskReviewParams } from "@/hooks/use-task-review-params";
+import type { TaskAssignmentWithRelations } from "@/types/task";
 
 const statusColors = {
 	pending: "text-amber-700 bg-amber-50 ring-amber-600/20",
@@ -19,7 +20,11 @@ const priorityColors = {
 	high: "text-red-600",
 };
 
-export function TaskCard({ assignment }) {
+export function TaskCard({
+	assignment,
+}: {
+	assignment: TaskAssignmentWithRelations;
+}) {
 	const { setParams } = useTaskReviewParams();
 	const { task } = assignment;
 	const dueDate = task.dueDate ? new Date(task.dueDate) : null;
@@ -31,7 +36,7 @@ export function TaskCard({ assignment }) {
 		task.status !== "completed";
 
 	const handleUpdateClick = () => {
-		setParams({ reviewTaskId: assignment.id.toString() });
+		setParams({ reviewTaskId: task.id.toString() });
 	};
 
 	return (
@@ -46,13 +51,12 @@ export function TaskCard({ assignment }) {
 					<span
 						className={`
             inline-flex items-center rounded-md px-1.5 py-0.5 text-xs font-medium ring-1 ring-inset
-            ${statusColors[task.status] || statusColors.pending}
+           ${statusColors[task.status as keyof typeof statusColors] || statusColors.pending}
           `}
 					>
 						{task.status.replace("_", " ")}
 					</span>
 
-					{/* Overdue Warning */}
 					{isOverdue && (
 						<span className="inline-flex items-center gap-x-1 rounded-md bg-red-50 px-1.5 py-0.5 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/20">
 							<AlertTriangle className="h-3 w-3" />
@@ -74,7 +78,7 @@ export function TaskCard({ assignment }) {
 					{isValidDate && (
 						<div className="flex items-center gap-x-1">
 							<CalendarIcon className="h-4 w-4 text-gray-400" />
-							<time dateTime={task.dueDate}>
+							<time dateTime={task.dueDate ?? undefined}>
 								Due: {format(dueDate, "MMM dd, yyyy")}
 							</time>
 						</div>
@@ -89,7 +93,7 @@ export function TaskCard({ assignment }) {
 								</svg>
 							)}
 							<span
-								className={`font-medium ${priorityColors[task.priority] || priorityColors.medium}`}
+								className={`font-medium ${priorityColors[task.priority as keyof typeof priorityColors] || priorityColors.medium}`}
 							>
 								{task.priority} priority
 							</span>
@@ -100,13 +104,6 @@ export function TaskCard({ assignment }) {
 				</div>
 
 				<p className="text-xs/5 text-gray-500 mt-1">For: {task.booking.name}</p>
-
-				{/* Notes Section - if tasks have notes */}
-				{task.notes && (
-					<div className="mt-2 rounded-md bg-gray-50 px-2 py-1.5">
-						<p className="text-xs text-gray-600">{task.notes}</p>
-					</div>
-				)}
 			</div>
 			<div className="flex flex-none items-center">
 				<Button

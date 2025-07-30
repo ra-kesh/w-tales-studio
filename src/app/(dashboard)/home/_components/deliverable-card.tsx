@@ -3,8 +3,8 @@
 import { format, isPast, isToday } from "date-fns";
 import { AlertTriangle, CalendarIcon, Edit, PackageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useDeliverableParams } from "@/hooks/use-deliverable-params";
 import { useDeliverableReviewParams } from "@/hooks/use-deliverable-review-params";
+import type { DeliverableAssignmentWithRelations } from "@/types/deliverables";
 
 const statusColors = {
 	pending: "text-amber-700 bg-amber-50 ring-amber-600/20",
@@ -13,7 +13,11 @@ const statusColors = {
 	cancelled: "text-gray-700 bg-gray-50 ring-gray-600/20",
 };
 
-export function DeliverableCard({ assignment }) {
+export function DeliverableCard({
+	assignment,
+}: {
+	assignment: DeliverableAssignmentWithRelations;
+}) {
 	const { setParams } = useDeliverableReviewParams();
 	const { deliverable } = assignment;
 	const dueDate = deliverable.dueDate ? new Date(deliverable.dueDate) : null;
@@ -25,7 +29,7 @@ export function DeliverableCard({ assignment }) {
 		deliverable.status !== "delivered";
 
 	const handleUpdateClick = () => {
-		setParams({ reviewDeliverableId: assignment.id.toString() });
+		setParams({ reviewDeliverableId: deliverable.id.toString() });
 	};
 
 	return (
@@ -40,7 +44,7 @@ export function DeliverableCard({ assignment }) {
 					<span
 						className={`
             inline-flex items-center rounded-md px-1.5 py-0.5 text-xs font-medium ring-1 ring-inset whitespace-nowrap
-            ${statusColors[deliverable.status] || statusColors.pending}
+			${statusColors[deliverable.status as keyof typeof statusColors] || statusColors.pending}
           `}
 					>
 						{deliverable.status.replace("_", " ")}
@@ -64,7 +68,7 @@ export function DeliverableCard({ assignment }) {
 					{isValidDate && (
 						<div className="flex items-center gap-x-1">
 							<CalendarIcon className="h-4 w-4 text-gray-400" />
-							<time dateTime={deliverable.dueDate}>
+							<time dateTime={deliverable.dueDate ?? undefined}>
 								Due: {format(dueDate, "MMM dd, yyyy")}
 							</time>
 						</div>

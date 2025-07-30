@@ -63,7 +63,7 @@ export function AllDeliverables() {
 		if (!data) return [];
 
 		const allDeliverables = data.pages.flatMap((page) => page.data);
-		const today = startOfDay(new Date());
+		// const today = startOfDay(new Date());
 
 		switch (selectedFilter) {
 			case "pending":
