@@ -33,13 +33,13 @@ const createSubmissionSchema = z.object({
 		.optional(),
 	taskId: z.number().optional(),
 	deliverableId: z.number().optional(),
-	delegateCrewId: z.number().optional(), // The ID of the crew member the manager is submitting for
+	delegateCrewId: z.number().optional(),
 });
 
 export async function POST(request: Request) {
 	try {
-		// 1. Get Session & Authenticate Caller
 		const { session } = await getServerSession();
+
 		if (!session?.user?.id || !session.session.activeOrganizationId) {
 			return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 		}
@@ -47,7 +47,6 @@ export async function POST(request: Request) {
 		const userId = session.user.id;
 		const organizationId = session.session.activeOrganizationId;
 
-		// 2. Determine Caller's Role and Crew ID
 		const callerInfo = await db
 			.select({ id: crews.id, role: crews.role })
 			.from(crews)
@@ -60,8 +59,6 @@ export async function POST(request: Request) {
 			)
 			.limit(1);
 
-		console.log({ callerInfo });
-
 		if (!callerInfo) {
 			return NextResponse.json(
 				{ message: "Caller is not a member of this organization" },
@@ -69,10 +66,9 @@ export async function POST(request: Request) {
 			);
 		}
 		const callerCrewId = callerInfo[0].id;
-		const callerRole = callerInfo[0].role; // e.g., 'owner', 'manager', 'member'
+		const callerRole = callerInfo[0].role;
 		const isManager = ["manager"].includes(callerRole ?? "");
 
-		// 3. Parse and Validate Payload
 		const body = await request.json();
 		const validation = createSubmissionSchema.safeParse(body);
 		if (!validation.success) {
@@ -92,8 +88,6 @@ export async function POST(request: Request) {
 
 		const assignmentId = assignmentType === "task" ? taskId : deliverableId;
 
-		console.log({ assignmentId });
-
 		if (!assignmentId) {
 			return NextResponse.json(
 				{ message: "Missing taskId or deliverableId" },
@@ -104,7 +98,6 @@ export async function POST(request: Request) {
 		let submittedByCrewId: number;
 
 		if (delegateCrewId) {
-			// MANAGER/ADMIN FLOW
 			if (!isManager) {
 				return NextResponse.json(
 					{
@@ -113,10 +106,8 @@ export async function POST(request: Request) {
 					{ status: 403 },
 				);
 			}
-			// Optional: Verify the delegated crew is also in the same org.
 			submittedByCrewId = delegateCrewId;
 		} else {
-			// NORMAL CREW MEMBER FLOW
 			if (!callerCrewId) {
 				return NextResponse.json(
 					{ message: "Forbidden: You are not registered as a crew member." },
@@ -125,9 +116,6 @@ export async function POST(request: Request) {
 			}
 			submittedByCrewId = callerCrewId;
 
-			console.log({ submittedByCrewId });
-
-			// For regular crew, we MUST verify they are assigned to the task/deliverable
 			if (assignmentType === "task") {
 				const assignment = await db.query.tasksAssignments.findFirst({
 					where: and(
@@ -135,8 +123,6 @@ export async function POST(request: Request) {
 						eq(tasksAssignments.crewId, submittedByCrewId),
 					),
 				});
-
-				console.log({ assignment });
 
 				if (!assignment)
 					throw new Error("Forbidden: You are not assigned to this task.");
@@ -154,7 +140,6 @@ export async function POST(request: Request) {
 			}
 		}
 
-		// 5. Execute Database Writes in a Transaction
 		const newSubmission = await db.transaction(async (tx) => {
 			const [submission] = await tx
 				.insert(assignmentSubmissions)
@@ -164,7 +149,7 @@ export async function POST(request: Request) {
 					status: data.status,
 					comment: data.comment,
 					powLinks: data.submissionLinks,
-					submittedBy: submittedByCrewId, // Use the determined submitter ID
+					submittedBy: submittedByCrewId,
 					version: 1,
 				})
 				.returning();
@@ -175,7 +160,7 @@ export async function POST(request: Request) {
 					filePath: file.url,
 					fileName: file.name,
 					fileSize: file.size,
-					uploadedBy: submittedByCrewId, // Logged as the person it was submitted for
+					uploadedBy: submittedByCrewId,
 				}));
 				await tx.insert(submissionFiles).values(fileRecords);
 			}

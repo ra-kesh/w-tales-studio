@@ -1,14 +1,16 @@
 // lib/hooks/use-assignments.ts
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
+import { z } from "zod/v4";
 import type {
 	DeliverablesAssignment,
 	ExpensesAssignment,
 	ShootsAssignment,
 	TasksAssignment,
 } from "@/lib/db/schema";
-import { useQuery } from "@tanstack/react-query";
-import { z } from "zod/v4";
+import type { DeliverableAssignmentWithRelations } from "@/types/deliverables";
+import type { TaskAssignmentWithRelations } from "@/types/task";
 
 interface Booking {
 	id: number;
@@ -18,8 +20,8 @@ interface Booking {
 export interface AssignmentsData {
 	data: {
 		shoots?: ShootsAssignment[];
-		tasks?: TasksAssignment[];
-		deliverables?: DeliverablesAssignment[];
+		tasks?: TaskAssignmentWithRelations[];
+		deliverables?: DeliverableAssignmentWithRelations[];
 		expenses?: ExpensesAssignment[];
 	};
 	pagination: Record<string, { total: number; page: number; pageSize: number }>;

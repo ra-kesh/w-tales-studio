@@ -81,7 +81,7 @@ const page = async () => {
 								</h1>
 
 								<p className="text-muted-foreground text-md">
-									All the work that are asssigned to you
+									All the the things you need to take care of...
 								</p>
 							</div>
 						</div>
