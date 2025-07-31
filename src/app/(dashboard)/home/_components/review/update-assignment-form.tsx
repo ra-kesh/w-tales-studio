@@ -127,9 +127,9 @@ export function AssignmentUpdateForm({
 	};
 
 	const statusOptions = [
-		{ value: "in_progress", label: "In Progress" },
-		{ value: "blocked", label: "Blocked" },
+		// { value: "in_progress", label: "In Progress" },
 		{ value: "ready_for_review", label: "Ready for Review" },
+		{ value: "blocked", label: "Blocked" },
 	];
 
 	return (
