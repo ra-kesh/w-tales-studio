@@ -540,9 +540,8 @@ export const assignmentSubmissions = pgTable("assignment_submissions", {
 	reviewedBy: integer("reviewed_by").references(() => crews.id, {
 		onDelete: "set null",
 	}),
-	reviewComment: integer("review_comment").references(() => crews.id, {
-		onDelete: "set null",
-	}),
+	reviewComment: text("review_comment"),
+	reviewedAt: timestamp("reviewed_at"),
 	createdAt: timestamp("created_at").defaultNow(),
 	updatedAt: timestamp("updated_at").defaultNow(),
 	currentReviewer: integer("current_reviewer").references(() => crews.id, {
