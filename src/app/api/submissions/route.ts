@@ -1,6 +1,6 @@
 // app/api/submissions/route.ts
 
-import { and, count, desc, eq, or } from "drizzle-orm";
+import { and, count, desc, eq, or, sql } from "drizzle-orm";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -9,6 +9,7 @@ import { getServerSession } from "@/lib/dal";
 import { db } from "@/lib/db/drizzle";
 import {
 	assignmentSubmissions,
+	bookings,
 	crews,
 	deliverables,
 	deliverablesAssignments,
@@ -234,80 +235,46 @@ export async function POST(request: Request) {
 
 export async function GET(request: Request) {
 	try {
-		// 1. Authentication & Authorization
 		const { session } = await getServerSession();
-		if (!session?.user?.id || !session.session.activeOrganizationId) {
+		if (!session?.user?.id || !session.session.activeOrganizationId)
 			return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-		}
-		const organizationId = session.session.activeOrganizationId;
 
-		// A user needs read access to either tasks or deliverables to see this list.
-		const canReadTasks = await auth.api.hasPermission({
+		const orgId = session.session.activeOrganizationId;
+
+		const canSee = await auth.api.hasPermission({
 			headers: await headers(),
-			body: { permissions: { task: ["review"] } },
+			body: { permissions: { task: ["review"], deliverable: ["review"] } },
 		});
-		const canReadDeliverables = await auth.api.hasPermission({
-			headers: await headers(),
-			body: { permissions: { deliverable: ["review"] } },
-		});
+		if (!canSee)
+			return NextResponse.json({ message: "Forbidden" }, { status: 403 });
 
-		if (!canReadTasks && !canReadDeliverables) {
-			return NextResponse.json(
-				{
-					message: "Forbidden: You do not have permission to view submissions.",
-				},
-				{ status: 403 },
-			);
-		}
+		const qp = new URL(request.url).searchParams;
+		const page = Number(qp.get("page") ?? 1);
+		const pageSize = Number(qp.get("pageSize") ?? 10);
+		const status = qp.get("status");
+		const aType = qp.get("assignmentType");
 
-		// 2. Filtering & Pagination from Query Params
-		const { searchParams } = new URL(request.url);
-		const page = parseInt(searchParams.get("page") || "1", 10);
-		const pageSize = parseInt(searchParams.get("pageSize") || "10", 10);
-		const status = searchParams.get("status"); // e.g., 'ready_for_review'
-		const assignmentType = searchParams.get("assignmentType"); // 'task' or 'deliverable'
-
-		// const conditions = [
-		// 	assignmentType === "task"
-		// 		? eq(tasks.organizationId, organizationId)
-		// 		: eq(deliverables.organizationId, organizationId),
-		// ];
-
-		// if (status) {
-		// 	conditions.push(eq(assignmentSubmissions.status, status));
-		// }
-		// if (assignmentType) {
-		// 	conditions.push(eq(assignmentSubmissions.assignmentType, assignmentType));
-		// }
-
-		const securityCondition = or(
-			eq(tasks.organizationId, organizationId),
-			eq(deliverables.organizationId, organizationId),
+		const base = or(
+			eq(tasks.organizationId, orgId),
+			eq(deliverables.organizationId, orgId),
+		);
+		const where = and(
+			base,
+			status ? eq(assignmentSubmissions.status, status) : sql`true`,
+			aType ? eq(assignmentSubmissions.assignmentType, aType) : sql`true`,
 		);
 
-		const conditions = [securityCondition];
-
-		if (status) {
-			// The optional filters are now added correctly on top of the base security check.
-			conditions.push(eq(assignmentSubmissions.status, status));
-		}
-		if (assignmentType) {
-			conditions.push(eq(assignmentSubmissions.assignmentType, assignmentType));
-		}
-
-		// 3. Execute Queries (Data and Total Count)
-		const submissionsQuery = db
+		const rows = await db
 			.select({
-				// Select specific fields to keep the payload lean for a list view
-				id: assignmentSubmissions.id,
-				status: assignmentSubmissions.status,
-				submittedAt: assignmentSubmissions.submittedAt,
-				assignmentType: assignmentSubmissions.assignmentType,
-				assignmentId: assignmentSubmissions.assignmentId,
-				taskTitle: tasks.description,
-				deliverableTitle: deliverables.title,
+				sub: assignmentSubmissions,
+				task: tasks,
+				del: deliverables,
+				crew: { id: crews.id, name: crews.name, email: crews.email },
+				bk: { id: bookings.id, name: bookings.name },
+				file: submissionFiles,
 			})
 			.from(assignmentSubmissions)
+			.leftJoin(crews, eq(crews.id, assignmentSubmissions.submittedBy))
 			.leftJoin(
 				tasks,
 				and(
@@ -322,35 +289,66 @@ export async function GET(request: Request) {
 					eq(assignmentSubmissions.assignmentType, "deliverable"),
 				),
 			)
-			.where(and(...conditions))
+			.leftJoin(
+				bookings,
+				eq(
+					bookings.id,
+					sql`COALESCE(${tasks.bookingId}, ${deliverables.bookingId})`,
+				),
+			)
+			.leftJoin(
+				submissionFiles,
+				eq(submissionFiles.submissionId, assignmentSubmissions.id),
+			)
+			.where(where)
 			.orderBy(desc(assignmentSubmissions.submittedAt))
 			.limit(pageSize)
 			.offset((page - 1) * pageSize);
 
-		const countQuery = db
-			.select({ value: count() })
-			.from(assignmentSubmissions)
-			.leftJoin(
-				tasks,
-				and(
-					eq(assignmentSubmissions.assignmentId, tasks.id),
-					eq(assignmentSubmissions.assignmentType, "task"),
-				),
-			)
-			.leftJoin(
-				deliverables,
-				and(
-					eq(assignmentSubmissions.assignmentId, deliverables.id),
-					eq(assignmentSubmissions.assignmentType, "deliverable"),
-				),
-			)
-			.where(and(...conditions));
+		const byId: Record<number, any> = {};
 
-		const [data, totalResult] = await Promise.all([
-			submissionsQuery,
-			countQuery,
-		]);
-		const total = totalResult[0].value;
+		for (const r of rows) {
+			const id = r.sub.id;
+			if (!byId[id]) {
+				byId[id] = {
+					...r.sub,
+					submittedBy: r.crew,
+					task:
+						r.sub.assignmentType === "task"
+							? { ...r.task, booking: r.bk }
+							: null,
+					deliverable:
+						r.sub.assignmentType === "deliverable"
+							? { ...r.del, booking: r.bk }
+							: null,
+					files: [],
+				};
+			}
+			if (r.file && r.file.id) byId[id].files.push(r.file);
+		}
+
+		const data = Object.values(byId);
+
+		const total = (
+			await db
+				.select({ v: count() })
+				.from(assignmentSubmissions)
+				.leftJoin(
+					tasks,
+					and(
+						eq(assignmentSubmissions.assignmentId, tasks.id),
+						eq(assignmentSubmissions.assignmentType, "task"),
+					),
+				)
+				.leftJoin(
+					deliverables,
+					and(
+						eq(assignmentSubmissions.assignmentId, deliverables.id),
+						eq(assignmentSubmissions.assignmentType, "deliverable"),
+					),
+				)
+				.where(where)
+		)[0].v;
 
 		return NextResponse.json({
 			data,
@@ -361,8 +359,8 @@ export async function GET(request: Request) {
 				totalPages: Math.ceil(total / pageSize),
 			},
 		});
-	} catch (error) {
-		console.error("Failed to fetch submissions:", error);
+	} catch (e) {
+		console.error(e);
 		return NextResponse.json(
 			{ message: "Internal Server Error" },
 			{ status: 500 },
