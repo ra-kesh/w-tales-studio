@@ -4,10 +4,17 @@ import { format, formatDistanceToNow } from "date-fns";
 import {
 	FileText,
 	Link as LinkIcon,
+	Loader2,
 	MessageSquare,
 	MessageSquareQuote,
 } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import type {
+	SubmissionFile,
+	SubmissionWithRelations,
+} from "@/types/submission";
 
 function SubmissionStatusBadge({ status }: { status: string }) {
 	const props = {
@@ -33,8 +40,47 @@ function SubmissionStatusBadge({ status }: { status: string }) {
 	);
 }
 
-export function SubmissionHistoryItem({ submission }: { submission: any }) {
+export function SubmissionHistoryItem({
+	submission,
+}: {
+	submission: SubmissionWithRelations;
+}) {
+	const [isLoadingFileKey, setIsLoadingFileKey] = useState<string | null>(null);
+
 	const isReviewed = !!submission.reviewedAt;
+
+	const handleFileView = async (file: SubmissionFile) => {
+		// 2. Extract the key from the full filePath URL
+		const key = new URL(file.filePath).pathname.substring(1); // Removes the leading '/'
+		if (!key) {
+			toast.error("Invalid file path.");
+			return;
+		}
+
+		setIsLoadingFileKey(key);
+		try {
+			const res = await fetch("/api/uploads/file", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ key }), // 3. Send the extracted key to the API
+			});
+
+			if (!res.ok) {
+				const errorData = await res.json();
+				throw new Error(errorData.message || "Could not get download link.");
+			}
+
+			const { url } = await res.json();
+			window.open(url, "_blank");
+		} catch (error) {
+			toast.error("Failed to open file.", {
+				description:
+					error instanceof Error ? error.message : "An unknown error occurred.",
+			});
+		} finally {
+			setIsLoadingFileKey(null);
+		}
+	};
 
 	return (
 		<div className="relative pl-8">
@@ -80,44 +126,50 @@ export function SubmissionHistoryItem({ submission }: { submission: any }) {
 							Proof of Work Submitted
 						</h4>
 						<div className="space-y-2 rounded-lg border bg-gray-50 p-3">
-							{submission.powLinks.map((link: string, index: number) => (
+							{submission.powLinks.map((link, index) => (
 								<a
 									key={`link-${index}`}
 									href={link}
 									target="_blank"
 									rel="noopener noreferrer"
-									className="flex items-center gap-2 text-sm text-blue-600 hover:underline"
+									className="flex items-center gap-2 text-sm text-indigo-600 hover:underline"
 								>
 									<LinkIcon className="h-4 w-4" />
 									<span className="truncate">{link}</span>
 								</a>
 							))}
-							{submission.files.map((file: any) => (
-								<a
-									key={file.id}
-									href={file.filePath}
-									target="_blank"
-									rel="noopener noreferrer"
-									className="flex items-center gap-2 text-sm text-blue-600 hover:underline"
+							{submission.files.map((file) => (
+								<button
+									key={file.id} // 4. Use the file.id for the React key
+									onClick={() => handleFileView(file)}
+									disabled={
+										isLoadingFileKey ===
+										new URL(file.filePath).pathname.substring(1)
+									}
+									className="flex w-full items-center gap-2 text-sm text-indigo-600 hover:underline disabled:opacity-50 text-left"
 								>
-									<FileText className="h-4 w-4" />
+									{isLoadingFileKey ===
+									new URL(file.filePath).pathname.substring(1) ? (
+										<Loader2 className="h-4 w-4 animate-spin" />
+									) : (
+										<FileText className="h-4 w-4" />
+									)}
 									<span className="truncate">{file.fileName}</span>
-								</a>
+								</button>
 							))}
 						</div>
 					</div>
 				)}
-
 				{isReviewed ? (
 					<div className="mt-4 border-t pt-4">
 						<div className="flex justify-between items-center">
-							<SubmissionStatusBadge status={submission.status} />
+							{/* <SubmissionStatusBadge status={submission.status} /> */}
 							<p className="text-xs text-gray-500">
 								Reviewed by{" "}
 								<span className="font-medium">
 									{submission.reviewedBy?.name}
 								</span>{" "}
-								on {format(new Date(submission.reviewedAt), "MMM dd, yyyy")}
+								on {format(new Date(submission.reviewedAt!), "MMM dd, yyyy")}
 							</p>
 						</div>
 						{submission.reviewComment && (
