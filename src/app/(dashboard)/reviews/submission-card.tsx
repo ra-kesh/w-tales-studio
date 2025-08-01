@@ -34,12 +34,12 @@ const getStatusProps = (status) => {
 				color: "text-green-600 bg-green-50",
 				icon: <CheckCircle className="h-4 w-4" />,
 			};
-		case "rejected":
+		case "changes_requested":
 			return {
 				color: "text-red-600 bg-red-50",
 				icon: <XCircle className="h-4 w-4" />,
 			};
-		case "in_progress":
+		case "blocked":
 			return {
 				color: "text-blue-600 bg-blue-50",
 				icon: <Clock className="h-4 w-4" />,

@@ -17,7 +17,9 @@ const typeFilterOptions = [
 
 const statusFilterOptions = [
 	{ id: "ready_for_review", label: "Ready for Review" },
+	{ id: "changes_requested", label: "Changes Requested" },
 	{ id: "blocked", label: "Blocked" },
+	{ id: "approved", label: "Approved" },
 ];
 
 export default function ReviewQueuePage() {
