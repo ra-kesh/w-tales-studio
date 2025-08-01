@@ -70,3 +70,28 @@ export const useAssignments = (filters: AssignmentFilters = {}) => {
 		queryFn: () => getAssignments(filters),
 	});
 };
+
+const fetchAssignmentSubmissions = async (
+	type: "task" | "deliverable",
+	id: number,
+) => {
+	const res = await fetch(`/api/me/assignments/${type}/${id}/submissions`);
+	if (!res.ok) {
+		throw new Error("Failed to fetch submission history");
+	}
+	return res.json();
+};
+
+export const useAssignmentSubmissions = (
+	type: "task" | "deliverable",
+	id: number,
+) => {
+	return useQuery({
+		queryKey: ["submissions", type, id],
+		queryFn: () => fetchAssignmentSubmissions(type, id),
+		// --- THIS IS THE KEY ---
+		// The query will NOT run automatically on component mount.
+		// It will only run when we call the `refetch` function.
+		enabled: false,
+	});
+};
