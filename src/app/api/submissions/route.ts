@@ -72,21 +72,6 @@ export async function POST(request: Request) {
 			);
 		}
 		const callerCrewId = callerInfo[0].id;
-		// const callerRole = callerInfo[0].role;
-		// const isManager = ["owner", "studio_admin", "manager"].includes(
-		// 	callerRole ?? "",
-		// );
-
-		// const roleObject = callerRole
-		// 	? appRoles[callerRole as keyof typeof appRoles]
-		// 	: undefined;
-
-		// if (!roleObject) {
-		// 	return NextResponse.json(
-		// 		{ message: "Invalid user role configured." },
-		// 		{ status: 403 },
-		// 	);
-		// }
 
 		const body = await request.json();
 		const validation = createSubmissionSchema.safeParse(body);
@@ -240,6 +225,7 @@ export async function GET(request: Request) {
 			return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
 		const orgId = session.session.activeOrganizationId;
+		const userId = session.user.id;
 
 		const canSee = await auth.api.hasPermission({
 			headers: await headers(),
@@ -253,6 +239,23 @@ export async function GET(request: Request) {
 		const pageSize = Number(qp.get("pageSize") ?? 10);
 		const status = qp.get("status");
 		const aType = qp.get("assignmentType");
+		const assignedToMe = qp.get("assignedToMe") === "true";
+
+		let callerCrewId: number | null = null;
+		if (assignedToMe) {
+			const callerInfo = await db
+				.select({ id: crews.id })
+				.from(crews)
+				.innerJoin(members, eq(crews.memberId, members.id))
+				.where(
+					and(eq(members.userId, userId), eq(members.organizationId, orgId)),
+				)
+				.limit(1);
+
+			if (callerInfo.length > 0) {
+				callerCrewId = callerInfo[0].id;
+			}
+		}
 
 		const base = or(
 			eq(tasks.organizationId, orgId),
@@ -262,6 +265,11 @@ export async function GET(request: Request) {
 			base,
 			status ? eq(assignmentSubmissions.status, status) : sql`true`,
 			aType ? eq(assignmentSubmissions.assignmentType, aType) : sql`true`,
+			assignedToMe && callerCrewId
+				? eq(assignmentSubmissions.currentReviewer, callerCrewId)
+				: assignedToMe
+					? sql`false`
+					: sql`true`,
 		);
 
 		const rows = await db
