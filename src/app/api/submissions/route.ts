@@ -1,6 +1,6 @@
 // app/api/submissions/route.ts
 
-import { and, count, desc, eq, or, sql } from "drizzle-orm";
+import { and, count, desc, eq, max, or, sql } from "drizzle-orm";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -160,7 +160,37 @@ export async function POST(request: Request) {
 			submittedByCrewId = callerCrewId;
 		}
 
+		const pendingSubmission = await db.query.assignmentSubmissions.findFirst({
+			where: and(
+				eq(assignmentSubmissions.assignmentId, assignmentId),
+				eq(assignmentSubmissions.assignmentType, assignmentType),
+				eq(assignmentSubmissions.status, "ready_for_review"),
+			),
+		});
+
+		if (pendingSubmission) {
+			return NextResponse.json(
+				{
+					message:
+						"A submission is already pending review. Please wait for feedback before submitting a new version.",
+				},
+				{ status: 409 }, // 409 Conflict is the perfect status code for this
+			);
+		}
+
 		const newSubmission = await db.transaction(async (tx) => {
+			const [latestVersionResult] = await tx
+				.select({ maxVersion: max(assignmentSubmissions.version) })
+				.from(assignmentSubmissions)
+				.where(
+					and(
+						eq(assignmentSubmissions.assignmentId, assignmentId),
+						eq(assignmentSubmissions.assignmentType, assignmentType),
+					),
+				);
+
+			const newVersion = (latestVersionResult?.maxVersion || 0) + 1;
+
 			const [submission] = await tx
 				.insert(assignmentSubmissions)
 				.values({
@@ -170,7 +200,7 @@ export async function POST(request: Request) {
 					comment: data.comment,
 					powLinks: data.submissionLinks,
 					submittedBy: submittedByCrewId,
-					version: 1,
+					version: newVersion,
 				})
 				.returning();
 
@@ -202,8 +232,6 @@ export async function POST(request: Request) {
 					.set(parentUpdatePayload)
 					.where(eq(deliverables.id, assignmentId));
 			}
-
-			// ... notification logic ...
 
 			return submission;
 		});

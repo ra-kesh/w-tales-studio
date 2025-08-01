@@ -40,6 +40,8 @@ export function TaskCard({
 	const { setParams } = useTaskReviewParams();
 	const { task } = assignment;
 
+	console.log({ task });
+
 	const [isExpanded, setIsExpanded] = useState(false);
 
 	const {
