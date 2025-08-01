@@ -19,21 +19,36 @@ export async function GET(
 			);
 		}
 
-		// 1. Authentication (You can add a permission check here if needed)
 		const { session } = await getServerSession();
+
 		if (!session?.user?.id) {
 			return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 		}
 
-		// 2. Fetch all submissions for the given assignment, ordered by most recent first
 		const submissions = await db.query.assignmentSubmissions.findMany({
 			where: and(
 				eq(assignmentSubmissions.assignmentType, type),
 				eq(assignmentSubmissions.assignmentId, assignmentId),
 			),
 			with: {
-				// Eagerly load the reviewer's name and the files for the UI
-				reviewedBy: { columns: { name: true } },
+				reviewedBy: {
+					columns: { name: true },
+					// do the below if necessary
+					// with: {
+					// 	member: {
+					// 		with: {
+					// 			user: {
+					// 				columns: {
+					// 					name: true,
+					// 					email: true,
+					// 					image: true,
+					// 				},
+					// 			},
+					// 		},
+					// 	},
+					// },
+				},
+				submittedBy: { columns: { name: true } },
 				files: true,
 			},
 			orderBy: desc(assignmentSubmissions.submittedAt),
