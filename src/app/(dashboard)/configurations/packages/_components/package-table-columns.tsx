@@ -2,6 +2,7 @@
 
 import type { ColumnDef } from "@tanstack/react-table";
 import { ChevronRight, Package } from "lucide-react";
+import { DataTableViewOptions } from "@/components/data-table/data-table-view-options";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -33,25 +34,31 @@ export const usePackageColumns = () => {
 	const { data: bookingTypes = [] } = useBookingTypes();
 
 	const columns: ColumnDef<PackageType>[] = [
+		// {
+		// 	id: "select",
+		// 	header: ({ table }) => (
+		// 		<Checkbox
+		// 			checked={table.getIsAllPageRowsSelected()}
+		// 			onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+		// 			aria-label="Select all"
+		// 		/>
+		// 	),
+		// 	cell: ({ row }) => (
+		// 		<Checkbox
+		// 			checked={row.getIsSelected()}
+		// 			onCheckedChange={(value) => row.toggleSelected(!!value)}
+		// 			aria-label="Select row"
+		// 		/>
+		// 	),
+		// 	enableSorting: false,
+		// 	enableHiding: false,
+		// },
 		{
-			id: "select",
-			header: ({ table }) => (
-				<Checkbox
-					checked={table.getIsAllPageRowsSelected()}
-					onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-					aria-label="Select all"
-				/>
-			),
-			cell: ({ row }) => (
-				<Checkbox
-					checked={row.getIsSelected()}
-					onCheckedChange={(value) => row.toggleSelected(!!value)}
-					aria-label="Select row"
-				/>
-			),
-			enableSorting: false,
-			enableHiding: false,
+			id: "actions",
+			header: ({ table }) => <DataTableViewOptions table={table} />,
+			cell: ({ row }) => <PackageTableRowActions row={row} />,
 		},
+
 		{
 			accessorKey: "label",
 			header: "Name",
@@ -139,10 +146,6 @@ export const usePackageColumns = () => {
 					</div>
 				);
 			},
-		},
-		{
-			id: "actions",
-			cell: ({ row }) => <PackageTableRowActions row={row} />,
 		},
 	];
 

@@ -2,6 +2,7 @@
 
 import type { ColumnDef } from "@tanstack/react-table";
 import { format, formatDistanceToNow } from "date-fns";
+import { DataTableViewOptions } from "@/components/data-table/data-table-view-options";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { participantRoles } from "@/data/role-data";
@@ -22,24 +23,31 @@ export interface BookingTypeRow {
 
 export const useBookingTypeColumns = () => {
 	const columns: ColumnDef<BookingTypeRow>[] = [
+		// {
+		// 	id: "select",
+		// 	header: ({ table }) => (
+		// 		<Checkbox
+		// 			checked={table.getIsAllPageRowsSelected()}
+		// 			onCheckedChange={(v) => table.toggleAllPageRowsSelected(!!v)}
+		// 			aria-label="Select all"
+		// 		/>
+		// 	),
+		// 	cell: ({ row }) => (
+		// 		<Checkbox
+		// 			checked={row.getIsSelected()}
+		// 			onCheckedChange={(v) => row.toggleSelected(!!v)}
+		// 			aria-label="Select row"
+		// 		/>
+		// 	),
+		// 	enableSorting: false,
+		// 	enableHiding: false,
+		// },
+
 		{
-			id: "select",
-			header: ({ table }) => (
-				<Checkbox
-					checked={table.getIsAllPageRowsSelected()}
-					onCheckedChange={(v) => table.toggleAllPageRowsSelected(!!v)}
-					aria-label="Select all"
-				/>
-			),
-			cell: ({ row }) => (
-				<Checkbox
-					checked={row.getIsSelected()}
-					onCheckedChange={(v) => row.toggleSelected(!!v)}
-					aria-label="Select row"
-				/>
-			),
-			enableSorting: false,
-			enableHiding: false,
+			id: "actions",
+			header: ({ table }) => <DataTableViewOptions table={table} />,
+
+			cell: ({ row }) => <BookingTypeTableRowActions row={row} />,
 		},
 
 		{
@@ -105,10 +113,6 @@ export const useBookingTypeColumns = () => {
 					<span>{formatDistanceToNow(dateToDisplay, { addSuffix: true })}</span>
 				);
 			},
-		},
-		{
-			id: "actions",
-			cell: ({ row }) => <BookingTypeTableRowActions row={row} />,
 		},
 	];
 

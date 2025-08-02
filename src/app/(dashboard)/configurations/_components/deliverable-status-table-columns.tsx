@@ -2,6 +2,7 @@
 
 import type { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
+import { DataTableViewOptions } from "@/components/data-table/data-table-view-options";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DeliverableStatusTableRowActions } from "./deliverable-status-row-action";
@@ -20,24 +21,30 @@ export interface DeliverableStatusRow {
 
 export const useDeliverableStatusColumns = () => {
 	const columns: ColumnDef<DeliverableStatusRow>[] = [
+		// {
+		// 	id: "select",
+		// 	header: ({ table }) => (
+		// 		<Checkbox
+		// 			checked={table.getIsAllPageRowsSelected()}
+		// 			onCheckedChange={(v) => table.toggleAllPageRowsSelected(!!v)}
+		// 			aria-label="Select all"
+		// 		/>
+		// 	),
+		// 	cell: ({ row }) => (
+		// 		<Checkbox
+		// 			checked={row.getIsSelected()}
+		// 			onCheckedChange={(v) => row.toggleSelected(!!v)}
+		// 			aria-label="Select row"
+		// 		/>
+		// 	),
+		// 	enableSorting: false,
+		// 	enableHiding: false,
+		// },
 		{
-			id: "select",
-			header: ({ table }) => (
-				<Checkbox
-					checked={table.getIsAllPageRowsSelected()}
-					onCheckedChange={(v) => table.toggleAllPageRowsSelected(!!v)}
-					aria-label="Select all"
-				/>
-			),
-			cell: ({ row }) => (
-				<Checkbox
-					checked={row.getIsSelected()}
-					onCheckedChange={(v) => row.toggleSelected(!!v)}
-					aria-label="Select row"
-				/>
-			),
-			enableSorting: false,
-			enableHiding: false,
+			id: "actions",
+			header: ({ table }) => <DataTableViewOptions table={table} />,
+
+			cell: ({ row }) => <DeliverableStatusTableRowActions row={row} />,
 		},
 
 		{
@@ -73,10 +80,6 @@ export const useDeliverableStatusColumns = () => {
 				const d = new Date(row.original.updatedAt);
 				return <span>{format(d, "yyyy-MM-dd")}</span>;
 			},
-		},
-		{
-			id: "actions",
-			cell: ({ row }) => <DeliverableStatusTableRowActions row={row} />,
 		},
 	];
 

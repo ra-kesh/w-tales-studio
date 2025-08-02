@@ -28,25 +28,25 @@ export const useClientColumns = ({
 }) => {
 	const columns: ColumnDef<ClientBookingRow>[] = [
 		// Select column - No change
-		{
-			id: "select",
-			header: ({ table }) => (
-				<Checkbox
-					checked={table.getIsAllPageRowsSelected()}
-					onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-					aria-label="Select all"
-				/>
-			),
-			cell: ({ row }) => (
-				<Checkbox
-					checked={row.getIsSelected()}
-					onCheckedChange={(value) => row.toggleSelected(!!value)}
-					aria-label="Select row"
-				/>
-			),
-			enableSorting: false,
-			enableHiding: false,
-		},
+		// {
+		// 	id: "select",
+		// 	header: ({ table }) => (
+		// 		<Checkbox
+		// 			checked={table.getIsAllPageRowsSelected()}
+		// 			onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+		// 			aria-label="Select all"
+		// 		/>
+		// 	),
+		// 	cell: ({ row }) => (
+		// 		<Checkbox
+		// 			checked={row.getIsSelected()}
+		// 			onCheckedChange={(value) => row.toggleSelected(!!value)}
+		// 			aria-label="Select row"
+		// 		/>
+		// 	),
+		// 	enableSorting: false,
+		// 	enableHiding: false,
+		// },
 
 		{
 			id: "name",
@@ -100,7 +100,6 @@ export const useClientColumns = ({
 			},
 			enableColumnFilter: true,
 			enableSorting: false,
-			enableHiding: false,
 		},
 
 		{
@@ -171,7 +170,6 @@ export const useClientColumns = ({
 			meta: {
 				icon: CalendarDays,
 			},
-			enableHiding: false,
 		},
 
 		{

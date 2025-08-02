@@ -2,6 +2,7 @@
 
 import type { ColumnDef } from "@tanstack/react-table";
 import { Book, CalendarIcon, CameraIcon } from "lucide-react";
+import { DataTableViewOptions } from "@/components/data-table/data-table-view-options";
 import { Checkbox } from "@/components/ui/checkbox";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import type { ReceivedPaymentRow } from "@/types/payments";
@@ -17,24 +18,30 @@ export const useReceivedPaymentsColumns = ({
 }) => {
 	const columns: ColumnDef<ReceivedPaymentRow>[] = [
 		{
-			id: "select",
-			header: ({ table }) => (
-				<Checkbox
-					checked={table.getIsAllPageRowsSelected()}
-					onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-					aria-label="Select all"
-				/>
-			),
-			cell: ({ row }) => (
-				<Checkbox
-					checked={row.getIsSelected()}
-					onCheckedChange={(value) => row.toggleSelected(!!value)}
-					aria-label="Select row"
-				/>
-			),
-			enableSorting: false,
-			enableHiding: false,
+			id: "actions",
+			header: ({ table }) => <DataTableViewOptions table={table} />,
+
+			cell: ({ row }) => <ReceivedPaymentsRowActions row={row} />,
 		},
+		// {
+		// 	id: "select",
+		// 	header: ({ table }) => (
+		// 		<Checkbox
+		// 			checked={table.getIsAllPageRowsSelected()}
+		// 			onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+		// 			aria-label="Select all"
+		// 		/>
+		// 	),
+		// 	cell: ({ row }) => (
+		// 		<Checkbox
+		// 			checked={row.getIsSelected()}
+		// 			onCheckedChange={(value) => row.toggleSelected(!!value)}
+		// 			aria-label="Select row"
+		// 		/>
+		// 	),
+		// 	enableSorting: false,
+		// 	enableHiding: false,
+		// },
 		{
 			id: "bookingId",
 			accessorKey: "booking.name",
@@ -89,10 +96,6 @@ export const useReceivedPaymentsColumns = ({
 				<DataTableColumnHeader column={column} title="Description" />
 			),
 			cell: ({ row }) => row.original.description ?? "N/a",
-		},
-		{
-			id: "actions",
-			cell: ({ row }) => <ReceivedPaymentsRowActions row={row} />,
 		},
 	];
 	return columns;
