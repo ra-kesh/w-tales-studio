@@ -9,11 +9,11 @@ import {
 	CircleDashed,
 	TextIcon,
 } from "lucide-react";
+import { DataTableViewOptions } from "@/components/data-table/data-table-view-options";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useTaskConfigs } from "@/hooks/use-configs";
-
 import type { TaskWithRelations } from "@/types/task";
 import { DataTableColumnHeader } from "./task-table-column-header";
 import { TaskTableRowActions } from "./task-table-row-actions";
@@ -36,30 +36,30 @@ export function useTaskColumns({
 	const { statuses, priorities } = useTaskConfigs();
 
 	const taskColumns: ColumnDef<TaskWithRelations>[] = [
-		{
-			id: "select",
-			header: ({ table }) => (
-				<Checkbox
-					checked={
-						table.getIsAllPageRowsSelected() ||
-						(table.getIsSomePageRowsSelected() && "indeterminate")
-					}
-					onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-					aria-label="Select all"
-					className="translate-y-[2px]"
-				/>
-			),
-			cell: ({ row }) => (
-				<Checkbox
-					checked={row.getIsSelected()}
-					onCheckedChange={(value) => row.toggleSelected(!!value)}
-					aria-label="Select row"
-					className="translate-y-[2px]"
-				/>
-			),
-			enableSorting: false,
-			enableHiding: false,
-		},
+		// {
+		// 	id: "select",
+		// 	header: ({ table }) => (
+		// 		<Checkbox
+		// 			checked={
+		// 				table.getIsAllPageRowsSelected() ||
+		// 				(table.getIsSomePageRowsSelected() && "indeterminate")
+		// 			}
+		// 			onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+		// 			aria-label="Select all"
+		// 			className="translate-y-[2px]"
+		// 		/>
+		// 	),
+		// 	cell: ({ row }) => (
+		// 		<Checkbox
+		// 			checked={row.getIsSelected()}
+		// 			onCheckedChange={(value) => row.toggleSelected(!!value)}
+		// 			aria-label="Select row"
+		// 			className="translate-y-[2px]"
+		// 		/>
+		// 	),
+		// 	enableSorting: false,
+		// 	enableHiding: false,
+		// },
 		{
 			id: "description",
 			accessorKey: "description",
@@ -325,6 +325,8 @@ export function useTaskColumns({
 		},
 		{
 			id: "actions",
+			header: ({ table }) => <DataTableViewOptions table={table} />,
+
 			cell: ({ row }) => <TaskTableRowActions row={row} />,
 		},
 	];

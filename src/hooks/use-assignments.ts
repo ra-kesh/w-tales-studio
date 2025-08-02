@@ -1,14 +1,16 @@
 // lib/hooks/use-assignments.ts
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
+import { z } from "zod/v4";
 import type {
 	DeliverablesAssignment,
 	ExpensesAssignment,
 	ShootsAssignment,
 	TasksAssignment,
 } from "@/lib/db/schema";
-import { useQuery } from "@tanstack/react-query";
-import { z } from "zod/v4";
+import type { DeliverableAssignmentWithRelations } from "@/types/deliverables";
+import type { TaskAssignmentWithRelations } from "@/types/task";
 
 interface Booking {
 	id: number;
@@ -18,8 +20,8 @@ interface Booking {
 export interface AssignmentsData {
 	data: {
 		shoots?: ShootsAssignment[];
-		tasks?: TasksAssignment[];
-		deliverables?: DeliverablesAssignment[];
+		tasks?: TaskAssignmentWithRelations[];
+		deliverables?: DeliverableAssignmentWithRelations[];
 		expenses?: ExpensesAssignment[];
 	};
 	pagination: Record<string, { total: number; page: number; pageSize: number }>;
@@ -66,5 +68,30 @@ export const useAssignments = (filters: AssignmentFilters = {}) => {
 	return useQuery<AssignmentsData, Error>({
 		queryKey: ["assignments", filters],
 		queryFn: () => getAssignments(filters),
+	});
+};
+
+const fetchAssignmentSubmissions = async (
+	type: "task" | "deliverable",
+	id: number,
+) => {
+	const res = await fetch(`/api/me/assignments/${type}/${id}/submissions`);
+	if (!res.ok) {
+		throw new Error("Failed to fetch submission history");
+	}
+	return res.json();
+};
+
+export const useAssignmentSubmissions = (
+	type: "task" | "deliverable",
+	id: number,
+) => {
+	return useQuery({
+		queryKey: ["submissions", type, id],
+		queryFn: () => fetchAssignmentSubmissions(type, id),
+		// --- THIS IS THE KEY ---
+		// The query will NOT run automatically on component mount.
+		// It will only run when we call the `refetch` function.
+		enabled: false,
 	});
 };

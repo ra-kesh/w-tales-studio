@@ -40,7 +40,7 @@ export default function Clients() {
 		columns,
 		initialState: {
 			// sorting: [{ id: "createdAt", desc: true }],
-			columnPinning: { right: ["actions"] },
+			columnPinning: { left: ["actions"] },
 		},
 		getRowId: (originalRow) => originalRow.id.toString(),
 		shallow: false,

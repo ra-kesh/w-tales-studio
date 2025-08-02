@@ -3,12 +3,14 @@
 import { useQueryClient } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 import { UserIcon } from "lucide-react";
+import { DataTableViewOptions } from "@/components/data-table/data-table-view-options";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useSession } from "@/lib/auth/auth-client";
 import type { CrewWithMember } from "@/types/crew";
 import { EditMemberRolesDialog } from "../../settings/_components/edit-member-roles";
+import { DataTableColumnHeader } from "../../tasks/_components/task-table-column-header";
 import { CrewTableRowActions } from "./crew-table-row-actions";
 
 export function useCrewColumns<TData>() {
@@ -24,26 +26,32 @@ export function useCrewColumns<TData>() {
 	};
 
 	const columns: ColumnDef<CrewWithMember>[] = [
+		// {
+		// 	id: "select",
+		// 	header: ({ table }) => (
+		// 		<Checkbox
+		// 			checked={table.getIsAllPageRowsSelected()}
+		// 			onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+		// 			aria-label="Select all"
+		// 			className="translate-y-[2px]"
+		// 		/>
+		// 	),
+		// 	cell: ({ row }) => (
+		// 		<Checkbox
+		// 			checked={row.getIsSelected()}
+		// 			onCheckedChange={(value) => row.toggleSelected(!!value)}
+		// 			aria-label="Select row"
+		// 			className="translate-y-[2px]"
+		// 		/>
+		// 	),
+		// 	enableSorting: false,
+		// 	enableHiding: false,
+		// },
 		{
-			id: "select",
-			header: ({ table }) => (
-				<Checkbox
-					checked={table.getIsAllPageRowsSelected()}
-					onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-					aria-label="Select all"
-					className="translate-y-[2px]"
-				/>
-			),
-			cell: ({ row }) => (
-				<Checkbox
-					checked={row.getIsSelected()}
-					onCheckedChange={(value) => row.toggleSelected(!!value)}
-					aria-label="Select row"
-					className="translate-y-[2px]"
-				/>
-			),
-			enableSorting: false,
-			enableHiding: false,
+			id: "actions",
+			header: ({ table }) => <DataTableViewOptions table={table} />,
+
+			cell: ({ row }) => <CrewTableRowActions row={row} />,
 		},
 		{
 			accessorKey: "name",
@@ -170,10 +178,6 @@ export function useCrewColumns<TData>() {
 					</Badge>
 				);
 			},
-		},
-		{
-			id: "actions",
-			cell: ({ row }) => <CrewTableRowActions row={row} />,
 		},
 	];
 

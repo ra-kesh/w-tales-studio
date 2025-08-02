@@ -46,7 +46,6 @@ export function BookingTable({
 	const currentBookingId = params?.id;
 
 	const { setParams } = useShootsParams();
-	const { canCreateAndUpdateShoot } = usePermissions();
 
 	const handleRowClick = (id: number) => {
 		router.prefetch(`/bookings/${id}?${searchParams.toString() ?? null}`);

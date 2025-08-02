@@ -10,6 +10,7 @@ import {
 	TextIcon,
 	Users,
 } from "lucide-react";
+import { DataTableViewOptions } from "@/components/data-table/data-table-view-options";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -39,25 +40,25 @@ export const useExpenseColumns = ({
 			}>;
 		}
 	>[] = [
-		{
-			id: "select",
-			header: ({ table }) => (
-				<Checkbox
-					checked={table.getIsAllPageRowsSelected()}
-					onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-					aria-label="Select all"
-				/>
-			),
-			cell: ({ row }) => (
-				<Checkbox
-					checked={row.getIsSelected()}
-					onCheckedChange={(value) => row.toggleSelected(!!value)}
-					aria-label="Select row"
-				/>
-			),
-			enableSorting: false,
-			enableHiding: false,
-		},
+		// {
+		// 	id: "select",
+		// 	header: ({ table }) => (
+		// 		<Checkbox
+		// 			checked={table.getIsAllPageRowsSelected()}
+		// 			onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+		// 			aria-label="Select all"
+		// 		/>
+		// 	),
+		// 	cell: ({ row }) => (
+		// 		<Checkbox
+		// 			checked={row.getIsSelected()}
+		// 			onCheckedChange={(value) => row.toggleSelected(!!value)}
+		// 			aria-label="Select row"
+		// 		/>
+		// 	),
+		// 	enableSorting: false,
+		// 	enableHiding: false,
+		// },
 		{
 			id: "description",
 			accessorKey: "description",
@@ -264,6 +265,8 @@ export const useExpenseColumns = ({
 		},
 		{
 			id: "actions",
+			header: ({ table }) => <DataTableViewOptions table={table} />,
+
 			cell: ({ row }) => <ExpenseTableRowActions row={row} />,
 		},
 	];

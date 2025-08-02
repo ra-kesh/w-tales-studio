@@ -16,6 +16,8 @@ import { DeliverableCreateSheet } from "./deliverables/_components/deliverable-c
 import { DeliverableEditSheet } from "./deliverables/_components/deliverable-edit-sheet";
 import { ExpenseCreateSheet } from "./expenses/_components/expense-create-sheet";
 import { ExpenseEditSheet } from "./expenses/_components/expense-edit-sheet";
+import { DeliverableReviewSheet } from "./home/_components/review/deliverable-review-sheet";
+import { TaskReviewSheet } from "./home/_components/review/task-review-sheet";
 import { ReceivedPaymentCreateSheet } from "./payments/_component/received-payment-create-sheet";
 import { ReceivedPaymentEditSheet } from "./payments/_component/received-payment-edit-sheet";
 import { ScheduledPaymentCreateSheet } from "./payments/_component/scheduled-payment-create-sheet";
@@ -81,6 +83,12 @@ export function GlobalSheets() {
 			<ScheduledPaymentCreateSheet />
 			<Suspense fallback={<div>Loading...</div>}>
 				<ScheduledPaymentEditSheet />
+			</Suspense>
+			<Suspense fallback={<div>Loading...</div>}>
+				<TaskReviewSheet />
+			</Suspense>
+			<Suspense fallback={<div>Loading...</div>}>
+				<DeliverableReviewSheet />
 			</Suspense>
 		</>
 	);

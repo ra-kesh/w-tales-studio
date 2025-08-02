@@ -63,7 +63,7 @@ export function AllDeliverables() {
 		if (!data) return [];
 
 		const allDeliverables = data.pages.flatMap((page) => page.data);
-		const today = startOfDay(new Date());
+		// const today = startOfDay(new Date());
 
 		switch (selectedFilter) {
 			case "pending":
@@ -133,9 +133,9 @@ export function AllDeliverables() {
 	);
 
 	return (
-		<div className="grid grid-cols-12 gap-8">
+		<div className="grid grid-cols-11 gap-12">
 			{/* Sidebar Menu */}
-			<div className="col-span-4 flex-shrink-0">
+			<div className="col-span-3 flex-shrink-0">
 				<Card className="border border-gray-200 py-0">
 					<CardContent className="p-0">
 						<div className="p-4 border-b border-gray-200">

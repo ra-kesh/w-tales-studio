@@ -3,6 +3,7 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { Banknote, CalendarDays, CameraIcon, TextIcon } from "lucide-react"; // ADDED: Icons for new columns
+import { DataTableViewOptions } from "@/components/data-table/data-table-view-options";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress"; // ADDED: Progress bar for financials
@@ -27,25 +28,25 @@ export const useClientColumns = ({
 }) => {
 	const columns: ColumnDef<ClientBookingRow>[] = [
 		// Select column - No change
-		{
-			id: "select",
-			header: ({ table }) => (
-				<Checkbox
-					checked={table.getIsAllPageRowsSelected()}
-					onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-					aria-label="Select all"
-				/>
-			),
-			cell: ({ row }) => (
-				<Checkbox
-					checked={row.getIsSelected()}
-					onCheckedChange={(value) => row.toggleSelected(!!value)}
-					aria-label="Select row"
-				/>
-			),
-			enableSorting: false,
-			enableHiding: false,
-		},
+		// {
+		// 	id: "select",
+		// 	header: ({ table }) => (
+		// 		<Checkbox
+		// 			checked={table.getIsAllPageRowsSelected()}
+		// 			onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+		// 			aria-label="Select all"
+		// 		/>
+		// 	),
+		// 	cell: ({ row }) => (
+		// 		<Checkbox
+		// 			checked={row.getIsSelected()}
+		// 			onCheckedChange={(value) => row.toggleSelected(!!value)}
+		// 			aria-label="Select row"
+		// 		/>
+		// 	),
+		// 	enableSorting: false,
+		// 	enableHiding: false,
+		// },
 
 		{
 			id: "name",
@@ -99,7 +100,6 @@ export const useClientColumns = ({
 			},
 			enableColumnFilter: true,
 			enableSorting: false,
-			enableHiding: false,
 		},
 
 		{
@@ -170,19 +170,17 @@ export const useClientColumns = ({
 			meta: {
 				icon: CalendarDays,
 			},
-			enableHiding: false,
 		},
 
-		// Phone number column
 		{
 			accessorKey: "phoneNumber",
 			header: "Phone",
 			cell: ({ row }) => <div>{row.getValue("phoneNumber") ?? "N/A"}</div>,
 		},
 
-		// Actions column - No change
 		{
 			id: "actions",
+			header: ({ table }) => <DataTableViewOptions table={table} />,
 			cell: ({ row }) => <ClientTableRowActions row={row} />,
 		},
 	];

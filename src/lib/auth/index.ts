@@ -1,3 +1,5 @@
+import "server-only";
+
 import { type BetterAuthOptions, betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
@@ -12,7 +14,7 @@ import {
 import { and, eq } from "drizzle-orm";
 import { db } from "../db/drizzle";
 import { getActiveOrganization } from "../db/queries";
-import { members } from "../db/schema";
+import { crews, members } from "../db/schema";
 import { reactInvitationEmail } from "../email/invitation";
 import { resend } from "../email/resend";
 import { reactResetPasswordEmail } from "../email/resetPassword";
@@ -145,37 +147,77 @@ export const auth = betterAuth({
 	plugins: [
 		...(options.plugins ?? []),
 		customSession(async ({ user, session }) => {
-			const roles = await findUserRoles(
+			const { roles, crewId } = await findUserMembershipInfo(
 				session.userId,
 				session.activeOrganizationId,
 			);
-
 			return {
 				roles,
 				user,
 				session,
+				crewId,
 			};
 		}, options),
 	],
 });
 
-async function findUserRoles(
+// async function findUserRoles(
+// 	userId: string,
+// 	activeOrganizationId: string | null | undefined,
+// ): Promise<string[]> {
+// 	if (!activeOrganizationId) {
+// 		return [];
+// 	}
+// 	const memberships = await db
+// 		.select({ role: members.role })
+// 		.from(members)
+// 		.where(
+// 			and(
+// 				eq(members.userId, userId),
+// 				eq(members.organizationId, activeOrganizationId),
+// 			),
+// 		);
+// 	return memberships
+// 		.map((membership) => membership.role)
+// 		.filter((role) => role != null) as string[];
+// }
+
+async function findUserMembershipInfo(
 	userId: string,
 	activeOrganizationId: string | null | undefined,
-): Promise<string[]> {
+): Promise<{ roles: string[]; crewId: number | null }> {
+	// If there's no active organization, there are no roles or crewId
 	if (!activeOrganizationId) {
-		return [];
+		return { roles: [], crewId: null };
 	}
+
+	// A single query to get all memberships for the user in the active org
 	const memberships = await db
-		.select({ role: members.role })
+		.select({
+			role: members.role,
+			crewId: crews.id,
+		})
 		.from(members)
+		.leftJoin(crews, eq(crews.memberId, members.id)) // Use LEFT JOIN in case a member is not yet a crew
 		.where(
 			and(
 				eq(members.userId, userId),
 				eq(members.organizationId, activeOrganizationId),
 			),
 		);
-	return memberships
-		.map((membership) => membership.role)
-		.filter((role) => role != null) as string[];
+
+	if (memberships.length === 0) {
+		return { roles: [], crewId: null };
+	}
+
+	// Extract the roles from all memberships
+	const roles = memberships
+		.map((m) => m.role)
+		.filter((role): role is string => role !== null);
+
+	// Find the first non-null crewId. In most cases, a user will only have one
+	// membership record per org, but this is a safe way to handle it.
+	const crewId = memberships.find((m) => m.crewId !== null)?.crewId ?? null;
+
+	return { roles, crewId };
 }
