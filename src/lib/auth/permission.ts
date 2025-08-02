@@ -10,6 +10,7 @@ import {
 const statement = {
 	...defaultStatements,
 	dashboard: ["read"],
+	review: ["list"],
 	booking: ["create", "read", "update", "delete", "list"],
 	client: ["create", "read", "update", "delete", "list"],
 	shoot: ["create", "read", "update", "delete", "list", "assign_crew"],
@@ -59,6 +60,7 @@ export const ac = createAccessControl(statement);
 
 export const owner = ac.newRole({
 	dashboard: ["read"],
+	review: ["list"],
 	booking: ["create", "read", "update", "delete", "list"],
 	client: ["create", "read", "update", "delete", "list"],
 	shoot: ["create", "read", "update", "delete", "list", "assign_crew"],
@@ -107,6 +109,7 @@ export const owner = ac.newRole({
 
 export const studio_admin = ac.newRole({
 	dashboard: ["read"],
+	review: ["list"],
 	booking: ["create", "read", "update", "delete", "list"],
 	client: ["create", "read", "update", "delete", "list"],
 	shoot: ["create", "read", "update", "delete", "list", "assign_crew"],
@@ -169,6 +172,7 @@ export const crew = ac.newRole({
 
 export const manager = ac.newRole({
 	// dashboard: ["read"],
+	review: ["list"],
 	// booking: ["read", "list"],
 	// client: ["read", "list"],
 	shoot: ["create", "read", "update", "list", "assign_crew"],
@@ -199,6 +203,7 @@ export const manager = ac.newRole({
 
 export const post_production_manager = ac.newRole({
 	// dashboard: ["read"],
+	review: ["list"],
 	// shoot: ["read", "list"], // Read-only access to see shoot context
 	deliverable: [
 		"create",

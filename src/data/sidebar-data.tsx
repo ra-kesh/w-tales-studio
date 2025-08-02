@@ -1,8 +1,10 @@
 import type { LucideIcon } from "lucide-react";
 import {
 	BanknoteIcon,
+	CalendarDaysIcon,
 	CameraIcon,
-	DockIcon,
+	ClipboardCheckIcon,
+	Contact2Icon,
 	HelpCircleIcon,
 	Home,
 	LayoutDashboardIcon,
@@ -10,7 +12,6 @@ import {
 	PackageIcon,
 	Settings2Icon,
 	SettingsIcon,
-	SquareUserRoundIcon,
 	UsersIcon,
 	Wallet2Icon,
 } from "lucide-react";
@@ -38,13 +39,22 @@ export const sidebarData: SidebarData = {
 	navMain: [
 		{
 			label: null,
+			items: [{ title: "Home", url: "/home", icon: Home }],
+		},
+		{
+			label: "Workspace",
 			items: [
-				{ title: "Home", url: "/home", icon: Home },
 				{
 					title: "Dashboard",
 					url: "/dashboard",
 					icon: LayoutDashboardIcon,
 					permissions: { dashboard: ["read"] },
+				},
+				{
+					title: "Review",
+					url: "/reviews",
+					icon: ClipboardCheckIcon,
+					permissions: { review: ["list"] },
 				},
 			],
 		},
@@ -54,7 +64,7 @@ export const sidebarData: SidebarData = {
 				{
 					title: "Bookings",
 					url: "/bookings",
-					icon: DockIcon,
+					icon: CalendarDaysIcon,
 					permissions: { booking: ["list"] },
 				},
 				{
@@ -90,7 +100,7 @@ export const sidebarData: SidebarData = {
 				{
 					title: "Clients",
 					url: "/clients",
-					icon: SquareUserRoundIcon,
+					icon: Contact2Icon,
 					permissions: { client: ["list"] },
 				},
 				{

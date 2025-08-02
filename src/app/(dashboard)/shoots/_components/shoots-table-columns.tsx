@@ -18,7 +18,7 @@ import {
 	TooltipContent,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
+import { cn, isUrl } from "@/lib/utils";
 import type { ShootRowData } from "@/types/shoots";
 import { DataTableColumnHeader } from "../../tasks/_components/task-table-column-header";
 import { ShootTableRowActions } from "./shoots-table-row-actions";
@@ -136,28 +136,50 @@ export const useShootColumns = ({
 		{
 			accessorKey: "location",
 			header: "Location",
-			cell: ({ row }) => (
-				<div className="max-w-[200px]">
-					{row.original.location ? (
-						<Tooltip>
-							<TooltipTrigger asChild>
-								<div className=" flex items-center max-w-fit">
-									<span className="truncate">
-										{(row.original.location as string) ?? "N/a"}
-									</span>
-								</div>
-							</TooltipTrigger>
-							<TooltipContent className="max-w-xs text-balance">
-								<p className="font-semibold">
-									{(row.original.location as string) ?? "N/a"}
-								</p>
-							</TooltipContent>
-						</Tooltip>
-					) : (
-						"N/a"
-					)}
-				</div>
-			),
+			cell: ({ row }) => {
+				const locationIsUrl = row.original.location && isUrl(row.original.location as string);
+
+				return (
+					<div className="max-w-[200px]">
+						{row.original.location ? (
+							locationIsUrl ? (
+								<Tooltip>
+									<TooltipTrigger asChild>
+										<a
+											href={row.original.location as string}
+											target="_blank"
+											rel="noopener noreferrer"
+											className="text-blue-600 hover:text-blue-800 underline cursor-pointer max-w-[200px]"
+										>
+											<span className="truncate">{row.original.location as string}</span>
+										</a>
+									</TooltipTrigger>
+									<TooltipContent className="max-w-xs text-balance">
+										<p className="font-semibold">{row.original.location as string}</p>
+									</TooltipContent>
+								</Tooltip>
+							) : (
+								<Tooltip>
+									<TooltipTrigger asChild>
+										<div className=" flex items-center max-w-fit">
+											<span className="truncate">
+												{(row.original.location as string) ?? "N/a"}
+											</span>
+										</div>
+									</TooltipTrigger>
+									<TooltipContent className="max-w-xs text-balance">
+										<p className="font-semibold">
+											{(row.original.location as string) ?? "N/a"}
+										</p>
+									</TooltipContent>
+								</Tooltip>
+							)
+						) : (
+							"N/a"
+						)}
+					</div>
+				);
+			},
 		},
 
 		{
