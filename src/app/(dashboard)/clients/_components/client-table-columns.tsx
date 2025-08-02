@@ -3,6 +3,7 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { Banknote, CalendarDays, CameraIcon, TextIcon } from "lucide-react"; // ADDED: Icons for new columns
+import { DataTableViewOptions } from "@/components/data-table/data-table-view-options";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress"; // ADDED: Progress bar for financials
@@ -173,16 +174,15 @@ export const useClientColumns = ({
 			enableHiding: false,
 		},
 
-		// Phone number column
 		{
 			accessorKey: "phoneNumber",
 			header: "Phone",
 			cell: ({ row }) => <div>{row.getValue("phoneNumber") ?? "N/A"}</div>,
 		},
 
-		// Actions column - No change
 		{
 			id: "actions",
+			header: ({ table }) => <DataTableViewOptions table={table} />,
 			cell: ({ row }) => <ClientTableRowActions row={row} />,
 		},
 	];
