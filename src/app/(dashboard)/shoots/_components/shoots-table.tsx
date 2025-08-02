@@ -1,12 +1,14 @@
 "use client";
 
-import * as React from "react";
 import {
-	type Table as TanstackTable,
 	type ColumnDef,
 	flexRender,
+	type Table as TanstackTable,
 } from "@tanstack/react-table";
-
+import { Crown, Users } from "lucide-react";
+import * as React from "react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import {
 	Table,
 	TableBody,
@@ -15,10 +17,6 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
-
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Crown, Users } from "lucide-react";
 import type { ShootRowData } from "@/types/shoots";
 
 interface ShootTableProps {
@@ -78,15 +76,31 @@ export function ShootTable({ columns, table, children }: ShootTableProps) {
 																Assigned Crew
 															</h4>
 														</div>
-														<Badge
-															variant="secondary"
-															className="text-xs font-normal"
-														>
-															{row.original.shootsAssignments.length}{" "}
-															{row.original.shootsAssignments.length === 1
-																? "member"
-																: "members"}
-														</Badge>
+														<div className="flex items-center gap-2">
+															<Badge
+																variant="secondary"
+																className="text-xs font-normal"
+															>
+																{(() => {
+																	const assignedCount =
+																		row.original.shootsAssignments.length;
+																	const requiredCount =
+																		row.original.additionalDetails
+																			?.requiredCrewCount;
+
+																	if (
+																		requiredCount &&
+																		Number(requiredCount) > 0
+																	) {
+																		return `${assignedCount} / ${requiredCount} assigned`;
+																	}
+
+																	return `${assignedCount} ${
+																		assignedCount === 1 ? "member" : "members"
+																	}`;
+																})()}
+															</Badge>
+														</div>
 													</div>
 													<div className="space-y-3">
 														{row.original.shootsAssignments.map(

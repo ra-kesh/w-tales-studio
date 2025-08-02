@@ -1,13 +1,15 @@
 "use client";
 
-import * as React from "react";
-
 import {
-	type Table as TanstackTable,
 	type ColumnDef,
 	flexRender,
+	type Table as TanstackTable,
 } from "@tanstack/react-table";
+import { Crown, Users } from "lucide-react";
+import * as React from "react";
 
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import {
 	Table,
 	TableBody,
@@ -16,10 +18,6 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
-
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Crown, Users } from "lucide-react";
 import type { DeliverableRowData } from "@/types/deliverables";
 
 interface DeliverableTableProps {
@@ -156,7 +154,6 @@ export function DeliverableTable({
 													</div>
 												</div>
 											</TableCell>
-											<TableCell className="p-0" colSpan={1} />
 										</TableRow>
 									)}
 								</React.Fragment>

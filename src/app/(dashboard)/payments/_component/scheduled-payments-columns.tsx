@@ -2,6 +2,7 @@
 
 import type { ColumnDef } from "@tanstack/react-table";
 import { CalendarIcon, CameraIcon } from "lucide-react";
+import { DataTableViewOptions } from "@/components/data-table/data-table-view-options";
 import { Checkbox } from "@/components/ui/checkbox";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import type { ScheduledPaymentRow } from "@/types/payments";
@@ -16,24 +17,30 @@ export const useScheduledPaymentsColumns = ({
 	isMininmalBookingLoading: boolean;
 }) => {
 	const columns: ColumnDef<ScheduledPaymentRow>[] = [
+		// {
+		// 	id: "select",
+		// 	header: ({ table }) => (
+		// 		<Checkbox
+		// 			checked={table.getIsAllPageRowsSelected()}
+		// 			onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+		// 			aria-label="Select all"
+		// 		/>
+		// 	),
+		// 	cell: ({ row }) => (
+		// 		<Checkbox
+		// 			checked={row.getIsSelected()}
+		// 			onCheckedChange={(value) => row.toggleSelected(!!value)}
+		// 			aria-label="Select row"
+		// 		/>
+		// 	),
+		// 	enableSorting: false,
+		// 	enableHiding: false,
+		// },{
+
 		{
-			id: "select",
-			header: ({ table }) => (
-				<Checkbox
-					checked={table.getIsAllPageRowsSelected()}
-					onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-					aria-label="Select all"
-				/>
-			),
-			cell: ({ row }) => (
-				<Checkbox
-					checked={row.getIsSelected()}
-					onCheckedChange={(value) => row.toggleSelected(!!value)}
-					aria-label="Select row"
-				/>
-			),
-			enableSorting: false,
-			enableHiding: false,
+			id: "actions",
+			header: ({ table }) => <DataTableViewOptions table={table} />,
+			cell: ({ row }) => <ScheduledPaymentsRowActions row={row} />,
 		},
 		{
 			id: "bookingId",
@@ -89,10 +96,10 @@ export const useScheduledPaymentsColumns = ({
 			),
 			cell: ({ row }) => row.original.description ?? "N/a",
 		},
-		{
-			id: "actions",
-			cell: ({ row }) => <ScheduledPaymentsRowActions row={row} />,
-		},
+		// {
+		// 	id: "actions",
+		// 	cell: ({ row }) => <ScheduledPaymentsRowActions row={row} />,
+		// },
 	];
 	return columns;
 };

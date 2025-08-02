@@ -2,7 +2,7 @@
 
 // import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
+import { z } from "zod/v4";
 import {
   Card,
   CardContent,
@@ -26,8 +26,8 @@ import { ImageUpload } from "@/components/ui/image-upload";
 import { ColorPicker } from "@/components/ui/color-picker";
 
 const brandingSchema = z.object({
-  logo: z.string().url(),
-  watermark: z.string().url(),
+  logo: z.url(),
+  watermark: z.url(),
   primaryColor: z.string(),
   secondaryColor: z.string(),
   watermarkOpacity: z.number().min(0).max(100),

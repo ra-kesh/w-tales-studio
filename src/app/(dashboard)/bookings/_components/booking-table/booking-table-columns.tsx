@@ -2,18 +2,16 @@
 
 import type { ColumnDef } from "@tanstack/react-table";
 import {
-	Calendar,
 	CalendarIcon,
 	Camera,
 	ChevronRight,
-	Mail,
 	PackageIcon,
-	Phone,
 	Text,
 	Users,
 } from "lucide-react";
 import type { PackageMetadata } from "@/app/(dashboard)/configurations/packages/_components/package-form-schema";
 import { DataTableColumnHeader } from "@/app/(dashboard)/tasks/_components/task-table-column-header";
+import { DataTableViewOptions } from "@/components/data-table/data-table-view-options";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -24,7 +22,7 @@ import {
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
 import type { Booking, Client, Shoot } from "@/lib/db/schema";
-import { cn, formatDate } from "@/lib/utils";
+import { cn, formatCurrency, formatDate } from "@/lib/utils";
 import type { Participant } from "../booking-form/booking-form-schema";
 import { BookingTableRowActions } from "./booking-table-row-actions";
 
@@ -40,25 +38,25 @@ export const useBookingColumns = ({
 	const columns: ColumnDef<
 		Booking & { shoots: Shoot[]; participants: Participant[] }
 	>[] = [
-		{
-			id: "select",
-			header: ({ table }) => (
-				<Checkbox
-					checked={table.getIsAllPageRowsSelected()}
-					onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-					aria-label="Select all"
-				/>
-			),
-			cell: ({ row }) => (
-				<Checkbox
-					checked={row.getIsSelected()}
-					onCheckedChange={(value) => row.toggleSelected(!!value)}
-					aria-label="Select row"
-				/>
-			),
-			enableSorting: false,
-			enableHiding: false,
-		},
+		// {
+		// 	id: "select",
+		// 	header: ({ table }) => (
+		// 		<Checkbox
+		// 			checked={table.getIsAllPageRowsSelected()}
+		// 			onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+		// 			aria-label="Select all"
+		// 		/>
+		// 	),
+		// 	cell: ({ row }) => (
+		// 		<Checkbox
+		// 			checked={row.getIsSelected()}
+		// 			onCheckedChange={(value) => row.toggleSelected(!!value)}
+		// 			aria-label="Select row"
+		// 		/>
+		// 	),
+		// 	enableSorting: false,
+		// 	enableHiding: false,
+		// },
 		{
 			id: "name",
 			accessorKey: "name",
@@ -126,27 +124,27 @@ export const useBookingColumns = ({
 			),
 			cell: ({ row }) => {
 				const cost = row.original.packageCost;
-				const formatted =
-					typeof cost === "number" || typeof cost === "string"
-						? new Intl.NumberFormat("en-US", {
-								style: "currency",
-								currency: "INR",
-								minimumFractionDigits: 0,
-								maximumFractionDigits: 0,
-							}).format(Number(cost))
-						: "$0";
+				const formatted = formatCurrency(cost);
+				// typeof cost === "number" || typeof cost === "string"
+				// 	? new Intl.NumberFormat("en-US", {
+				// 			style: "currency",
+				// 			currency: "INR",
+				// 			minimumFractionDigits: 0,
+				// 			maximumFractionDigits: 0,
+				// 		}).format(Number(cost))
+				// 	: "$0";
 
 				return <span className=" font-medium tabular-nums">{formatted}</span>;
+			},
+			meta: {
+				label: "Cost",
 			},
 		},
 
 		{
 			accessorKey: "shoots",
-			header: () => (
-				<div className="flex items-center gap-2">
-					<span>Shoots</span>
-					<Calendar className="h-4 w-4" />
-				</div>
+			header: ({ column }) => (
+				<DataTableColumnHeader column={column} title="Shoots" />
 			),
 			cell: ({ row }) => {
 				const shoots = row.getValue("shoots") as Shoot[];
@@ -196,6 +194,10 @@ export const useBookingColumns = ({
 					</div>
 				);
 			},
+			enableSorting: false,
+			meta: {
+				label: "Shoots",
+			},
 		},
 
 		{
@@ -211,6 +213,8 @@ export const useBookingColumns = ({
 				icon: CalendarIcon,
 			},
 			enableColumnFilter: true,
+			enableSorting: true,
+			enableHiding: false,
 		},
 
 		{
@@ -266,12 +270,13 @@ export const useBookingColumns = ({
 			enableSorting: false,
 			enableColumnFilter: false,
 			meta: {
-				label: "Participants",
+				label: "Clients",
 				icon: Users,
 			},
 		},
 		{
 			id: "actions",
+			header: ({ table }) => <DataTableViewOptions table={table} />,
 			cell: ({ row }) => <BookingTableRowActions row={row} />,
 		},
 	];

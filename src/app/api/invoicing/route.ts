@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "@/lib/dal";
 import { db } from "@/lib/db/drizzle";
 import { invoices, invoice_line_items } from "@/lib/db/schema";
-import { z } from "zod";
+import { z } from "zod/v4";
 import { and, eq } from "drizzle-orm";
 
 const InvoiceSchema = z.object({

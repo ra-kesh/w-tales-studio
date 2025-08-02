@@ -1,0 +1,1 @@
+ALTER TABLE "shoots" ALTER COLUMN "date" SET DATA TYPE text;

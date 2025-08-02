@@ -6,6 +6,7 @@ import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
 import { useBookingTable } from "@/hooks/use-booking-table";
 import { useMinimalBookings } from "@/hooks/use-bookings";
 import { useTaskPriorities, useTaskStatuses } from "@/hooks/use-configs";
+import { useMinimalDeliverables } from "@/hooks/use-deliverables";
 import { useTasks } from "@/hooks/use-tasks";
 import { OpenTaskSheet } from "./_components/open-task-sheet";
 import { useTaskColumns } from "./_components/task-columns";
@@ -24,7 +25,13 @@ export default function Tasks() {
 		isFetched: isMinimalBookingFetched,
 	} = useMinimalBookings();
 
+	const {
+		data: minimalDeliverablesResponse,
+		isLoading: isMinimalDeliverableLoading,
+	} = useMinimalDeliverables();
+
 	const minimalBookings = minimalBookingsResponse?.data;
+	const minimalDeliverables = minimalDeliverablesResponse?.data;
 
 	const columns = useTaskColumns({
 		statusOptions:
@@ -32,7 +39,9 @@ export default function Tasks() {
 		priorityOptions:
 			priorityOptions?.map(({ label, value }) => ({ label, value })) ?? [],
 		minimalBookings: minimalBookings ?? [],
+		minimalDeliverables: minimalDeliverables ?? [],
 		isMininmalBookingLoading,
+		isMinimalDeliverableLoading,
 	});
 
 	const defaultData = React.useMemo(() => [], []);
@@ -42,8 +51,8 @@ export default function Tasks() {
 		pageCount: data?.pageCount ?? 0,
 		columns,
 		initialState: {
-			sorting: [{ id: "createdAt", desc: true }],
-			columnPinning: { right: ["actions"] },
+			// sorting: [{ id: "createdAt", desc: true }],
+			columnPinning: { left: ["actions"] },
 		},
 		getRowId: (originalRow) => originalRow.id.toString(),
 		shallow: false,

@@ -1,12 +1,12 @@
+import { and, eq } from "drizzle-orm";
+import { NextResponse } from "next/server";
 import { getServerSession } from "@/lib/dal";
 import { db } from "@/lib/db/drizzle";
 import { crews } from "@/lib/db/schema";
-import { and, eq } from "drizzle-orm";
-import { NextResponse } from "next/server";
 
 export async function GET(
 	request: Request,
-	{ params }: { params: { id: string } },
+	{ params }: { params: Promise<{ id: string }> },
 ) {
 	const { session } = await getServerSession();
 	const userOrganizationId = session?.session.activeOrganizationId;
@@ -45,9 +45,9 @@ export async function GET(
 			);
 		}
 
-		// Transform data to include member information
 		const transformedData = {
 			...crew,
+			email: crew.email ?? "",
 			memberName: crew.member?.user.name,
 			memberEmail: crew.member?.user.email,
 		};
@@ -64,7 +64,7 @@ export async function GET(
 
 export async function PUT(
 	request: Request,
-	{ params }: { params: { id: string } },
+	{ params }: { params: Promise<{ id: string }> },
 ) {
 	try {
 		const { session } = await getServerSession();

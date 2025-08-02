@@ -88,7 +88,7 @@ export const BookingDetailForm = () => {
 									<FormItem>
 										<FormLabel>Booking Name</FormLabel>
 										<FormControl>
-											<Input {...field} />
+											<Input {...field} placeholder="e.g John and Jane" />
 										</FormControl>
 										<FormMessage />
 									</FormItem>
@@ -150,6 +150,7 @@ export const BookingDetailForm = () => {
 									<FormItem>
 										<FormLabel>Package Type</FormLabel>
 										<Select
+											disabled={!selectedBookingTypeKey}
 											onValueChange={(val) => {
 												field.onChange(val);
 												const selected = allPackageTypes.find(
@@ -237,8 +238,30 @@ export const BookingDetailForm = () => {
 											<span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
 												₹
 											</span>
-											<Input className="pl-7" {...field} />
+											<Input
+												className="pl-7"
+												{...field}
+												disabled={!selectedBookingTypeKey}
+											/>
 										</div>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+						</div>
+						<div className="col-span-5">
+							<FormField
+								control={form.control}
+								name="note"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>Notes</FormLabel>
+										<FormControl>
+											<Textarea
+												placeholder="Add any booking specific notes or request here"
+												{...field}
+											/>
+										</FormControl>
 										<FormMessage />
 									</FormItem>
 								)}

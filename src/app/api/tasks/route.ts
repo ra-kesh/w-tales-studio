@@ -1,14 +1,14 @@
+import { and, eq, inArray } from "drizzle-orm";
 import { NextResponse } from "next/server";
+import { TaskSchema } from "@/app/(dashboard)/tasks/task-form-schema";
+import { getServerSession } from "@/lib/dal";
+import { db } from "@/lib/db/drizzle";
 import {
 	type AllowedTaskSortFields,
 	getTasks,
 	type TaskFilters,
 	type TaskSortOption,
 } from "@/lib/db/queries";
-import { getServerSession } from "@/lib/dal";
-import { TaskSchema } from "@/app/(dashboard)/tasks/task-form-schema";
-import { db } from "@/lib/db/drizzle";
-import { and, eq, inArray } from "drizzle-orm";
 import { bookings, crews, tasks, tasksAssignments } from "@/lib/db/schema";
 
 export async function GET(request: Request) {
@@ -32,10 +32,10 @@ export async function GET(request: Request) {
 		console.log({ searchParams });
 
 		const page = Number.parseInt(searchParams.get("page") || "1", 10);
-		const limit = Number.parseInt(searchParams.get("limit") || "10", 10);
+		const limit = Number.parseInt(searchParams.get("perPage") || "10", 10);
 
 		const sortParam = searchParams.get("sort");
-		let sortOptions: TaskSortOption[] | undefined = undefined;
+		let sortOptions: TaskSortOption[] | undefined;
 		if (sortParam) {
 			try {
 				const parsedSort = JSON.parse(sortParam);
@@ -43,6 +43,7 @@ export async function GET(request: Request) {
 					"description",
 					"status",
 					"priority",
+					"startDate",
 					"dueDate",
 					"createdAt",
 					"updatedAt",
@@ -61,7 +62,9 @@ export async function GET(request: Request) {
 			status: searchParams.get("status") || undefined,
 			priority: searchParams.get("priority") || undefined,
 			bookingId: searchParams.get("bookingId") || undefined,
+			deliverableId: searchParams.get("deliverableId") || undefined,
 			crewId: searchParams.get("crewId") || undefined,
+			startDate: searchParams.get("startDate") || undefined,
 			dueDate: searchParams.get("dueDate") || undefined,
 		};
 
@@ -105,7 +108,7 @@ export async function POST(request: Request) {
 	const validation = TaskSchema.safeParse(body);
 	if (!validation.success) {
 		return NextResponse.json(
-			{ message: "Validation error", errors: validation.error.errors },
+			{ message: "Validation error", errors: validation.error.issues },
 			{ status: 400 },
 		);
 	}
@@ -155,9 +158,13 @@ export async function POST(request: Request) {
 				.insert(tasks)
 				.values({
 					bookingId: Number.parseInt(validatedData.bookingId),
+					deliverableId: validatedData.deliverableId
+						? Number.parseInt(validatedData.deliverableId)
+						: null,
 					organizationId: userOrganizationId,
 					description: validatedData.description,
 					priority: validatedData.priority,
+					startDate: validatedData.startDate,
 					dueDate: validatedData.dueDate,
 					status: validatedData.status,
 					createdAt: new Date(),

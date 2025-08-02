@@ -4,6 +4,7 @@ import React from "react";
 import { DataTableSkeleton } from "@/components/data-table/data-table-skeleton";
 import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
 import { useBookingTable } from "@/hooks/use-booking-table";
+import { useMinimalBookings } from "@/hooks/use-bookings";
 import { useClients } from "@/hooks/use-clients";
 import { usePackageTypes } from "@/hooks/use-configs";
 import type { ClientBookingRow } from "@/lib/db/queries";
@@ -17,7 +18,20 @@ export default function Clients() {
 	const { data: packageTypes, isPending: isPackageTypesLoading } =
 		usePackageTypes();
 
-	const columns = useClientColumns({ packageTypes, isPackageTypesLoading });
+	const {
+		data: minimalBookingsResponse,
+		isLoading: isMininmalBookingLoading,
+		isFetched: isMinimalBookingFetched,
+	} = useMinimalBookings();
+
+	const minimalBookings = minimalBookingsResponse?.data;
+
+	const columns = useClientColumns({
+		packageTypes,
+		isPackageTypesLoading,
+		minimalBookings: minimalBookings ?? [],
+		isMininmalBookingLoading,
+	});
 	const defaultData = React.useMemo<ClientBookingRow[]>(() => [], []);
 
 	const { table } = useBookingTable<ClientBookingRow>({
@@ -26,7 +40,7 @@ export default function Clients() {
 		columns,
 		initialState: {
 			// sorting: [{ id: "createdAt", desc: true }],
-			columnPinning: { right: ["actions"] },
+			columnPinning: { left: ["actions"] },
 		},
 		getRowId: (originalRow) => originalRow.id.toString(),
 		shallow: false,

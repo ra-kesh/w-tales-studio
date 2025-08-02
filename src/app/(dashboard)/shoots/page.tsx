@@ -34,8 +34,7 @@ export default function Shoots() {
 		pageCount: data?.pageCount ?? 0,
 		columns,
 		initialState: {
-			sorting: [{ id: "createdAt", desc: true }],
-			columnPinning: { right: ["actions"] },
+			columnPinning: { left: ["actions"] },
 		},
 		getRowId: (originalRow) => originalRow.id.toString(),
 		shallow: false,

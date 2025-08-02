@@ -1,11 +1,11 @@
 "use client";
 
+import { Plus, Trash } from "lucide-react";
 import React from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useFieldArray, useFormContext } from "react-hook-form";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash } from "lucide-react";
-import { FormField, FormItem, FormControl } from "@/components/ui/form";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { FormControl, FormField, FormItem } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 
 export function BookingDeliveryForm() {
@@ -27,7 +27,7 @@ export function BookingDeliveryForm() {
 					onClick={() =>
 						append({
 							title: "",
-							cost: "",
+							cost: "0",
 							quantity: "1",
 							dueDate: "",
 						})

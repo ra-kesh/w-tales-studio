@@ -46,7 +46,7 @@ export async function POST(request: Request) {
 	const parse = BookingSchema.safeParse(body);
 	if (!parse.success) {
 		return NextResponse.json(
-			{ message: "Validation error", errors: parse.error.errors },
+			{ message: "Validation error", errors: parse.error.issues },
 			{ status: 400 },
 		);
 	}
@@ -147,10 +147,11 @@ export async function POST(request: Request) {
 							bookingId,
 							organizationId: orgId,
 							title: s.title,
-							date: s.date,
+							date: s.date ?? "",
 							time: s.time ?? "",
 							location: s.location,
-							// notes: s.notes,
+							notes: s.notes,
+							additionalDetails: s.additionalDetails,
 						})),
 					)
 					.returning({ id: shoots.id });

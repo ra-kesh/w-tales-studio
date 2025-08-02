@@ -6,16 +6,31 @@ import {
 	CalendarIcon,
 	CameraIcon,
 	ChevronRight,
+	Sparkles,
 	TextIcon,
 	Users,
 } from "lucide-react";
+import { DataTableViewOptions } from "@/components/data-table/data-table-view-options";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { cn } from "@/lib/utils";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { cn, isUrl } from "@/lib/utils";
 import type { ShootRowData } from "@/types/shoots";
 import { DataTableColumnHeader } from "../../tasks/_components/task-table-column-header";
 import { ShootTableRowActions } from "./shoots-table-row-actions";
+
+const serviceDisplayNames: Record<string, string> = {
+	drone_service: "Drone Service",
+	// same_day_edit: "Same-Day Edit",
+	// photo_album: "Photo Album",
+	// bts_video: "Behind the Scenes Video",
+	// extra_hour: "Extra Hour of Coverage",
+};
 
 export const useShootColumns = ({
 	minimalBookings,
@@ -25,25 +40,25 @@ export const useShootColumns = ({
 	isMininmalBookingLoading: boolean;
 }) => {
 	const columns: ColumnDef<ShootRowData>[] = [
-		{
-			id: "select",
-			header: ({ table }) => (
-				<Checkbox
-					checked={table.getIsAllPageRowsSelected()}
-					onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-					aria-label="Select all"
-				/>
-			),
-			cell: ({ row }) => (
-				<Checkbox
-					checked={row.getIsSelected()}
-					onCheckedChange={(value) => row.toggleSelected(!!value)}
-					aria-label="Select row"
-				/>
-			),
-			enableSorting: false,
-			enableHiding: false,
-		},
+		// {
+		// 	id: "select",
+		// 	header: ({ table }) => (
+		// 		<Checkbox
+		// 			checked={table.getIsAllPageRowsSelected()}
+		// 			onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+		// 			aria-label="Select all"
+		// 		/>
+		// 	),
+		// 	cell: ({ row }) => (
+		// 		<Checkbox
+		// 			checked={row.getIsSelected()}
+		// 			onCheckedChange={(value) => row.toggleSelected(!!value)}
+		// 			aria-label="Select row"
+		// 		/>
+		// 	),
+		// 	enableSorting: false,
+		// 	enableHiding: false,
+		// },
 		{
 			id: "title",
 			accessorKey: "title",
@@ -53,9 +68,6 @@ export const useShootColumns = ({
 			cell: ({ row }) => (
 				<div>
 					<div className="font-medium">{row.original.title}</div>
-					{/* <div className="text-sm text-muted-foreground">
-						{row.original.booking.name}
-					</div> */}
 				</div>
 			),
 			meta: {
@@ -67,7 +79,6 @@ export const useShootColumns = ({
 			enableColumnFilter: true,
 			enableSorting: true,
 		},
-
 		{
 			id: "bookingId",
 			accessorKey: "booking.name",
@@ -90,7 +101,6 @@ export const useShootColumns = ({
 			},
 			enableColumnFilter: true,
 			enableSorting: false,
-			enableHiding: false,
 		},
 		{
 			id: "date",
@@ -98,12 +108,21 @@ export const useShootColumns = ({
 			header: ({ column }) => (
 				<DataTableColumnHeader column={column} title="Date" />
 			),
-			cell: ({ row }) => (
-				<div>
-					{format(new Date(row.getValue("date")), "MMM dd, yyyy")} at{" "}
-					{row.original.time}{" "}
-				</div>
-			),
+			cell: ({ row }) => {
+				const date = row.getValue("date") as string | undefined;
+				const { time } = row.original;
+
+				if (!date) {
+					return <div className="text-muted-foreground">Unscheduled</div>;
+				}
+
+				let content = format(new Date(date), "MMM dd, yyyy");
+				if (time) {
+					content += ` at ${time}`;
+				}
+
+				return <div>{content}</div>;
+			},
 			meta: {
 				label: "Date",
 				variant: "dateRange",
@@ -112,15 +131,60 @@ export const useShootColumns = ({
 			enableColumnFilter: true,
 			enableSorting: true,
 		},
-
-		// },
 		{
 			accessorKey: "location",
 			header: "Location",
-			cell: ({ row }) => (
-				<div>{(row.original.location as string) ?? "N/a"}</div>
-			),
+			cell: ({ row }) => {
+				const locationIsUrl =
+					row.original.location && isUrl(row.original.location as string);
+
+				return (
+					<div className="max-w-[200px]">
+						{row.original.location ? (
+							locationIsUrl ? (
+								<Tooltip>
+									<TooltipTrigger asChild>
+										<a
+											href={row.original.location as string}
+											target="_blank"
+											rel="noopener noreferrer"
+											className="text-blue-600 hover:text-blue-800 underline cursor-pointer max-w-[200px]"
+										>
+											<span className="truncate">
+												{row.original.location as string}
+											</span>
+										</a>
+									</TooltipTrigger>
+									<TooltipContent className="max-w-xs text-balance">
+										<p className="font-semibold">
+											{row.original.location as string}
+										</p>
+									</TooltipContent>
+								</Tooltip>
+							) : (
+								<Tooltip>
+									<TooltipTrigger asChild>
+										<div className=" flex items-center max-w-fit">
+											<span className="truncate">
+												{(row.original.location as string) ?? "N/a"}
+											</span>
+										</div>
+									</TooltipTrigger>
+									<TooltipContent className="max-w-xs text-balance">
+										<p className="font-semibold">
+											{(row.original.location as string) ?? "N/a"}
+										</p>
+									</TooltipContent>
+								</Tooltip>
+							)
+						) : (
+							"N/a"
+						)}
+					</div>
+				);
+			},
 		},
+
 		{
 			id: "crew",
 			accessorKey: "shootsAssignments",
@@ -165,7 +229,7 @@ export const useShootColumns = ({
 							<div className="flex flex-col items-start">
 								<span className="tabular-nums font-medium">
 									{count
-										? `${count} crew member${count > 1 ? "s" : ""} assigned`
+										? `${count} crew${count > 1 ? "s" : ""} assigned`
 										: "No crew assigned"}
 								</span>
 							</div>
@@ -175,7 +239,40 @@ export const useShootColumns = ({
 			},
 		},
 		{
+			id: "additionalDetails",
+			header: ({ column }) => (
+				<DataTableColumnHeader column={column} title="Extra Services" />
+			),
+			cell: ({ row }) => {
+				const services =
+					row.original.additionalDetails?.additionalServices ?? [];
+
+				if (services.length === 0) {
+					return <span className="text-muted-foreground">None</span>;
+				}
+
+				return (
+					<div className="flex flex-wrap gap-1 items-center max-w-[250px]">
+						{services.map((serviceKey) => (
+							<Badge
+								key={serviceKey}
+								variant="outline"
+								className="whitespace-nowrap"
+							>
+								{serviceDisplayNames[serviceKey] ?? serviceKey}
+							</Badge>
+						))}
+					</div>
+				);
+			},
+			meta: {
+				label: "Extra Services",
+				icon: Sparkles,
+			},
+		},
+		{
 			id: "actions",
+			header: ({ table }) => <DataTableViewOptions table={table} />,
 			cell: ({ row }) => <ShootTableRowActions row={row} />,
 		},
 	];

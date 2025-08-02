@@ -40,7 +40,7 @@ export function BookingTableRowActions<TData>({
 			<DropdownMenuContent align="end" className="w-[160px]">
 				<DropdownMenuItem
 					disabled={!canCreateAndUpdateBooking}
-					onClick={() => setParams({ bookingId: booking.id.toString() })}
+					onClick={() => setParams({ updateBookingId: booking.id.toString() })}
 				>
 					Edit
 				</DropdownMenuItem>

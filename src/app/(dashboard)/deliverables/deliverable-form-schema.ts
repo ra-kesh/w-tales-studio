@@ -1,13 +1,19 @@
-import { z } from "zod";
+import { z } from "zod/v4";
 
 export const DeliverableSchema = z
 	.object({
-		title: z.string().min(1, { message: "Title is required" }),
-		bookingId: z.string().min(1, { message: "Booking is required" }),
+		title: z.string().min(1, {
+			error: "Title is required",
+		}),
+		bookingId: z.string().min(1, {
+			error: "Booking is required",
+		}),
 		notes: z.string().optional(),
-		dueDate: z.string().min(1, { message: "Due date is required" }),
+		dueDate: z.string().optional(),
 		isPackageIncluded: z.boolean(),
-		quantity: z.string().min(1, { message: "Quantity is required" }),
+		quantity: z.string().min(1, {
+			error: "Quantity is required",
+		}),
 		status: z.string(),
 		crewMembers: z.array(z.string()).optional(),
 		cost: z.string().refine((val) => {
@@ -20,10 +26,11 @@ export const DeliverableSchema = z
 			!data.isPackageIncluded &&
 			(!data.cost || Number.parseFloat(data.cost) <= 0)
 		) {
-			ctx.addIssue({
+			ctx.issues.push({
 				code: z.ZodIssueCode.custom,
-				message: "Cost is required when package is not included",
-				path: ["cost"],
+				spath: ["cost"],
+				error: "Cost is required when package is not included",
+				input: "",
 			});
 		}
 	});

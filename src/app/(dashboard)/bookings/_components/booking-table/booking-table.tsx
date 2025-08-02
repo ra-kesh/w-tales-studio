@@ -2,10 +2,11 @@
 
 import { type ColumnDef, flexRender, type Table } from "@tanstack/react-table";
 import { format } from "date-fns";
-import { Calendar, Clock, MapPin } from "lucide-react";
+import { Calendar, Clock, MapPin, Pen, PencilLine } from "lucide-react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import * as React from "react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
 	TableBody,
 	TableCell,
@@ -14,6 +15,13 @@ import {
 	TableRow,
 	Table as UITable,
 } from "@/components/ui/table";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { usePermissions } from "@/hooks/use-permissions";
+import { useShootsParams } from "@/hooks/use-shoots-params";
 import type { Booking, Shoot } from "@/lib/db/schema";
 import { cn } from "@/lib/utils";
 import type { Participant } from "../booking-form/booking-form-schema";
@@ -36,6 +44,8 @@ export function BookingTable({
 	const searchParams = useSearchParams();
 
 	const currentBookingId = params?.id;
+
+	const { setParams } = useShootsParams();
 
 	const handleRowClick = (id: number) => {
 		router.prefetch(`/bookings/${id}?${searchParams.toString() ?? null}`);
@@ -119,8 +129,27 @@ export function BookingTable({
 																			</div>
 																			<div className="text-xs text-muted-foreground flex items-center">
 																				<MapPin className="h-3 w-3 mr-1 inline" />
-																				{(shoot.location as string) ||
-																					"No location specified"}
+
+																				{shoot.location ? (
+																					<Tooltip>
+																						<TooltipTrigger asChild>
+																							<div className="text-xs text-muted-foreground flex items-center cursor-help max-w-[150px] ">
+																								<span className="truncate">
+																									{shoot.location as string}
+																								</span>
+																							</div>
+																						</TooltipTrigger>
+																						<TooltipContent className="max-w-xs text-balance">
+																							<p className="font-semibold">
+																								{shoot.location as string}
+																							</p>
+																						</TooltipContent>
+																					</Tooltip>
+																				) : (
+																					<div className="text-xs text-muted-foreground flex items-center">
+																						<span>No location specified</span>
+																					</div>
+																				)}
 																			</div>
 																		</TableCell>
 
@@ -137,11 +166,27 @@ export function BookingTable({
 																						)
 																					: "Date not specified"}
 																			</div>
+
 																			{row.original.shoots.length === 0 && (
 																				<div className="text-center py-6 text-sm text-muted-foreground">
 																					No shoots scheduled for this booking
 																				</div>
 																			)}
+																		</TableCell>
+																		<TableCell className="flex">
+																			<div>
+																				<Button
+																					size="sm"
+																					variant={"outline"}
+																					onClick={() =>
+																						setParams({
+																							shootId: shoot.id.toString(),
+																						})
+																					}
+																				>
+																					<PencilLine size="4" />
+																				</Button>
+																			</div>
 																		</TableCell>
 																	</TableRow>
 																),
@@ -150,6 +195,7 @@ export function BookingTable({
 													</UITable>
 												</div>
 											</TableCell>
+											<TableCell className="p-0" colSpan={1} />
 											<TableCell className="p-0" colSpan={1} />
 											<TableCell className="p-0" colSpan={1} />
 										</TableRow>

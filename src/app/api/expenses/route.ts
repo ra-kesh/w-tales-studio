@@ -38,7 +38,7 @@ export async function GET(request: Request) {
 	try {
 		const { searchParams } = new URL(request.url);
 		const page = Number.parseInt(searchParams.get("page") || "1", 10);
-		const limit = Number.parseInt(searchParams.get("limit") || "10", 10);
+		const limit = Number.parseInt(searchParams.get("perPage") || "10", 10);
 
 		const sortParam = searchParams.get("sort");
 		let sortOptions: ExpenseSortOption[] | undefined;

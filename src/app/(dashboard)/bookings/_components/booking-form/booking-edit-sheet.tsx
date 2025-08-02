@@ -18,22 +18,22 @@ import { BookingEditForm } from "./booking-edit-form";
 import type { BookingEditFormValues } from "./booking-edit-form-schema";
 
 export function BookingEditSheet() {
-	const { setParams, bookingId } = useBookingParams();
+	const { setParams, updateBookingId } = useBookingParams();
 
 	const { canCreateAndUpdateBooking } = usePermissions();
 
-	const isOpen = Boolean(bookingId) && canCreateAndUpdateBooking;
+	const isOpen = Boolean(updateBookingId) && canCreateAndUpdateBooking;
 
 	const {
 		data: booking,
 		refetch,
 		isLoading,
-	} = useBookingFormData(bookingId as string);
+	} = useBookingFormData(updateBookingId as string);
 
 	const updateMutation = useUpdateBookingMutation();
 
 	const handleSubmit = async (data: BookingEditFormValues) => {
-		await updateMutation.mutateAsync({ id: bookingId as string, data });
+		await updateMutation.mutateAsync({ id: updateBookingId as string, data });
 		refetch();
 		setParams(null);
 	};

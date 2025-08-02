@@ -1,55 +1,113 @@
-// components/assignments/shoot-card.tsx
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { CalendarDays, Clock, MapPin } from "lucide-react";
-import { format, isPast, isToday } from "date-fns";
+import { format } from "date-fns";
+import { CalendarIcon, MapPinIcon } from "lucide-react";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { isUrl } from "@/lib/utils";
 
 export function ShootCard({ assignment }) {
 	const { shoot } = assignment;
-	const shootDate = new Date(shoot.date);
-	const isOverdue = isPast(shootDate) && !isToday(shootDate);
+
+	// Parse date safely
+	const shootDate = shoot?.date ? new Date(shoot.date) : null;
+	const isValidDate = shootDate && !isNaN(shootDate.getTime());
+
+	// Check if location is a URL
+	const locationIsUrl = shoot.location && isUrl(shoot.location);
 
 	return (
-		<Card className="w-full shadow-sm">
-			<CardHeader>
-				<div className="flex justify-between items-start">
-					<div>
-						<CardTitle className="text-base font-semibold">
-							{shoot.title}
-						</CardTitle>
-						<p className="text-sm text-muted-foreground">
-							For: {shoot.booking.name}
-						</p>
-					</div>
-					{assignment.isLead && <Badge variant="outline">Lead</Badge>}
+		<li className="flex items-center justify-between gap-x-6 py-6 ">
+			<div className="min-w-full">
+				<div className="flex items-center gap-x-3">
+					<p className="text-md font-semibold text-gray-900">{shoot.title}</p>
 				</div>
-			</CardHeader>
-			<CardContent className="space-y-3 text-sm">
-				<div className="flex items-center gap-4">
-					<div className="flex items-center gap-2">
-						<CalendarDays className="h-4 w-4 text-muted-foreground" />
-						<span className={isOverdue ? "text-destructive" : ""}>
-							{format(shootDate, "MMM dd, yyyy")}
-						</span>
-					</div>
-					<div className="flex items-center gap-2">
-						<Clock className="h-4 w-4 text-muted-foreground" />
-						<span>{shoot.time}</span>
-					</div>
-				</div>
-				{shoot.location && (
-					<div className="flex items-center gap-2">
-						<MapPin className="h-4 w-4 text-muted-foreground" />
-						<span className="text-muted-foreground">{shoot.location}</span>
-					</div>
+				{shoot.booking?.name && (
+					<p className="text-xs font-semibold mt-1  text-gray-500">
+						{shoot.booking.name}
+					</p>
 				)}
-				<div className="flex justify-end items-center pt-2">
-					<Button size="sm" variant="secondary">
-						View Details
-					</Button>
+
+				<div className="mt-2 flex items-center gap-x-2 text-xs/5 text-gray-500">
+					{/* Date and Time */}
+					{isValidDate && (
+						<div className="flex items-center gap-x-1">
+							<CalendarIcon className="h-4 w-4 text-gray-400" />
+							<time dateTime={shoot.date}>
+								{format(shootDate, "MMM dd, yyyy")}
+								{shoot.time && (
+									<>
+										<span className="mx-1">at</span>
+										<span className="inline-flex items-center gap-x-1">
+											{/* <ClockIcon className="h-3 w-3 text-gray-400" /> */}
+											{shoot.time}
+										</span>
+									</>
+								)}
+							</time>
+						</div>
+					)}
+
+					{/* Only show time if date is not available but time is */}
+					{/* {!isValidDate && shoot.time && (
+						<div className="flex items-center gap-x-1">
+							<ClockIcon className="h-4 w-4 text-gray-400" />
+							<span>{shoot.time}</span>
+						</div>
+					)} */}
+
+					{/* Location */}
+					{shoot.location && (
+						<>
+							{(isValidDate || shoot.time) && (
+								<svg viewBox="0 0 2 2" className="size-0.5 fill-current">
+									<circle r={1} cx={1} cy={1} />
+								</svg>
+							)}
+							<div className="flex items-center gap-x-1">
+								<MapPinIcon className="h-4 w-4 text-gray-400" />
+								{locationIsUrl ? (
+									<Tooltip>
+										<TooltipTrigger asChild>
+											<a
+												href={shoot.location}
+												target="_blank"
+												rel="noopener noreferrer"
+												className="text-blue-600 hover:text-blue-800 underline cursor-pointer max-w-[200px]"
+											>
+												<span className="truncate">{shoot.location}</span>
+											</a>
+										</TooltipTrigger>
+										<TooltipContent className="max-w-xs text-balance">
+											<p className="font-semibold">{shoot.location}</p>
+										</TooltipContent>
+									</Tooltip>
+								) : (
+									<Tooltip>
+										<TooltipTrigger asChild>
+											<div className="text-xs text-gray-500 flex items-center cursor-help max-w-[200px]">
+												<span className="truncate">{shoot.location}</span>
+											</div>
+										</TooltipTrigger>
+										<TooltipContent className="max-w-xs text-balance">
+											<p className="font-semibold">{shoot.location}</p>
+										</TooltipContent>
+									</Tooltip>
+								)}
+							</div>
+						</>
+					)}
 				</div>
-			</CardContent>
-		</Card>
+
+				<div className="mt-2 rounded-md bg-gray-50 px-2 py-4">
+					{shoot.notes ? (
+						<p className="text-xs text-gray-600">{shoot.notes}</p>
+					) : (
+						<p className="text-xs text-gray-400 italic">No notes added</p>
+					)}
+				</div>
+			</div>
+		</li>
 	);
 }

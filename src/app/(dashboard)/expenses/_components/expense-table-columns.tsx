@@ -3,22 +3,19 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import {
-	Calendar,
 	CalendarIcon,
 	CameraIcon,
 	CircleDashed,
-	DollarSign,
-	FileIcon,
-	FileText,
 	Tag,
 	TextIcon,
 	Users,
 } from "lucide-react";
+import { DataTableViewOptions } from "@/components/data-table/data-table-view-options";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import type { Expense } from "@/lib/db/schema";
+import { formatCurrency } from "@/lib/utils";
 import { DataTableColumnHeader } from "../../tasks/_components/task-table-column-header";
 import { ExpenseTableRowActions } from "./expense-table-row-actions";
 
@@ -43,25 +40,25 @@ export const useExpenseColumns = ({
 			}>;
 		}
 	>[] = [
-		{
-			id: "select",
-			header: ({ table }) => (
-				<Checkbox
-					checked={table.getIsAllPageRowsSelected()}
-					onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-					aria-label="Select all"
-				/>
-			),
-			cell: ({ row }) => (
-				<Checkbox
-					checked={row.getIsSelected()}
-					onCheckedChange={(value) => row.toggleSelected(!!value)}
-					aria-label="Select row"
-				/>
-			),
-			enableSorting: false,
-			enableHiding: false,
-		},
+		// {
+		// 	id: "select",
+		// 	header: ({ table }) => (
+		// 		<Checkbox
+		// 			checked={table.getIsAllPageRowsSelected()}
+		// 			onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+		// 			aria-label="Select all"
+		// 		/>
+		// 	),
+		// 	cell: ({ row }) => (
+		// 		<Checkbox
+		// 			checked={row.getIsSelected()}
+		// 			onCheckedChange={(value) => row.toggleSelected(!!value)}
+		// 			aria-label="Select row"
+		// 		/>
+		// 	),
+		// 	enableSorting: false,
+		// 	enableHiding: false,
+		// },
 		{
 			id: "description",
 			accessorKey: "description",
@@ -134,26 +131,31 @@ export const useExpenseColumns = ({
 		},
 		{
 			accessorKey: "amount",
-			header: () => (
-				<div className="flex items-center gap-1">
-					<DollarSign className="h-4 w-4" />
-					<span>Amount</span>
-				</div>
+			header: ({ column }) => (
+				<DataTableColumnHeader column={column} title="Amount" />
 			),
-			cell: ({ row }) => (
-				<div className="font-medium tabular-nums">
-					${Number(row.getValue("amount")).toFixed(2)}
-				</div>
-			),
+			cell: ({ row }) => {
+				const cost = row.original.amount;
+				const formatted = formatCurrency(cost);
+				// typeof cost === "number" || typeof cost === "string"
+				// 	? new Intl.NumberFormat("en-US", {
+				// 			style: "currency",
+				// 			currency: "INR",
+				// 			minimumFractionDigits: 0,
+				// 			maximumFractionDigits: 0,
+				// 		}).format(Number(cost))
+				// 	: "$0";
+
+				return <span className=" font-medium tabular-nums">{formatted}</span>;
+			},
+			enableSorting: true,
+			enableHiding: false,
 		},
 		{
 			id: "date",
 			accessorKey: "date",
-			header: () => (
-				<div className="flex items-center gap-1">
-					<Calendar className="h-4 w-4" />
-					<span>Date</span>
-				</div>
+			header: ({ column }) => (
+				<DataTableColumnHeader column={column} title="Date" />
 			),
 			cell: ({ row }) => (
 				<div>{format(new Date(row.getValue("date")), "MMM dd, yyyy")}</div>
@@ -165,6 +167,7 @@ export const useExpenseColumns = ({
 			},
 			enableColumnFilter: true,
 			enableSorting: true,
+			enableHiding: false,
 		},
 		{
 			accessorKey: "billTo",
@@ -262,6 +265,8 @@ export const useExpenseColumns = ({
 		},
 		{
 			id: "actions",
+			header: ({ table }) => <DataTableViewOptions table={table} />,
+
 			cell: ({ row }) => <ExpenseTableRowActions row={row} />,
 		},
 	];

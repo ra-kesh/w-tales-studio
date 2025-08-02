@@ -1,4 +1,8 @@
-import type { Deliverable, DeliverablesAssignment } from "@/lib/db/schema";
+import type {
+	Booking,
+	Deliverable,
+	DeliverablesAssignment,
+} from "@/lib/db/schema";
 
 export type DeliverableRowData = Deliverable & {
 	booking: { name: string };
@@ -11,3 +15,19 @@ export interface DeliverablesResponse {
 	pageCount: number;
 	limit: number;
 }
+
+// The shape of the assignment data returned by your hooks
+export type DeliverableAssignmentWithRelations = {
+	id: number;
+	deliverableId: number;
+	crewId: number;
+	isLead: boolean;
+	organizationId: string;
+	assignedAt: string;
+	assignedBy: number | null;
+	createdAt: string;
+	updatedAt: string;
+	deliverable: Deliverable & {
+		booking: Pick<Booking, "id" | "name">;
+	};
+};

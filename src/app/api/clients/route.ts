@@ -26,11 +26,11 @@ export async function GET(request: Request) {
 	try {
 		const { searchParams } = new URL(request.url);
 		const page = Number.parseInt(searchParams.get("page") || "1", 10);
-		const limit = Number.parseInt(searchParams.get("limit") || "10", 10);
+		const limit = Number.parseInt(searchParams.get("perPage") || "10", 10);
 
 		// 1. Parse Sort Parameter
 		const sortParam = searchParams.get("sort");
-		let sortOptions: ClientSortOption[] | undefined = undefined;
+		let sortOptions: ClientSortOption[] | undefined;
 		if (sortParam) {
 			try {
 				const parsedSort = JSON.parse(sortParam);
