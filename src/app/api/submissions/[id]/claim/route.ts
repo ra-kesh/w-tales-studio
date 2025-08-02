@@ -9,18 +9,17 @@ import { assignmentSubmissions, crews, members } from "@/lib/db/schema";
 
 export async function PATCH(
 	request: Request,
-	{ params }: { params: { id: string } },
+	{ params }: { params: Promise<{ id: string }> },
 ) {
-	try {
-		const submissionId = parseInt(params.id, 10);
+	const { id } = await params;
+	const submissionId = parseInt(id, 10);
 
-		// 1. Authentication & Authorization
+	try {
 		const { session } = await getServerSession();
 		if (!session?.user?.id || !session.session.activeOrganizationId) {
 			return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 		}
 
-		// A user must have 'update' permission to claim a review
 		const canUpdate = await auth.api.hasPermission({
 			headers: await headers(),
 			body: { permissions: { task: ["review"], deliverable: ["review"] } },
@@ -97,7 +96,7 @@ export async function PATCH(
 
 		return NextResponse.json(updatedSubmission);
 	} catch (error) {
-		console.error(`Failed to claim submission ${params.id}:`, error);
+		console.error(`Failed to claim submission ${id}:`, error);
 		return NextResponse.json(
 			{ message: "Internal Server Error" },
 			{ status: 500 },

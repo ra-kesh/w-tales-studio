@@ -1,18 +1,21 @@
+// components/assignments/submission-card.tsx (Refactored)
 "use client";
 
-import { format, formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow } from "date-fns";
 import {
 	CheckCircle,
 	Clock,
 	FileText,
 	Link as LinkIcon,
+	Loader2,
 	MessageSquare,
 	ThumbsUp,
 	UserPlus,
 	XCircle,
 } from "lucide-react";
 import { useState } from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { toast } from "sonner";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,11 +26,15 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { useClaimSubmissionMutation } from "@/hooks/use-submission-mutation";
-import { useSession } from "@/lib/auth/auth-client";
+import { useSession } from "@/lib/auth/auth-client"; // Ensure path is correct
+import type {
+	SubmissionFile,
+	SubmissionWithRelations,
+} from "@/types/submission";
 import { ReviewSubmissionDialog } from "./_component/review-submission-dialog";
 
-// Helper to get status color and icon
-const getStatusProps = (status) => {
+// Helper to get status color and icon (unchanged)
+const getStatusProps = (status: string) => {
 	switch (status) {
 		case "approved":
 			return {
@@ -52,27 +59,49 @@ const getStatusProps = (status) => {
 	}
 };
 
-export function SubmissionCard({ submission }) {
-	const { data: session, isPending } = useSession();
+export function SubmissionCard({
+	submission,
+}: {
+	submission: SubmissionWithRelations;
+}) {
+	console.log({ submission });
 
-	const user = !isPending && session?.user;
+	const { data: session, isPending } = useSession();
 	const myCrewId = !isPending && session?.crewId;
 
 	const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
+	const [isLoadingFileKey, setIsLoadingFileKey] = useState<string | null>(null);
 	const claimMutation = useClaimSubmissionMutation();
 
 	const assignment = submission.task || submission.deliverable;
 	const isReadyForReview = submission.status === "ready_for_review";
 
-	// 3. This logic now uses the dynamic crewId from the session
-	const isAssignedToMe = submission.currentReviewer === myCrewId;
-
+	const isAssignedToMe = submission.currentReviewer?.id === myCrewId;
 	const isUnassigned = !submission.currentReviewer;
 
 	const statusProps = getStatusProps(submission.status);
 
 	const handleClaim = () => {
-		claimMutation.mutateAsync(submission.id);
+		claimMutation.mutate(submission.id);
+	};
+
+	const handleFileView = async (file: SubmissionFile) => {
+		const key = new URL(file.filePath).pathname.substring(1);
+		setIsLoadingFileKey(key);
+		try {
+			const res = await fetch("/api/uploads/file", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ key }),
+			});
+			if (!res.ok) throw new Error("Could not get download link.");
+			const { url } = await res.json();
+			window.open(url, "_blank");
+		} catch (error) {
+			toast.error("Failed to open file.");
+		} finally {
+			setIsLoadingFileKey(null);
+		}
 	};
 
 	return (
@@ -85,12 +114,14 @@ export function SubmissionCard({ submission }) {
 								{submission.assignmentType === "task" ? "Task" : "Deliverable"}
 							</Badge>
 							<CardTitle className="text-lg leading-tight">
-								{assignment.description || assignment.title}
+								{submission.assignmentType === "task"
+									? assignment?.description
+									: assignment?.title}
 							</CardTitle>
 							<p className="text-sm text-muted-foreground mt-1">
 								For Booking:{" "}
 								<span className="font-medium text-foreground">
-									{assignment.booking.name}
+									{assignment?.booking?.name}
 								</span>
 							</p>
 						</div>
@@ -102,15 +133,17 @@ export function SubmissionCard({ submission }) {
 											"?"}
 									</AvatarFallback>
 								</Avatar>
-								<div className="text-sm">
-									<p className="font-medium">{submission.submittedBy.name}</p>
-									<p className="text-xs text-muted-foreground">
-										Submitted{" "}
-										{formatDistanceToNow(new Date(submission.submittedAt), {
-											addSuffix: true,
-										})}
-									</p>
-								</div>
+								<p className="text-sm font-medium">
+									{submission.submittedBy.name}
+								</p>
+							</div>
+							<div className="text-sm">
+								<p className="text-xs text-muted-foreground">
+									{/* Submitted{" "} */}
+									{formatDistanceToNow(new Date(submission.submittedAt), {
+										addSuffix: true,
+									})}
+								</p>
 							</div>
 						</div>
 					</div>
@@ -142,18 +175,25 @@ export function SubmissionCard({ submission }) {
 										<span className="truncate">{link}</span>
 									</a>
 								))}
-								{submission.files.map((file: any) => (
-									<a
-										key={file.id}
-										href={file.filePath}
-										target="_blank"
-										rel="noopener noreferrer"
-										className="flex items-center gap-2 text-sm text-blue-600 hover:underline"
-									>
-										<FileText className="h-4 w-4" />
-										<span className="truncate">{file.fileName}</span>
-									</a>
-								))}
+								{/* --- THE FIX: Use button with onClick handler for files --- */}
+								{submission.files.map((file: SubmissionFile) => {
+									const key = new URL(file.filePath).pathname.substring(1);
+									return (
+										<button
+											key={file.id}
+											onClick={() => handleFileView(file)}
+											disabled={isLoadingFileKey === key}
+											className="flex w-full items-center gap-2 text-sm text-blue-600 hover:underline disabled:opacity-50 text-left"
+										>
+											{isLoadingFileKey === key ? (
+												<Loader2 className="h-4 w-4 animate-spin" />
+											) : (
+												<FileText className="h-4 w-4" />
+											)}
+											<span className="truncate">{file.fileName}</span>
+										</button>
+									);
+								})}
 							</div>
 						</div>
 					)}
@@ -167,7 +207,6 @@ export function SubmissionCard({ submission }) {
 							{statusProps.icon}
 							{submission.status.replace(/_/g, " ")}
 						</div>
-						{/* 4. (Bonus Improvement) Display the actual reviewer's name */}
 						{submission.currentReviewer ? (
 							<p className="text-xs text-muted-foreground">
 								Assigned to:{" "}

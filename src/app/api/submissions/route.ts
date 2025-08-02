@@ -1,6 +1,7 @@
 // app/api/submissions/route.ts
 
 import { and, count, desc, eq, max, or, sql } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -251,7 +252,6 @@ export async function GET(request: Request) {
 		const { session } = await getServerSession();
 		if (!session?.user?.id || !session.session.activeOrganizationId)
 			return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-
 		const orgId = session.session.activeOrganizationId;
 		const userId = session.user.id;
 
@@ -279,17 +279,14 @@ export async function GET(request: Request) {
 					and(eq(members.userId, userId), eq(members.organizationId, orgId)),
 				)
 				.limit(1);
-
-			if (callerInfo.length > 0) {
-				callerCrewId = callerInfo[0].id;
-			}
+			if (callerInfo.length > 0) callerCrewId = callerInfo[0].id;
 		}
 
 		const base = or(
 			eq(tasks.organizationId, orgId),
 			eq(deliverables.organizationId, orgId),
 		);
-		const where = and(
+		const whereClause = and(
 			base,
 			status ? eq(assignmentSubmissions.status, status) : sql`true`,
 			aType ? eq(assignmentSubmissions.assignmentType, aType) : sql`true`,
@@ -300,17 +297,45 @@ export async function GET(request: Request) {
 					: sql`true`,
 		);
 
+		const reviewerCrew = alias(crews, "reviewerCrew");
+		const currentReviewerCrew = alias(crews, "currentReviewerCrew");
+
 		const rows = await db
 			.select({
 				sub: assignmentSubmissions,
+
+				submittedBy: {
+					id: crews.id,
+					name: crews.name,
+					email: crews.email,
+				},
+
+				reviewedBy: {
+					id: reviewerCrew.id,
+					name: reviewerCrew.name,
+				},
+
+				currentReviewer: {
+					id: currentReviewerCrew.id,
+					name: currentReviewerCrew.name,
+				},
+
 				task: tasks,
 				del: deliverables,
-				crew: { id: crews.id, name: crews.name, email: crews.email },
 				bk: { id: bookings.id, name: bookings.name },
+
 				file: submissionFiles,
 			})
 			.from(assignmentSubmissions)
 			.leftJoin(crews, eq(crews.id, assignmentSubmissions.submittedBy))
+			.leftJoin(
+				reviewerCrew,
+				eq(reviewerCrew.id, assignmentSubmissions.reviewedBy),
+			)
+			.leftJoin(
+				currentReviewerCrew,
+				eq(currentReviewerCrew.id, assignmentSubmissions.currentReviewer),
+			)
 			.leftJoin(
 				tasks,
 				and(
@@ -336,19 +361,23 @@ export async function GET(request: Request) {
 				submissionFiles,
 				eq(submissionFiles.submissionId, assignmentSubmissions.id),
 			)
-			.where(where)
+			.where(whereClause)
 			.orderBy(desc(assignmentSubmissions.submittedAt))
 			.limit(pageSize)
 			.offset((page - 1) * pageSize);
 
 		const byId: Record<number, any> = {};
-
 		for (const r of rows) {
 			const id = r.sub.id;
 			if (!byId[id]) {
 				byId[id] = {
 					...r.sub,
-					submittedBy: r.crew,
+					submittedBy: r.submittedBy,
+					reviewedBy: r.reviewedBy && r.reviewedBy.id ? r.reviewedBy : null,
+					currentReviewer:
+						r.currentReviewer && r.currentReviewer.id
+							? r.currentReviewer
+							: null,
 					task:
 						r.sub.assignmentType === "task"
 							? { ...r.task, booking: r.bk }
@@ -357,12 +386,11 @@ export async function GET(request: Request) {
 						r.sub.assignmentType === "deliverable"
 							? { ...r.del, booking: r.bk }
 							: null,
-					files: [],
+					files: [] as (typeof r.file)[],
 				};
 			}
 			if (r.file && r.file.id) byId[id].files.push(r.file);
 		}
-
 		const data = Object.values(byId);
 
 		const total = (
@@ -383,7 +411,7 @@ export async function GET(request: Request) {
 						eq(assignmentSubmissions.assignmentType, "deliverable"),
 					),
 				)
-				.where(where)
+				.where(whereClause)
 		)[0].v;
 
 		return NextResponse.json({
