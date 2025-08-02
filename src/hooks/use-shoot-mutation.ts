@@ -93,6 +93,8 @@ export function useUpdateShootMutation() {
 			queryClient.invalidateQueries({
 				queryKey: ["bookings", "shoot", "list"],
 			});
+			queryClient.invalidateQueries({ queryKey: ["bookings", "list"] });
+
 			queryClient.invalidateQueries({
 				queryKey: [
 					"bookings",

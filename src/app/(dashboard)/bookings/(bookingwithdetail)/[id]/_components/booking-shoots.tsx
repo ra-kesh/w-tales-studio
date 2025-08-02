@@ -33,6 +33,92 @@ interface BookingShootsProps {
 }
 
 // Reusable component for displaying shoots
+
+export function BookingShoots({ shoots = [], bookingId }: BookingShootsProps) {
+	const { setParams } = useShootsParams();
+
+	// Separate shoots into upcoming and finished based on date
+	const upcomingShoots = shoots.filter(
+		(shoot) => !isPast(new Date(shoot.date as string)),
+	);
+
+	const finishedShoots = shoots.filter((shoot) =>
+		isPast(new Date(shoot.date as string)),
+	);
+
+	// Calculate completion percentage
+	const completionPercentage =
+		shoots.length > 0
+			? Math.round((finishedShoots.length / shoots.length) * 100)
+			: 0;
+
+	return (
+		<div className="space-y-6">
+			<div className="flex justify-between items-center">
+				<h2 className="text-xl font-semibold">Shoots</h2>
+				<Button
+					variant="outline"
+					size="sm"
+					onClick={() =>
+						setParams({
+							createShoot: true,
+						})
+					}
+				>
+					<Plus className="h-4 w-4 mr-2" />
+					New Shoot
+				</Button>
+			</div>
+
+			<Card>
+				<CardContent>
+					<div className="space-y-2">
+						<div className="flex justify-between text-sm text-muted-foreground">
+							<span>{completionPercentage}% completed</span>
+							<span>
+								{finishedShoots.length}/{shoots.length} shoots
+							</span>
+						</div>
+						<div className="h-2 bg-muted rounded-full overflow-hidden">
+							<div
+								className="h-full bg-primary"
+								style={{ width: `${completionPercentage}%` }}
+							/>
+						</div>
+					</div>
+				</CardContent>
+			</Card>
+
+			<Tabs defaultValue="upcoming" className="w-full">
+				<TabsList className="grid w-full grid-cols-2 mb-4">
+					<TabsTrigger value="upcoming">
+						Upcoming ({upcomingShoots.length})
+					</TabsTrigger>
+					<TabsTrigger value="finished">
+						Finished ({finishedShoots.length})
+					</TabsTrigger>
+				</TabsList>
+
+				<TabsContent value="upcoming">
+					<ShootsList
+						shoots={upcomingShoots}
+						isFinished={false}
+						bookingId={bookingId}
+					/>
+				</TabsContent>
+
+				<TabsContent value="finished">
+					<ShootsList
+						shoots={finishedShoots}
+						isFinished={true}
+						bookingId={bookingId}
+					/>
+				</TabsContent>
+			</Tabs>
+		</div>
+	);
+}
+
 function ShootsList({
 	shoots,
 	isFinished = false,
@@ -42,6 +128,8 @@ function ShootsList({
 	isFinished?: boolean;
 	bookingId?: string | number;
 }) {
+	console.log({ shoots });
+
 	const [expandedShoots, setExpandedShoots] = useState<Record<string, boolean>>(
 		{},
 	);
@@ -208,9 +296,7 @@ function ShootsList({
 													) : (
 														<Clock className="h-4 w-4 mr-1 text-blue-500" />
 													)}
-													{shoot.date
-														? format(new Date(shoot.date as string), "h:mm a")
-														: "No time"}
+													{shoot.time ? shoot.time : "No time"}
 												</div>
 											</div>
 										</div>
@@ -300,91 +386,6 @@ function ShootsList({
 					</div>
 				</div>
 			))}
-		</div>
-	);
-}
-
-export function BookingShoots({ shoots = [], bookingId }: BookingShootsProps) {
-	const { setParams } = useShootsParams();
-
-	// Separate shoots into upcoming and finished based on date
-	const upcomingShoots = shoots.filter(
-		(shoot) => !isPast(new Date(shoot.date as string)),
-	);
-
-	const finishedShoots = shoots.filter((shoot) =>
-		isPast(new Date(shoot.date as string)),
-	);
-
-	// Calculate completion percentage
-	const completionPercentage =
-		shoots.length > 0
-			? Math.round((finishedShoots.length / shoots.length) * 100)
-			: 0;
-
-	return (
-		<div className="space-y-6">
-			<div className="flex justify-between items-center">
-				<h2 className="text-xl font-semibold">Shoots</h2>
-				<Button
-					variant="outline"
-					size="sm"
-					onClick={() =>
-						setParams({
-							createShoot: true,
-						})
-					}
-				>
-					<Plus className="h-4 w-4 mr-2" />
-					New Shoot
-				</Button>
-			</div>
-
-			<Card>
-				<CardContent>
-					<div className="space-y-2">
-						<div className="flex justify-between text-sm text-muted-foreground">
-							<span>{completionPercentage}% completed</span>
-							<span>
-								{finishedShoots.length}/{shoots.length} shoots
-							</span>
-						</div>
-						<div className="h-2 bg-muted rounded-full overflow-hidden">
-							<div
-								className="h-full bg-primary"
-								style={{ width: `${completionPercentage}%` }}
-							/>
-						</div>
-					</div>
-				</CardContent>
-			</Card>
-
-			<Tabs defaultValue="upcoming" className="w-full">
-				<TabsList className="grid w-full grid-cols-2 mb-4">
-					<TabsTrigger value="upcoming">
-						Upcoming ({upcomingShoots.length})
-					</TabsTrigger>
-					<TabsTrigger value="finished">
-						Finished ({finishedShoots.length})
-					</TabsTrigger>
-				</TabsList>
-
-				<TabsContent value="upcoming">
-					<ShootsList
-						shoots={upcomingShoots}
-						isFinished={false}
-						bookingId={bookingId}
-					/>
-				</TabsContent>
-
-				<TabsContent value="finished">
-					<ShootsList
-						shoots={finishedShoots}
-						isFinished={true}
-						bookingId={bookingId}
-					/>
-				</TabsContent>
-			</Tabs>
 		</div>
 	);
 }
