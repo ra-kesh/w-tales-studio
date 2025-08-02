@@ -10,6 +10,7 @@ import {
 	TextIcon,
 	Users,
 } from "lucide-react";
+import { DataTableViewOptions } from "@/components/data-table/data-table-view-options";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -39,25 +40,25 @@ export const useShootColumns = ({
 	isMininmalBookingLoading: boolean;
 }) => {
 	const columns: ColumnDef<ShootRowData>[] = [
-		{
-			id: "select",
-			header: ({ table }) => (
-				<Checkbox
-					checked={table.getIsAllPageRowsSelected()}
-					onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-					aria-label="Select all"
-				/>
-			),
-			cell: ({ row }) => (
-				<Checkbox
-					checked={row.getIsSelected()}
-					onCheckedChange={(value) => row.toggleSelected(!!value)}
-					aria-label="Select row"
-				/>
-			),
-			enableSorting: false,
-			enableHiding: false,
-		},
+		// {
+		// 	id: "select",
+		// 	header: ({ table }) => (
+		// 		<Checkbox
+		// 			checked={table.getIsAllPageRowsSelected()}
+		// 			onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+		// 			aria-label="Select all"
+		// 		/>
+		// 	),
+		// 	cell: ({ row }) => (
+		// 		<Checkbox
+		// 			checked={row.getIsSelected()}
+		// 			onCheckedChange={(value) => row.toggleSelected(!!value)}
+		// 			aria-label="Select row"
+		// 		/>
+		// 	),
+		// 	enableSorting: false,
+		// 	enableHiding: false,
+		// },
 		{
 			id: "title",
 			accessorKey: "title",
@@ -77,7 +78,6 @@ export const useShootColumns = ({
 			},
 			enableColumnFilter: true,
 			enableSorting: true,
-			enableHiding: false,
 		},
 		{
 			id: "bookingId",
@@ -101,7 +101,6 @@ export const useShootColumns = ({
 			},
 			enableColumnFilter: true,
 			enableSorting: false,
-			enableHiding: false,
 		},
 		{
 			id: "date",
@@ -131,13 +130,13 @@ export const useShootColumns = ({
 			},
 			enableColumnFilter: true,
 			enableSorting: true,
-			enableHiding: false,
 		},
 		{
 			accessorKey: "location",
 			header: "Location",
 			cell: ({ row }) => {
-				const locationIsUrl = row.original.location && isUrl(row.original.location as string);
+				const locationIsUrl =
+					row.original.location && isUrl(row.original.location as string);
 
 				return (
 					<div className="max-w-[200px]">
@@ -151,11 +150,15 @@ export const useShootColumns = ({
 											rel="noopener noreferrer"
 											className="text-blue-600 hover:text-blue-800 underline cursor-pointer max-w-[200px]"
 										>
-											<span className="truncate">{row.original.location as string}</span>
+											<span className="truncate">
+												{row.original.location as string}
+											</span>
 										</a>
 									</TooltipTrigger>
 									<TooltipContent className="max-w-xs text-balance">
-										<p className="font-semibold">{row.original.location as string}</p>
+										<p className="font-semibold">
+											{row.original.location as string}
+										</p>
 									</TooltipContent>
 								</Tooltip>
 							) : (
@@ -180,41 +183,6 @@ export const useShootColumns = ({
 					</div>
 				);
 			},
-		},
-
-		{
-			id: "additionalDetails",
-			header: ({ column }) => (
-				<DataTableColumnHeader column={column} title="Extra Services" />
-			),
-			cell: ({ row }) => {
-				const services =
-					row.original.additionalDetails?.additionalServices ?? [];
-
-				if (services.length === 0) {
-					return <span className="text-muted-foreground">None</span>;
-				}
-
-				return (
-					<div className="flex flex-wrap gap-1 items-center max-w-[250px]">
-						{services.map((serviceKey) => (
-							<Badge
-								key={serviceKey}
-								variant="outline"
-								className="whitespace-nowrap"
-							>
-								{serviceDisplayNames[serviceKey] ?? serviceKey}
-							</Badge>
-						))}
-					</div>
-				);
-			},
-			meta: {
-				label: "Extra Services",
-				icon: Sparkles,
-			},
-			enableSorting: false,
-			enableHiding: false,
 		},
 
 		{
@@ -271,7 +239,40 @@ export const useShootColumns = ({
 			},
 		},
 		{
+			id: "additionalDetails",
+			header: ({ column }) => (
+				<DataTableColumnHeader column={column} title="Extra Services" />
+			),
+			cell: ({ row }) => {
+				const services =
+					row.original.additionalDetails?.additionalServices ?? [];
+
+				if (services.length === 0) {
+					return <span className="text-muted-foreground">None</span>;
+				}
+
+				return (
+					<div className="flex flex-wrap gap-1 items-center max-w-[250px]">
+						{services.map((serviceKey) => (
+							<Badge
+								key={serviceKey}
+								variant="outline"
+								className="whitespace-nowrap"
+							>
+								{serviceDisplayNames[serviceKey] ?? serviceKey}
+							</Badge>
+						))}
+					</div>
+				);
+			},
+			meta: {
+				label: "Extra Services",
+				icon: Sparkles,
+			},
+		},
+		{
 			id: "actions",
+			header: ({ table }) => <DataTableViewOptions table={table} />,
 			cell: ({ row }) => <ShootTableRowActions row={row} />,
 		},
 	];
