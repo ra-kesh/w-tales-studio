@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAllTaskAssignments } from "@/hooks/use-all-task-assignment";
 import { TaskCard } from "./task-card";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const filterOptions = [
 	{
@@ -193,7 +194,7 @@ export function AllTasks() {
 					</p>
 				</div>
 
-				<div className="space-y-4 overflow-y-auto max-h-[70vh] pr-2">
+				<ScrollArea className="h-[70vh] pr-2"><div className="space-y-4">
 					{filteredTasks.length > 0 ? (
 						<>
 							<ul role="list" className="divide-y divide-gray-100">
@@ -220,7 +221,7 @@ export function AllTasks() {
 							description={getEmptyStateDescription(selectedFilter)}
 						/>
 					)}
-				</div>
+				</div></ScrollArea>
 			</div>
 		</div>
 	);

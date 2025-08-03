@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAllShootAssignments } from "@/hooks/use-all-shoots-assignment";
 import { ShootCard } from "./shoots-card";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const filterOptions = [
 	{
@@ -164,7 +165,7 @@ export function AllShoots() {
 					</p>
 				</div>
 
-				<div className="space-y-4 overflow-y-auto max-h-[70vh] pr-2">
+				<ScrollArea className="h-[70vh] pr-2"><div className="space-y-4">
 					{filteredShoots.length > 0 ? (
 						<>
 							<ul role="list" className="divide-y divide-gray-100">
@@ -191,7 +192,7 @@ export function AllShoots() {
 							description={getEmptyStateDescription(selectedFilter)}
 						/>
 					)}
-				</div>
+				</div></ScrollArea>
 			</div>
 		</div>
 	);

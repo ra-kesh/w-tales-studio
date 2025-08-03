@@ -7,6 +7,7 @@ import { useAssignments } from "@/hooks/use-assignments";
 import { DeliverableCard } from "./deliverable-card";
 import { ShootCard } from "./shoots-card";
 import { TaskCard } from "./task-card";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const filterOptions = [
 	// {
@@ -158,7 +159,7 @@ export function DashboardOverview() {
 					</p>
 				</div>
 
-				<div className="space-y-6 overflow-y-auto max-h-[70vh] pr-2">
+				<ScrollArea className="h-[70vh] pr-2"><div className="space-y-6">
 					{totalCount > 0 ? (
 						<>
 							{/* Shoots Section */}
@@ -228,7 +229,7 @@ export function DashboardOverview() {
 							description={getEmptyStateDescription(selectedFilter)}
 						/>
 					)}
-				</div>
+				</div></ScrollArea>
 			</div>
 		</div>
 	);

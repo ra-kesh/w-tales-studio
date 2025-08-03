@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAllDeliverableAssignments } from "@/hooks/use-all-deliverables-assignment";
 import { DeliverableCard } from "./deliverable-card";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const filterOptions = [
 	{
@@ -198,7 +199,7 @@ export function AllDeliverables() {
 					</p>
 				</div>
 
-				<div className="space-y-4 overflow-y-auto max-h-[70vh] pr-2">
+				<ScrollArea className="h-[70vh] pr-2"><div className="space-y-4">
 					{filteredDeliverables.length > 0 ? (
 						<>
 							<ul role="list" className="divide-y divide-gray-100">
@@ -228,7 +229,7 @@ export function AllDeliverables() {
 							description={getEmptyStateDescription(selectedFilter)}
 						/>
 					)}
-				</div>
+				</div></ScrollArea>
 			</div>
 		</div>
 	);
