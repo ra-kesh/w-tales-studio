@@ -76,7 +76,7 @@ export function DashboardOverview() {
 	return (
 		<div className="grid grid-cols-12 gap-12">
 			{/* Sidebar Menu */}
-			<div className="col-span-3 flex-shrink-0">
+			<div className="col-span-12 lg:col-span-4 2xl:col-span-3 flex-shrink-0">
 				<Card className="border border-gray-200 py-0">
 					<CardContent className="p-0">
 						<div className="p-4 border-b border-gray-200">
@@ -148,7 +148,7 @@ export function DashboardOverview() {
 			</div>
 
 			{/* Main Content */}
-			<div className="flex-1 col-span-9 space-y-6">
+			<div className="flex-1 col-span-12 lg:col-span-8 2xl:col-span-9 space-y-6">
 				<div>
 					<h2 className="text-xl font-semibold text-gray-900 mb-2">
 						{selectedOption?.label}
