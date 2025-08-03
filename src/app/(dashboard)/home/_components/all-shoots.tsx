@@ -164,7 +164,7 @@ export function AllShoots() {
 					</p>
 				</div>
 
-				<div className="space-y-4">
+				<div className="space-y-4 overflow-y-auto max-h-[70vh] pr-2">
 					{filteredShoots.length > 0 ? (
 						<>
 							<ul role="list" className="divide-y divide-gray-100">

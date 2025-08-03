@@ -158,7 +158,7 @@ export function DashboardOverview() {
 					</p>
 				</div>
 
-				<div className="space-y-6">
+				<div className="space-y-6 overflow-y-auto max-h-[70vh] pr-2">
 					{totalCount > 0 ? (
 						<>
 							{/* Shoots Section */}
