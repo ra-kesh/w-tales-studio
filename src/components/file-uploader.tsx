@@ -34,7 +34,12 @@ interface FileToUpload {
 	source: XMLHttpRequest | null;
 }
 interface FileUploaderProps {
-	uploadContext: "submissions" | "receipts" | "logos";
+	uploadContext:
+		| "submissions"
+		| "receipts"
+		| "logos"
+		| "contracts"
+		| "deliverables";
 	onUploadComplete: (files: UploadedFile[]) => void;
 	onFileRemoved: (key: string) => void;
 }
