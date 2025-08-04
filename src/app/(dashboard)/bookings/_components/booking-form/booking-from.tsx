@@ -35,6 +35,7 @@ const BookingForm = ({
 		ErrorSummary,
 		handleSubmit,
 		TABS,
+		tabRefs,
 	} = useBookingForm({ defaultValues, onSubmit, mode });
 
 	return (
@@ -49,7 +50,12 @@ const BookingForm = ({
 				>
 					<TabsList className="grid w-full grid-cols-4">
 						{TABS.map((tab) => (
-							<TabsTrigger key={tab} value={tab} className="capitalize">
+							<TabsTrigger
+								ref={tabRefs[tab]}
+								key={tab}
+								value={tab}
+								className="capitalize"
+							>
 								{tab}
 							</TabsTrigger>
 						))}
