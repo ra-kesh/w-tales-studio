@@ -1,3 +1,4 @@
+// FileUploader.tsx
 "use client";
 
 import {
@@ -11,7 +12,8 @@ import {
 	UploadCloud,
 	XCircle,
 } from "lucide-react";
-import React, { useCallback, useState } from "react";
+import type React from "react";
+import { useCallback } from "react";
 import { type FileRejection, useDropzone } from "react-dropzone";
 import { toast } from "sonner";
 import { Button } from "./ui/button";
@@ -26,13 +28,15 @@ export interface UploadedFile {
 	size: number;
 	url: string;
 }
-interface FileToUpload {
+
+export interface FileToUpload {
 	file: File;
 	progress: number;
 	status: "pending" | "uploading" | "success" | "error";
 	key?: string;
 	source: XMLHttpRequest | null;
 }
+
 interface FileUploaderProps {
 	uploadContext:
 		| "submissions"
@@ -40,11 +44,14 @@ interface FileUploaderProps {
 		| "logos"
 		| "contracts"
 		| "deliverables";
+	files: FileToUpload[]; // State moved to parent
+	setFiles: React.Dispatch<React.SetStateAction<FileToUpload[]>>; // State setter from parent
+	deletingKey: string | null; // State moved to parent
+	setDeletingKey: React.Dispatch<React.SetStateAction<string | null>>; // State setter from parent
 	onUploadComplete: (files: UploadedFile[]) => void;
 	onFileRemoved: (key: string) => void;
 }
 
-// --- Helper Function for Icons (Unchanged) ---
 const getFileIcon = (fileName: string) => {
 	const extension = fileName.split(".").pop()?.toLowerCase();
 	if (["jpg", "jpeg", "png", "gif", "webp"].includes(extension!)) {
@@ -64,11 +71,91 @@ const getFileIcon = (fileName: string) => {
 
 export function FileUploader({
 	uploadContext,
+	files,
+	setFiles,
+	deletingKey,
+	setDeletingKey,
 	onUploadComplete,
 	onFileRemoved,
 }: FileUploaderProps) {
-	const [filesToUpload, setFilesToUpload] = useState<FileToUpload[]>([]);
-	const [deletingKey, setDeletingKey] = useState<string | null>(null);
+	const updateFileState = useCallback(
+		(file: File, updates: Partial<FileToUpload>) => {
+			setFiles((prev) =>
+				prev.map((f) => (f.file === file ? { ...f, ...updates } : f)),
+			);
+		},
+		[setFiles],
+	);
+
+	const uploadFile = useCallback(
+		(fileToUpload: FileToUpload) => {
+			fetch("/api/uploads/presigned-url", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					fileName: fileToUpload.file.name,
+					fileType: fileToUpload.file.type,
+					context: uploadContext,
+				}),
+			})
+				.then((res) => res.json())
+				.then(({ url, key }) => {
+					updateFileState(fileToUpload.file, { key });
+					const xhr = new XMLHttpRequest();
+					fileToUpload.source = xhr;
+					xhr.open("PUT", url);
+					xhr.setRequestHeader("Content-Type", fileToUpload.file.type);
+					xhr.upload.onprogress = (event) => {
+						if (event.lengthComputable) {
+							const progress = Math.round((event.loaded / event.total) * 100);
+							updateFileState(fileToUpload.file, {
+								progress,
+								status: "uploading",
+							});
+						}
+					};
+					xhr.onload = () => {
+						if (xhr.status === 200) {
+							updateFileState(fileToUpload.file, {
+								progress: 100,
+								status: "success",
+							});
+							const finalUrl = url.split("?")[0];
+							onUploadComplete([
+								{
+									key,
+									name: fileToUpload.file.name,
+									size: fileToUpload.file.size,
+									url: finalUrl,
+								},
+							]);
+							toast.success("File uploaded", {
+								description: fileToUpload.file.name,
+							});
+						} else {
+							updateFileState(fileToUpload.file, { status: "error" });
+							toast.error("Upload Failed", {
+								description: `Could not upload ${fileToUpload.file.name}.`,
+							});
+						}
+					};
+					xhr.onerror = () => {
+						updateFileState(fileToUpload.file, { status: "error" });
+						toast.error("Network Error", {
+							description: `Could not upload ${fileToUpload.file.name}.`,
+						});
+					};
+					xhr.send(fileToUpload.file);
+				})
+				.catch(() => {
+					updateFileState(fileToUpload.file, { status: "error" });
+					toast.error("Upload Failed", {
+						description: `Could not get an upload URL for ${fileToUpload.file.name}.`,
+					});
+				});
+		},
+		[uploadContext, updateFileState, onUploadComplete],
+	);
 
 	const onDrop = useCallback(
 		(acceptedFiles: File[], fileRejections: FileRejection[]) => {
@@ -84,7 +171,7 @@ export function FileUploader({
 					});
 				}
 			});
-			const currentAndNewFiles = [...filesToUpload, ...acceptedFiles];
+			const currentAndNewFiles = [...files, ...acceptedFiles];
 			if (currentAndNewFiles.length > MAX_FILES) {
 				toast.error("Too many files", {
 					description: `You can only upload a maximum of ${MAX_FILES} files in total.`,
@@ -97,112 +184,38 @@ export function FileUploader({
 				status: "pending" as const,
 				source: null,
 			}));
-			setFilesToUpload((prev) => [...prev, ...newFiles]);
+			setFiles((prev) => [...prev, ...newFiles]);
 			newFiles.forEach(uploadFile);
 		},
-		[uploadContext, filesToUpload],
+		[files, setFiles, uploadFile],
 	);
 
-	const uploadFile = (fileToUpload: FileToUpload) => {
-		fetch("/api/uploads/presigned-url", {
-			method: "POST",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({
-				fileName: fileToUpload.file.name,
-				fileType: fileToUpload.file.type,
-				context: uploadContext,
-			}),
-		})
-			.then((res) => res.json())
-			.then(({ url, key }) => {
-				updateFileState(fileToUpload.file, { key });
-				const xhr = new XMLHttpRequest();
-				fileToUpload.source = xhr;
-				xhr.open("PUT", url);
-				xhr.setRequestHeader("Content-Type", fileToUpload.file.type);
-				xhr.upload.onprogress = (event) => {
-					if (event.lengthComputable) {
-						const progress = Math.round((event.loaded / event.total) * 100);
-						updateFileState(fileToUpload.file, {
-							progress,
-							status: "uploading",
-						});
-					}
-				};
-				xhr.onload = () => {
-					if (xhr.status === 200) {
-						updateFileState(fileToUpload.file, {
-							progress: 100,
-							status: "success",
-						});
-						const finalUrl = url.split("?")[0];
-						onUploadComplete([
-							{
-								key,
-								name: fileToUpload.file.name,
-								size: fileToUpload.file.size,
-								url: finalUrl,
-							},
-						]);
-						toast.success("File uploaded", {
-							description: fileToUpload.file.name,
-						});
-					} else {
-						updateFileState(fileToUpload.file, { status: "error" });
-						toast.error("Upload Failed", {
-							description: `Could not upload ${fileToUpload.file.name}.`,
-						});
-					}
-				};
-				xhr.onerror = () => {
-					updateFileState(fileToUpload.file, { status: "error" });
-					toast.error("Network Error", {
-						description: `Could not upload ${fileToUpload.file.name}.`,
+	const removeFile = useCallback(
+		async (fileToRemove: FileToUpload) => {
+			if (fileToRemove.source) fileToRemove.source.abort();
+
+			if (fileToRemove.status === "success" && fileToRemove.key) {
+				setDeletingKey(fileToRemove.key);
+				try {
+					await fetch("/api/uploads/file", {
+						method: "DELETE",
+						headers: { "Content-Type": "application/json" },
+						body: JSON.stringify({ key: fileToRemove.key }),
 					});
-				};
-				xhr.send(fileToUpload.file);
-			})
-			.catch(() => {
-				updateFileState(fileToUpload.file, { status: "error" });
-				toast.error("Upload Failed", {
-					description: `Could not get an upload URL for ${fileToUpload.file.name}.`,
-				});
-			});
-	};
-
-	const updateFileState = (file: File, updates: Partial<FileToUpload>) => {
-		setFilesToUpload((prev) =>
-			prev.map((f) => (f.file === file ? { ...f, ...updates } : f)),
-		);
-	};
-
-	const removeFile = async (fileToRemove: FileToUpload) => {
-		if (fileToRemove.source) fileToRemove.source.abort();
-
-		if (fileToRemove.status === "success" && fileToRemove.key) {
-			setDeletingKey(fileToRemove.key);
-			try {
-				await fetch("/api/uploads/file", {
-					method: "DELETE",
-					headers: { "Content-Type": "application/json" },
-					body: JSON.stringify({ key: fileToRemove.key }),
-				});
-				onFileRemoved(fileToRemove.key);
-				toast.success("File removed successfully.");
-				setFilesToUpload((prev) =>
-					prev.filter((f) => f.key !== fileToRemove.key),
-				);
-			} catch (error) {
-				toast.error("Error removing file from storage.");
-			} finally {
-				setDeletingKey(null);
+					onFileRemoved(fileToRemove.key);
+					toast.success("File removed successfully.");
+					setFiles((prev) => prev.filter((f) => f.key !== fileToRemove.key));
+				} catch (error) {
+					toast.error("Error removing file from storage.");
+				} finally {
+					setDeletingKey(null);
+				}
+			} else {
+				setFiles((prev) => prev.filter((f) => f.file !== fileToRemove.file));
 			}
-		} else {
-			setFilesToUpload((prev) =>
-				prev.filter((f) => f.file !== fileToRemove.file),
-			);
-		}
-	};
+		},
+		[setDeletingKey, setFiles, onFileRemoved],
+	);
 
 	const { getRootProps, getInputProps, isDragActive } = useDropzone({
 		onDrop,
@@ -230,13 +243,13 @@ export function FileUploader({
 				</p>
 			</div>
 
-			{filesToUpload.length > 0 && (
+			{files.length > 0 && (
 				<div className="space-y-2">
 					<div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-						{filesToUpload.map((item, index) => (
+						{files.map((item, index) => (
 							<div
 								key={index}
-								className=" flex items-center p-2 space-x-2 bg-white border rounded-md shadow-sm col-span-1 lg:col-span-2 "
+								className="flex items-center p-2 space-x-2 bg-white border rounded-md shadow-sm col-span-1 lg:col-span-2"
 							>
 								<div className="flex-shrink-0">
 									{getFileIcon(item.file.name)}

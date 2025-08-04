@@ -1,4 +1,3 @@
-// components/assignments/assignment-update-form.tsx (Final Version)
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -7,7 +6,11 @@ import { useEffect, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-import { FileUploader, type UploadedFile } from "@/components/file-uploader";
+import {
+	type FileToUpload,
+	FileUploader,
+	type UploadedFile,
+} from "@/components/file-uploader";
 import { Button } from "@/components/ui/button";
 import {
 	Form,
@@ -57,7 +60,17 @@ export function AssignmentUpdateForm({
 	assignmentId,
 	onSuccess,
 }: AssignmentUpdateFormProps) {
+	const [files, setFiles] = useState<FileToUpload[]>([]);
+	const [deletingKey, setDeletingKey] = useState<string | null>(null);
 	const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
+
+	const handleUploadComplete = (newFiles: UploadedFile[]) => {
+		setUploadedFiles((prev) => [...prev, ...newFiles]);
+	};
+
+	const handleFileRemoved = (key: string) => {
+		setUploadedFiles((prev) => prev.filter((file) => file.key !== key));
+	};
 
 	const form = useForm<AssignmentUpdateFormData>({
 		resolver: zodResolver(updateAssignmentSchema),
@@ -81,14 +94,6 @@ export function AssignmentUpdateForm({
 			append({ value: "" });
 		}
 	}, [isReadyForReview, fields.length, append]);
-
-	const handleUploadComplete = (newFiles: UploadedFile[]) => {
-		setUploadedFiles((prev) => [...prev, ...newFiles]);
-	};
-
-	const handleFileRemoved = (key: string) => {
-		setUploadedFiles((prev) => prev.filter((file) => file.key !== key));
-	};
 
 	const onSubmit = async (data: AssignmentUpdateFormData) => {
 		try {
@@ -239,6 +244,10 @@ export function AssignmentUpdateForm({
 						<FormLabel>Proof of Work</FormLabel>
 						<FileUploader
 							uploadContext="submissions"
+							files={files}
+							setFiles={setFiles}
+							deletingKey={deletingKey}
+							setDeletingKey={setDeletingKey}
 							onUploadComplete={handleUploadComplete}
 							onFileRemoved={handleFileRemoved}
 						/>
