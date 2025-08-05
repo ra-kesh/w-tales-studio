@@ -4,6 +4,7 @@ import { Inbox, ListChecks, Package, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Switch } from "@/components/ui/switch";
 import { useReviewQueueParams } from "@/hooks/use-review-queue-params";
 import { useSubmissions } from "@/hooks/use-submissions";
@@ -119,25 +120,27 @@ export default function ReviewQueuePage() {
 					/>
 				)}
 
-				{submissions.length > 0 && (
-					<div className="space-y-4">
-						{submissions.map((submission) => (
-							<SubmissionCard key={submission.id} submission={submission} />
-						))}
-					</div>
-				)}
+				<ScrollArea className="h-[70vh] pr-4">
+					{submissions.length > 0 && (
+						<div className="space-y-4">
+							{submissions.map((submission) => (
+								<SubmissionCard key={submission.id} submission={submission} />
+							))}
+						</div>
+					)}
 
-				{hasNextPage && (
-					<div className="flex justify-center mt-6">
-						<Button
-							variant="outline"
-							onClick={() => fetchNextPage()}
-							disabled={isLoading}
-						>
-							Load More
-						</Button>
-					</div>
-				)}
+					{hasNextPage && (
+						<div className="flex justify-center mt-6">
+							<Button
+								variant="outline"
+								onClick={() => fetchNextPage()}
+								disabled={isLoading}
+							>
+								Load More
+							</Button>
+						</div>
+					)}
+				</ScrollArea>
 			</main>
 		</div>
 	);

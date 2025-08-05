@@ -5,9 +5,9 @@ import { Archive, Calendar, Camera, CheckCircle, Clock } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAllShootAssignments } from "@/hooks/use-all-shoots-assignment";
 import { ShootCard } from "./shoots-card";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 const filterOptions = [
 	{
@@ -165,34 +165,36 @@ export function AllShoots() {
 					</p>
 				</div>
 
-				<ScrollArea className="h-[70vh] pr-2"><div className="space-y-4">
-					{filteredShoots.length > 0 ? (
-						<>
-							<ul role="list" className="divide-y divide-gray-100">
-								{filteredShoots.map((assignment) => (
-									<ShootCard key={assignment.id} assignment={assignment} />
-								))}
-							</ul>
-							{hasNextPage && selectedFilter === "all" && (
-								<div className="flex justify-center mt-4">
-									<Button
-										variant="outline"
-										onClick={() => fetchNextPage()}
-										disabled={isLoading}
-									>
-										Load More
-									</Button>
-								</div>
-							)}
-						</>
-					) : (
-						<EmptyState
-							icon={selectedOption?.icon || Camera}
-							title={`No ${selectedOption?.label || "Shoots"} Found`}
-							description={getEmptyStateDescription(selectedFilter)}
-						/>
-					)}
-				</div></ScrollArea>
+				<ScrollArea className="h-[70vh] pr-4">
+					<div className="space-y-4">
+						{filteredShoots.length > 0 ? (
+							<>
+								<ul role="list" className="divide-y divide-gray-100">
+									{filteredShoots.map((assignment) => (
+										<ShootCard key={assignment.id} assignment={assignment} />
+									))}
+								</ul>
+								{hasNextPage && selectedFilter === "all" && (
+									<div className="flex justify-center mt-4">
+										<Button
+											variant="outline"
+											onClick={() => fetchNextPage()}
+											disabled={isLoading}
+										>
+											Load More
+										</Button>
+									</div>
+								)}
+							</>
+						) : (
+							<EmptyState
+								icon={selectedOption?.icon || Camera}
+								title={`No ${selectedOption?.label || "Shoots"} Found`}
+								description={getEmptyStateDescription(selectedFilter)}
+							/>
+						)}
+					</div>
+				</ScrollArea>
 			</div>
 		</div>
 	);

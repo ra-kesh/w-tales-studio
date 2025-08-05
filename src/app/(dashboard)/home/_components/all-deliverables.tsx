@@ -199,7 +199,7 @@ export function AllDeliverables() {
 					</p>
 				</div>
 
-				<ScrollArea className="h-[70vh] pr-2">
+				<ScrollArea className="h-[70vh] pr-4">
 					<div className="space-y-4">
 						{filteredDeliverables.length > 0 ? (
 							<>
