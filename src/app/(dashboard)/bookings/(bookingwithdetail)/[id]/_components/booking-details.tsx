@@ -146,7 +146,6 @@ export function BookingDetails({ id }: { id: string }) {
 					<CustomTabsContent value="overview">
 						<BookingOverview booking={booking} />
 					</CustomTabsContent>
-
 					<CustomTabsContent value="shoots">
 						<BookingShoots shoots={booking.shoots} />
 					</CustomTabsContent>

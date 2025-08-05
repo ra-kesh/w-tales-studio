@@ -1,16 +1,16 @@
-import { getBookingDetail } from "@/lib/db/queries";
-import { getServerSession } from "@/lib/dal";
-import { BookingDetails } from "./_components/booking-details";
 import {
 	dehydrate,
 	HydrationBoundary,
 	QueryClient,
 } from "@tanstack/react-query";
+import { getServerSession } from "@/lib/dal";
+import { getBookingDetail } from "@/lib/db/queries";
+import { BookingDetails } from "./_components/booking-details";
 
 export default async function BookingDetailsPage({
 	params,
 }: {
-	params: { id: string };
+	params: Promise<{ id: string }>;
 }) {
 	const { session } = await getServerSession();
 
