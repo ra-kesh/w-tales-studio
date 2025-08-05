@@ -10,7 +10,7 @@ const fetchAllDeliverableAssignments = async ({ pageParam = 1 }) => {
 
 export const useAllDeliverableAssignments = () => {
 	return useInfiniteQuery({
-		queryKey: ["allDeliverableAssignments"],
+		queryKey: ["all-deliverable-assignments"],
 		queryFn: fetchAllDeliverableAssignments,
 		initialPageParam: 1,
 		getNextPageParam: (lastPage, allPages) => {

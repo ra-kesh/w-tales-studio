@@ -29,6 +29,7 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { useUpdateAssignmentMutation } from "@/hooks/use-update-assignment";
 
 const updateAssignmentSchema = z.object({
 	status: z.string().min(1, "Please select a status"),
@@ -64,6 +65,12 @@ export function AssignmentUpdateForm({
 	const [deletingKey, setDeletingKey] = useState<string | null>(null);
 	const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
 
+	const updateAssignmentMutation = useUpdateAssignmentMutation({
+		onSuccess: () => {
+			onSuccess();
+		},
+	});
+
 	const handleUploadComplete = (newFiles: UploadedFile[]) => {
 		setUploadedFiles((prev) => [...prev, ...newFiles]);
 	};
@@ -96,39 +103,20 @@ export function AssignmentUpdateForm({
 	}, [isReadyForReview, fields.length, append]);
 
 	const onSubmit = async (data: AssignmentUpdateFormData) => {
-		try {
-			const payload = {
-				assignmentType: type,
-				status: data.status,
-				comment: data.comment,
-				submissionLinks: data.submissionLinks
-					?.map((link) => link.value)
-					.filter((link) => link && link.trim()),
-				files: uploadedFiles,
-				...(type === "task"
-					? { taskId: assignmentId }
-					: { deliverableId: assignmentId }),
-			};
+		const payload = {
+			assignmentType: type,
+			status: data.status,
+			comment: data.comment,
+			submissionLinks: data.submissionLinks
+				?.map((link) => link.value)
+				.filter((link) => link && link.trim()),
+			files: uploadedFiles,
+			...(type === "task"
+				? { taskId: assignmentId }
+				: { deliverableId: assignmentId }),
+		};
 
-			const response = await fetch("/api/submissions", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify(payload),
-			});
-
-			if (!response.ok) {
-				const errorData = await response.json();
-				throw new Error(errorData.message || "Submission failed");
-			}
-
-			toast.success("Assignment updated successfully!");
-			onSuccess();
-		} catch (error) {
-			toast.error("Update Failed", {
-				description:
-					error instanceof Error ? error.message : "An unknown error occurred.",
-			});
-		}
+		await updateAssignmentMutation.mutateAsync(payload);
 	};
 
 	const statusOptions = [
