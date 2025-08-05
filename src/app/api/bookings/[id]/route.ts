@@ -8,6 +8,7 @@ import { getServerSession } from "@/lib/dal";
 import { db } from "@/lib/db/drizzle";
 import { getBookingDetail } from "@/lib/db/queries";
 import {
+	attachments,
 	bookings,
 	paymentSchedules,
 	receivedAmounts,
@@ -111,7 +112,14 @@ export async function PUT(
 	try {
 		const body = await request.json();
 		const validatedData = BookingEditSchema.parse(body);
-		const { bookingName, packageCost, status, note } = validatedData;
+		const {
+			bookingName,
+			packageCost,
+			status,
+			note,
+			contractAttachment,
+			deliverablesAttachment,
+		} = validatedData;
 
 		const existingBooking = await db.query.bookings.findFirst({
 			where: and(
@@ -189,19 +197,65 @@ export async function PUT(
 			);
 		}
 
-		const [updatedBooking] = await db
-			.update(bookings)
-			.set({
-				name: bookingName,
-				packageCost: packageCost,
-				status: status,
-				note: note,
-				updatedAt: new Date(),
-			})
-			.where(
-				and(eq(bookings.id, bookingId), eq(bookings.organizationId, orgId)),
-			)
-			.returning();
+		const updatedBooking = await db.transaction(async (tx) => {
+			const booking = await tx
+				.update(bookings)
+				.set({
+					name: bookingName,
+					packageCost: packageCost,
+					status: status,
+					note: note,
+					updatedAt: new Date(),
+				})
+				.where(
+					and(eq(bookings.id, bookingId), eq(bookings.organizationId, orgId)),
+				)
+				.returning()
+				.then((result) => result[0]);
+
+			const handleAttachment = async (attachmentData: any, subType: string) => {
+				const existing = await tx.query.attachments.findFirst({
+					where: and(
+						eq(attachments.resourceType, "booking"),
+						eq(attachments.resourceId, bookingId.toString()),
+						eq(attachments.subType, subType),
+					),
+				});
+
+				if (attachmentData && !existing) {
+					await tx.insert(attachments).values({
+						organizationId: orgId,
+						resourceType: "booking",
+						resourceId: bookingId.toString(),
+						subType: subType,
+						fileName: attachmentData.name,
+						filePath: attachmentData.key,
+						fileSize: attachmentData.size,
+						mimeType: attachmentData.type,
+						uploadedBy: session.user.id,
+					});
+				} else if (attachmentData && existing) {
+					await tx
+						.update(attachments)
+						.set({
+							fileName: attachmentData.name,
+							filePath: attachmentData.key,
+							fileSize: attachmentData.size,
+							mimeType: attachmentData.type,
+							uploadedBy: session.user.id,
+							updatedAt: new Date(),
+						})
+						.where(eq(attachments.id, existing.id));
+				} else if (!attachmentData && existing) {
+					await tx.delete(attachments).where(eq(attachments.id, existing.id));
+				}
+			};
+
+			await handleAttachment(contractAttachment, "contract");
+			await handleAttachment(deliverablesAttachment, "deliverables_summary");
+
+			return booking;
+		});
 
 		if (!updatedBooking) {
 			return NextResponse.json(

@@ -1,4 +1,5 @@
 import { z } from "zod/v4";
+import { UploadedAttachmentSchema } from "./booking-form-schema";
 
 // This schema ONLY defines the fields that can be edited.
 export const BookingEditSchema = z.object({
@@ -13,6 +14,8 @@ export const BookingEditSchema = z.object({
 		"cancelled",
 	]),
 	note: z.string().optional(),
+	contractAttachment: UploadedAttachmentSchema.optional().nullable(),
+	deliverablesAttachment: UploadedAttachmentSchema.optional().nullable(),
 });
 
 export type BookingEditFormValues = z.infer<typeof BookingEditSchema>;
