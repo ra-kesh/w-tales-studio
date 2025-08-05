@@ -15,7 +15,12 @@ import type { UploadedAttachment } from "./booking-form-schema";
 
 interface AttachmentUploaderProps {
 	name: string;
-	uploadContext: "contracts" | "receipts" | "submissions" | "logos";
+	uploadContext:
+		| "submissions"
+		| "receipts"
+		| "logos"
+		| "contracts"
+		| "deliverables";
 }
 
 export function AttachmentUploader({

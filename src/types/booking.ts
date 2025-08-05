@@ -1,80 +1,86 @@
 import type {
+	Booking,
 	Client,
 	Deliverable,
-	DeliverablesAssignment,
 	Expense,
-	ExpensesAssignment,
-	Member,
 	PaymentSchedule,
 	ReceivedAmount,
 	Shoot,
-	ShootsAssignment,
 	Task,
-	TasksAssignment,
-	User,
 } from "@/lib/db/schema";
 
-export type Crew = {
+export interface AttachmentStub {
+	name: string;
+	size: number | null;
+	type: string | null;
+	key: string;
+	url: string;
+}
+
+export interface CrewStub {
 	id: number;
 	name: string | null;
-	role: string;
+	role: string | null;
 	specialization: string | null;
 	status: string;
-	member: Member & {
-		user: Pick<User, "name" | "email" | "image"> | null;
-	};
-};
+	member: {
+		user: {
+			name: string;
+			email: string;
+			image: string | null;
+		} | null;
+	} | null;
+}
 
-export type deliverablesWithAssignments = Deliverable & {
-	deliverablesAssignments: DeliverablesAssignment &
-		{
-			crew: Crew;
-		}[];
-};
-export type shootsWithAssignments = Shoot & {
-	shootsAssignments: ShootsAssignment &
-		{
-			crew: Crew;
-		}[];
-};
-export type tasksWithAssignments = Task & {
-	tasksAssignments: TasksAssignment &
-		{
-			crew: Crew;
-		}[];
-};
-export type expenseWithAssignments = Expense & {
-	expensesAssignments: ExpensesAssignment &
-		{
-			crew: Crew;
-		}[];
-};
+export interface ParticipantWithClient {
+	role: string;
+	client: Client;
+}
 
-export type BookingDetail = {
-	id: number;
-	organizationId: string;
-	name: string;
+export interface ShootWithAssignments extends Shoot {
+	shootsAssignments: {
+		id: number;
+		shootId: number;
+		crewId: number;
+		isLead: boolean;
+		organizationId: string;
+		assignedAt: Date | null;
+		createdAt: Date | null;
+		updatedAt: Date | null;
+		crew: CrewStub;
+	}[];
+}
+
+export interface DeliverableWithAssignments extends Deliverable {
+	deliverablesAssignments: {
+		id: number;
+		deliverableId: number;
+		crewId: number;
+		isLead: boolean;
+		organizationId: string;
+		assignedAt: Date | null;
+		createdAt: Date | null;
+		updatedAt: Date | null;
+		crew: CrewStub;
+	}[];
+}
+
+export interface ReceivedAmountWithAttachment extends ReceivedAmount {
+	attachment: AttachmentStub | null;
+}
+
+export interface BookingDetail extends Booking {
 	bookingTypeKey: string;
 	bookingTypeValue: string;
 	packageTypeKey: string;
 	packageTypeValue: string;
-	packageCost: string;
-	// clientId: number;
-	status:
-		| "new"
-		| "preparation"
-		| "shooting"
-		| "delivery"
-		| "completed"
-		| "cancelled";
-	createdAt: string;
-	updatedAt: string;
-	note: string | null;
-	participants: { role: string; client: Client }[];
-	shoots: shootsWithAssignments[];
-	deliverables: deliverablesWithAssignments[];
-	expenses: expenseWithAssignments[];
-	receivedAmounts: ReceivedAmount[];
+	participants: ParticipantWithClient[];
+	shoots: ShootWithAssignments[];
+	deliverables: DeliverableWithAssignments[];
+	receivedAmounts: ReceivedAmountWithAttachment[];
 	paymentSchedules: PaymentSchedule[];
-	tasks: tasksWithAssignments[];
-};
+	expenses: Expense[];
+	tasks: Task[];
+	contractAttachment: AttachmentStub | null;
+	deliverablesAttachment: AttachmentStub | null;
+}

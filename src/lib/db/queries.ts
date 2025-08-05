@@ -23,6 +23,7 @@ import { alias } from "drizzle-orm/pg-core";
 import type { BookingDetail } from "@/types/booking";
 import { db } from "./drizzle";
 import {
+	attachments,
 	bookingParticipants,
 	bookings,
 	type ConfigType,
@@ -703,33 +704,49 @@ export async function getBookingDetail(
 		return undefined;
 	}
 
-	// return {
-	// 	id: booking.id,
-	// 	organizationId: booking.organizationId,
-	// 	name: booking.name,
-	// 	// bookingTypeKey: booking.bookingType,
-	// 	bookingTypeValue: bookingTypeMap.get(booking.bookingType) ?? booking.bookingType,
-	// 	// packageTypeKey: booking.packageType,
-	// 	packageTypeValue: packageTypeMap.get(booking.packageType) ?? booking.packageType,
-	// 	packageCost: booking.packageCost,
-	// 	status: booking.status,
-	// 	note: booking.note,
-	// 	createdAt: booking.createdAt,
-	// 	updatedAt: booking.updatedAt,
-	// 	participants: booking.participants.map((pp) => ({
-	// 		role: pp.role,
-	// 		client: pp.client,
-	// 	})),
-	// 	shoots: booking.shoots,
-	// 	deliverables: b.deliverables,
-	// 	expenses: b.expenses,
-	// 	receivedAmounts: b.receivedAmounts,
-	// 	paymentSchedules: b.paymentSchedules,
-	// 	tasks: b.tasks,
-	// };
+	const receivedPaymentIds = booking.receivedAmounts.map((p) =>
+		p.id.toString(),
+	);
 
-	// Map bookingType and packageType to human-readable values
-	// remove crews from booking details types since crews are not directly assigned to booking
+	const allAttachments = await db.query.attachments.findMany({
+		where: or(
+			and(
+				eq(attachments.resourceType, "booking"),
+				eq(attachments.resourceId, booking.id.toString()),
+			),
+			receivedPaymentIds.length > 0
+				? and(
+						eq(attachments.resourceType, "received_payment"),
+						inArray(attachments.resourceId, receivedPaymentIds),
+					)
+				: undefined,
+		),
+	});
+
+	let contractAttachment = null;
+	let deliverablesAttachment = null;
+	const paymentAttachmentsMap = new Map<number, any>();
+
+	for (const attachment of allAttachments) {
+		const attachmentData = {
+			name: attachment.fileName,
+			size: attachment.fileSize,
+			type: attachment.mimeType,
+			key: attachment.filePath,
+			url: `${process.env.AWS_ENDPOINT_URL_S3}/${attachment.filePath}`,
+		};
+
+		if (attachment.resourceType === "booking") {
+			if (attachment.subType === "contract") {
+				contractAttachment = attachmentData;
+			} else if (attachment.subType === "deliverables_summary") {
+				deliverablesAttachment = attachmentData;
+			}
+		} else if (attachment.resourceType === "received_payment") {
+			paymentAttachmentsMap.set(Number(attachment.resourceId), attachmentData);
+		}
+	}
+
 	return {
 		...booking,
 		bookingTypeKey: booking.bookingType,
@@ -742,6 +759,18 @@ export async function getBookingDetail(
 			role: pp.role,
 			client: pp.client,
 		})),
+		contractAttachment,
+		deliverablesAttachment,
+		receivedAmounts: booking.receivedAmounts.map((payment) => ({
+			...payment,
+			attachment: paymentAttachmentsMap.get(payment.id) ?? null,
+		})),
+		// // Pass through other relations
+		// paymentSchedules: booking.paymentSchedules,
+		// shoots: booking.shoots,
+		// deliverables: booking.deliverables,
+		// expenses: booking.expenses,
+		// tasks: booking.tasks,
 	};
 }
 export async function getMinimalBookings(

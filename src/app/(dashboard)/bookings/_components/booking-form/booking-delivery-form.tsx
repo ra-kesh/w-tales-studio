@@ -37,7 +37,7 @@ export function BookingDeliveryForm() {
 								<FormControl>
 									<AttachmentUploader
 										name="deliverablesAttachment"
-										uploadContext="submissions" // Or a more specific context
+										uploadContext="deliverables" // Or a more specific context
 									/>
 								</FormControl>
 							</FormItem>
