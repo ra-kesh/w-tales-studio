@@ -12,7 +12,12 @@ import {
 	type ReceivedPaymentFilters,
 	type ReceivedPaymentSortOption,
 } from "@/lib/db/queries";
-import { bookings, paymentSchedules, receivedAmounts } from "@/lib/db/schema";
+import {
+	attachments,
+	bookings,
+	paymentSchedules,
+	receivedAmounts,
+} from "@/lib/db/schema";
 
 export async function GET(request: Request) {
 	const { session } = await getServerSession();
@@ -79,23 +84,121 @@ export async function GET(request: Request) {
 	}
 }
 
-export async function POST(request: Request) {
-	const session = await auth.api.getSession({
-		headers: await headers(),
-	});
+// export async function POST(request: Request) {
+// 	const session = await auth.api.getSession({
+// 		headers: await headers(),
+// 	});
 
-	if (!session || !session.user) {
+// 	if (!session || !session.user) {
+// 		return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+// 	}
+
+// 	const activeOrganizationId = session.session.activeOrganizationId;
+
+// 	if (!activeOrganizationId) {
+// 		return NextResponse.json(
+// 			{ message: "User not associated with an organization" },
+// 			{ status: 403 },
+// 		);
+// 	}
+// 	const canCreatePayment = await auth.api.hasPermission({
+// 		headers: await headers(),
+// 		body: {
+// 			permissions: {
+// 				payment: ["create"],
+// 			},
+// 		},
+// 	});
+
+// 	if (!canCreatePayment) {
+// 		return NextResponse.json(
+// 			{ message: "You do not have permission to add payments." },
+// 			{ status: 403 },
+// 		);
+// 	}
+
+// 	const body = await request.json();
+// 	// 3. Validation: Parse the request body with Zod
+// 	const validatedData = receivedPaymentFormSchema.parse(body);
+
+// 	const { bookingId, amount, description, paidOn } = validatedData;
+// 	const numericBookingId = Number(bookingId);
+
+// 	const bookingExists = await db.query.bookings.findFirst({
+// 		where: and(
+// 			eq(bookings.id, Number(bookingId)),
+// 			eq(bookings.organizationId, activeOrganizationId),
+// 		),
+// 	});
+
+// 	if (!bookingExists) {
+// 		return NextResponse.json(
+// 			{
+// 				message: "Booking not found or does not belong to this organization.",
+// 			},
+// 			{ status: 404 },
+// 		);
+// 	}
+
+// 	const [receivedTotalResult] = await db
+// 		.select({ total: sum(receivedAmounts.amount) })
+// 		.from(receivedAmounts)
+// 		.where(eq(receivedAmounts.bookingId, numericBookingId));
+// 	const [scheduledTotalResult] = await db
+// 		.select({ total: sum(paymentSchedules.amount) })
+// 		.from(paymentSchedules)
+// 		.where(eq(paymentSchedules.bookingId, numericBookingId));
+
+// 	const currentTotal =
+// 		(Number(receivedTotalResult?.total) || 0) +
+// 		(Number(scheduledTotalResult?.total) || 0);
+// 	const newGrandTotal = currentTotal + parseFloat(amount);
+
+// 	if (newGrandTotal > parseFloat(bookingExists.packageCost)) {
+// 		return NextResponse.json(
+// 			{ message: "Total of all payments cannot exceed the package cost." },
+// 			{ status: 400 },
+// 		);
+// 	}
+
+// 	try {
+// 		const newPayment = await db
+// 			.insert(receivedAmounts)
+// 			.values({
+// 				organizationId: activeOrganizationId,
+// 				bookingId: Number(bookingId),
+// 				amount,
+// 				description: description || "N/a",
+// 				paidOn: paidOn,
+// 			})
+// 			.returning();
+
+// 		return NextResponse.json(newPayment[0], { status: 201 });
+// 	} catch (error) {
+// 		if (error instanceof ZodError) {
+// 			return NextResponse.json({ errors: error.issues }, { status: 400 });
+// 		}
+// 		console.error("Error creating received payment:", error);
+// 		return NextResponse.json(
+// 			{ message: "Internal server error" },
+// 			{ status: 500 },
+// 		);
+// 	}
+// }
+
+export async function POST(request: Request) {
+	const { session } = await getServerSession();
+	if (!session?.user) {
 		return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 	}
-
-	const activeOrganizationId = session.session.activeOrganizationId;
-
-	if (!activeOrganizationId) {
+	const orgId = session.session.activeOrganizationId;
+	if (!orgId) {
 		return NextResponse.json(
 			{ message: "User not associated with an organization" },
 			{ status: 403 },
 		);
 	}
+
 	const canCreatePayment = await auth.api.hasPermission({
 		headers: await headers(),
 		body: {
@@ -113,16 +216,20 @@ export async function POST(request: Request) {
 	}
 
 	const body = await request.json();
-	// 3. Validation: Parse the request body with Zod
-	const validatedData = receivedPaymentFormSchema.parse(body);
-
-	const { bookingId, amount, description, paidOn } = validatedData;
-	const numericBookingId = Number(bookingId);
+	const parse = receivedPaymentFormSchema.safeParse(body);
+	if (!parse.success) {
+		return NextResponse.json(
+			{ message: "Validation error", errors: parse.error.issues },
+			{ status: 400 },
+		);
+	}
+	const data = parse.data;
+	const numericBookingId = Number(data.bookingId);
 
 	const bookingExists = await db.query.bookings.findFirst({
 		where: and(
-			eq(bookings.id, Number(bookingId)),
-			eq(bookings.organizationId, activeOrganizationId),
+			eq(bookings.id, numericBookingId),
+			eq(bookings.organizationId, orgId),
 		),
 	});
 
@@ -147,7 +254,8 @@ export async function POST(request: Request) {
 	const currentTotal =
 		(Number(receivedTotalResult?.total) || 0) +
 		(Number(scheduledTotalResult?.total) || 0);
-	const newGrandTotal = currentTotal + parseFloat(amount);
+
+	const newGrandTotal = currentTotal + parseFloat(data.amount);
 
 	if (newGrandTotal > parseFloat(bookingExists.packageCost)) {
 		return NextResponse.json(
@@ -157,18 +265,42 @@ export async function POST(request: Request) {
 	}
 
 	try {
-		const newPayment = await db
-			.insert(receivedAmounts)
-			.values({
-				organizationId: activeOrganizationId,
-				bookingId: Number(bookingId),
-				amount,
-				description: description || "N/a",
-				paidOn: paidOn,
-			})
-			.returning();
+		const newPayment = await db.transaction(async (tx) => {
+			const [payment] = await tx
+				.insert(receivedAmounts)
+				.values({
+					organizationId: orgId,
+					bookingId: numericBookingId,
+					amount: data.amount,
+					description: data.description || "N/a",
+					paidOn: data.paidOn,
+				})
+				.returning({ id: receivedAmounts.id });
 
-		return NextResponse.json(newPayment[0], { status: 201 });
+			if (data.attachment) {
+				await tx.insert(attachments).values({
+					organizationId: orgId,
+					resourceType: "received_payment",
+					resourceId: payment.id.toString(),
+					subType: "payment_proof",
+					fileName: data.attachment.name,
+					filePath: data.attachment.key,
+					fileSize: data.attachment.size,
+					mimeType: data.attachment.type,
+					uploadedBy: session.user.id,
+				});
+			}
+
+			return payment;
+		});
+
+		return NextResponse.json(
+			{
+				id: newPayment.id,
+				bookingId: numericBookingId,
+			},
+			{ status: 201 },
+		);
 	} catch (error) {
 		if (error instanceof ZodError) {
 			return NextResponse.json({ errors: error.issues }, { status: 400 });

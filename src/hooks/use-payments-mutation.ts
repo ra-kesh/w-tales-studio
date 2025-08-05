@@ -24,6 +24,8 @@ export function useCreateReceivedPaymentMutation() {
 			return response.json();
 		},
 		onSuccess: (updatedData) => {
+			console.log({ updatedData });
+
 			queryClient.invalidateQueries({ queryKey: ["received-payments"] });
 			queryClient.invalidateQueries({
 				queryKey: ["bookings"],
