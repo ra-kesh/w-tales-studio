@@ -120,27 +120,25 @@ export default function ReviewQueuePage() {
 					/>
 				)}
 
-				<ScrollArea className="h-[70vh] pr-4">
-					{submissions.length > 0 && (
-						<div className="space-y-4">
-							{submissions.map((submission) => (
-								<SubmissionCard key={submission.id} submission={submission} />
-							))}
-						</div>
-					)}
+				{submissions.length > 0 && (
+					<div className="space-y-4">
+						{submissions.map((submission) => (
+							<SubmissionCard key={submission.id} submission={submission} />
+						))}
+					</div>
+				)}
 
-					{hasNextPage && (
-						<div className="flex justify-center mt-6">
-							<Button
-								variant="outline"
-								onClick={() => fetchNextPage()}
-								disabled={isLoading}
-							>
-								Load More
-							</Button>
-						</div>
-					)}
-				</ScrollArea>
+				{hasNextPage && (
+					<div className="flex justify-center mt-6">
+						<Button
+							variant="outline"
+							onClick={() => fetchNextPage()}
+							disabled={isLoading}
+						>
+							Load More
+						</Button>
+					</div>
+				)}
 			</main>
 		</div>
 	);

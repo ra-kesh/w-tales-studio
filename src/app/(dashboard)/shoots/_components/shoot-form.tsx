@@ -22,6 +22,7 @@ import {
 	FormLabel,
 	FormMessage,
 } from "@/components/ui/form";
+import { GroupedMultiSelect } from "@/components/ui/grouped-multi-select";
 import { Input } from "@/components/ui/input";
 import { MultiAsyncSelect } from "@/components/ui/multi-select";
 import {
@@ -32,6 +33,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import { useMinimalBookings } from "@/hooks/use-bookings";
+import { useCrewAvailability } from "@/hooks/use-crew-availability";
 import { useCrews } from "@/hooks/use-crews";
 import { cn } from "@/lib/utils";
 import {
@@ -85,25 +87,37 @@ export function ShootForm({
 
 	const { data: crewData, isLoading: isLoadingCrew } = useCrews();
 
+	const selectedDate = form.watch("date");
+	const { data: availabilityData } = useCrewAvailability(selectedDate ?? null);
+
 	const crewOptions = React.useMemo(() => {
 		if (!crewData?.data) return [];
-		return crewData.data.map((crew) => {
-			const displayName = crew.member?.user?.name || crew.name;
-			const role = crew.role ? ` (${crew.role})` : "";
-			const statusBadge =
-				crew.status !== "available" ? ` [${crew.status}]` : "";
+		const unavailableCrewIds = new Set(availabilityData?.data || []);
 
-			return {
-				label: `${displayName}${role}${statusBadge}`,
+		const available = crewData.data
+			.filter((crew) => !unavailableCrewIds.has(crew.id))
+			.map((crew) => ({
+				label: `${crew.member?.user?.name || crew.name}${crew.role ? ` (${crew.role})` : ""}`,
 				value: crew.id.toString(),
-			};
-		});
-	}, [crewData?.data]);
+			}));
+
+		const unavailable = crewData.data
+			.filter((crew) => unavailableCrewIds.has(crew.id))
+			.map((crew) => ({
+				label: `${crew.member?.user?.name || crew.name}${crew.role ? ` (${crew.role})` : ""} [Unavailable]`,
+				value: crew.id.toString(),
+			}));
+
+		return [
+			{ label: "Available", options: available },
+			{ label: "Unavailable", options: unavailable },
+		];
+	}, [crewData?.data, availabilityData]);
 
 	React.useEffect(() => {
 		if (mode === "create") return;
 		form.trigger();
-	}, [mode]);
+	}, [mode, form]);
 
 	return (
 		<Form {...form}>
@@ -305,7 +319,7 @@ export function ShootForm({
 							<FormItem>
 								<FormLabel>Assigned Crew</FormLabel>
 								<FormControl>
-									<MultiAsyncSelect
+									<GroupedMultiSelect
 										options={crewOptions}
 										onValueChange={field.onChange}
 										defaultValue={field.value}

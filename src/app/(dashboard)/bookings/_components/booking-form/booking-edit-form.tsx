@@ -26,6 +26,7 @@ import {
 	type BookingEditFormValues,
 	BookingEditSchema,
 } from "./booking-edit-form-schema";
+import type { UploadedAttachment } from "./booking-form-schema";
 
 interface BookingEditFormProps {
 	booking: {
@@ -41,8 +42,8 @@ interface BookingEditFormProps {
 			| "completed"
 			| "cancelled";
 		note?: string | null;
-		contractAttachment?: any;
-		deliverablesAttachment?: any;
+		contractAttachment?: UploadedAttachment | null;
+		deliverablesAttachment?: UploadedAttachment | null;
 	};
 	onSubmit: (data: BookingEditFormValues) => Promise<void>;
 }
