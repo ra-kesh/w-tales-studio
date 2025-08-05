@@ -288,6 +288,13 @@
       "when": 1754211984283,
       "tag": "0040_productive_guardian",
       "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1754418247267,
+      "tag": "0041_tan_hiroim",
+      "breakpoints": true
     }
   ]
 }

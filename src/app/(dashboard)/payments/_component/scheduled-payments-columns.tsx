@@ -8,6 +8,7 @@ import { formatCurrency, formatDate } from "@/lib/utils";
 import type { ScheduledPaymentRow } from "@/types/payments";
 import { DataTableColumnHeader } from "../../tasks/_components/task-table-column-header";
 import { ScheduledPaymentsRowActions } from "./schedule-payment-row-action";
+import { ConvertScheduleSheet } from "./convert-schedule-sheet";
 
 export const useScheduledPaymentsColumns = ({
 	minimalBookings,

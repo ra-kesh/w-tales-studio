@@ -287,6 +287,10 @@ export const receivedAmounts = pgTable("received_amounts", {
 	amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
 	description: text("description"),
 	paidOn: date("paid_on"),
+	paymentScheduleId: integer("payment_schedule_id").references(
+		() => paymentSchedules.id,
+		{ onDelete: "set null" },
+	),
 	createdAt: timestamp("created_at").defaultNow(),
 	updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -302,6 +306,7 @@ export const paymentSchedules = pgTable("payment_schedules", {
 	amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
 	description: text("description"),
 	dueDate: date("due_date"),
+	status: text("status").notNull().default("pending"),
 	createdAt: timestamp("created_at").defaultNow(),
 	updatedAt: timestamp("updated_at").defaultNow(),
 });

@@ -3600,6 +3600,7 @@ export type ScheduledPaymentFilters = {
 	description?: string;
 	dueDate?: string; // For date range filtering
 	bookingId?: string;
+	status?: string;
 };
 
 export type AllowedScheduledPaymentSortFields =
@@ -3622,6 +3623,7 @@ export async function getPaymentSchedules(
 
 	const whereConditions = [
 		eq(paymentSchedules.organizationId, userOrganizationId),
+		eq(paymentSchedules.status, "pending"), // Default to pending payments
 	];
 
 	// --- Dynamic Filtering ---
@@ -3655,6 +3657,11 @@ export async function getPaymentSchedules(
 				),
 			);
 		}
+	}
+
+	// Allow explicit status filtering if provided
+	if (filters.status) {
+		whereConditions.push(eq(paymentSchedules.status, filters.status));
 	}
 
 	// --- Dynamic Sorting ---

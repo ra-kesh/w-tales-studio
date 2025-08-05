@@ -1,5 +1,6 @@
 "use client";
 
+import { ConvertScheduleSheet } from "./convert-schedule-sheet";
 import type { Row } from "@tanstack/react-table";
 import { MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -45,9 +46,11 @@ export function ScheduledPaymentsRowActions({
 					</DropdownMenuItem>
 				)}
 				<DropdownMenuSeparator />
-				{/* <DropdownMenuItem className="text-destructive">
-                    Delete Payment
-                </DropdownMenuItem> */}
+				<ConvertScheduleSheet schedule={row.original}>
+					<DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+						Mark as Paid
+					</DropdownMenuItem>
+				</ConvertScheduleSheet>
 			</DropdownMenuContent>
 		</DropdownMenu>
 	);
