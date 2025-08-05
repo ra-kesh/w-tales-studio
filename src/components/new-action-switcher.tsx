@@ -64,7 +64,8 @@ export default function NewActionSwitcher() {
 							router.push(`/bookings/add`);
 						}}
 					>
-						Add New Booking
+						{/* <Plus className="mr-2 h-4 w-4" /> */}
+						<span>New Booking</span>
 					</DropdownMenuItem>
 				)}
 
@@ -77,7 +78,8 @@ export default function NewActionSwitcher() {
 							setShootParams({ createShoot: true });
 						}}
 					>
-						Add New Shoot
+						{/* <Plus className="mr-2 h-4 w-4" /> */}
+						<span>New Shoot</span>
 					</DropdownMenuItem>
 				)}
 				{canCreateAndUpdateDeliverable && (
@@ -87,7 +89,8 @@ export default function NewActionSwitcher() {
 							setDeliverablesParams({ createDeliverable: true });
 						}}
 					>
-						Add New Deliverables
+						{/* <Plus className="mr-2 h-4 w-4" /> */}
+						<span>New Deliverables</span>
 					</DropdownMenuItem>
 				)}
 				{canCreateAndUpdateTask && (
@@ -97,7 +100,8 @@ export default function NewActionSwitcher() {
 							setTaskParams({ createTask: true });
 						}}
 					>
-						Add New Tasks
+						{/* <Plus className="mr-2 h-4 w-4" /> */}
+						<span>New Tasks</span>
 					</DropdownMenuItem>
 				)}
 				{(canCreateAndUpdateExpense || canCreateAndUpdatePayment) && (
@@ -109,7 +113,8 @@ export default function NewActionSwitcher() {
 							setOpen(false);
 						}}
 					>
-						Add New Payment
+						{/* <Plus className="mr-2 h-4 w-4" /> */}
+						<span>New Payment</span>
 					</DropdownMenuItem>
 				)}
 				{canCreateAndUpdateExpense && (
@@ -119,7 +124,8 @@ export default function NewActionSwitcher() {
 							setExpenseParams({ createExpense: true });
 						}}
 					>
-						Add New Expenses
+						{/* <Plus className="mr-2 h-4 w-4" /> */}
+						<span>New Expenses</span>
 					</DropdownMenuItem>
 				)}
 				{canCreateAndUpdateCrew && <DropdownMenuSeparator />}
@@ -130,7 +136,8 @@ export default function NewActionSwitcher() {
 							setCrewParams({ createCrew: true });
 						}}
 					>
-						Add New Crew
+						{/* <Plus className="mr-2 h-4 w-4" /> */}
+						<span>New Crew</span>
 					</DropdownMenuItem>
 				)}
 			</DropdownMenuContent>
