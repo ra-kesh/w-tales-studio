@@ -4,7 +4,6 @@ import {
 	MutationCache,
 	QueryClient,
 } from "@tanstack/react-query";
-import { Suspense } from "react";
 import { Protected } from "@/app/restricted-to-roles";
 import { getServerSession } from "@/lib/dal";
 import {
@@ -13,29 +12,12 @@ import {
 	getClients,
 	getMinimalBookings,
 } from "@/lib/db/queries";
-import { ClientsStats } from "./_components/client-stats";
+import { ClientStatsContainer } from "./_components/client-stats-container";
 
 const ClientLayout = async ({ children }: { children: React.ReactNode }) => {
 	const { session } = await getServerSession();
 
 	const userOrganizationId = session?.session.activeOrganizationId as string;
-
-	let clientStats: ClientStatsType;
-
-	if (userOrganizationId) {
-		clientStats = await getClientStats(userOrganizationId);
-	} else {
-		clientStats = {
-			totalClients: 0,
-			newClients: 0,
-			activeClients: 0, // have at least one non-completed booking
-			clientsWithOverdueDeliverables: 0,
-		};
-
-		console.warn(
-			"User organization ID not found during booking layout prerender. Using default stats.",
-		);
-	}
 
 	const queryClient = new QueryClient({
 		mutationCache: new MutationCache({
@@ -44,6 +26,29 @@ const ClientLayout = async ({ children }: { children: React.ReactNode }) => {
 			},
 		}),
 	});
+
+	let initialClientStats: ClientStatsType;
+
+	if (userOrganizationId) {
+		initialClientStats = await getClientStats(userOrganizationId);
+
+		await queryClient.prefetchQuery({
+			queryKey: ["clients", "stats", userOrganizationId],
+			queryFn: () => getClientStats(userOrganizationId),
+			staleTime: 30000,
+		});
+	} else {
+		initialClientStats = {
+			totalClients: 0,
+			newClients: 0,
+			activeClients: 0,
+			clientsWithOverdueDeliverables: 0,
+		};
+
+		console.warn(
+			"User organization ID not found during booking layout prerender. Using default stats.",
+		);
+	}
 
 	await queryClient.prefetchQuery({
 		queryKey: ["clients", ""],
@@ -59,7 +64,10 @@ const ClientLayout = async ({ children }: { children: React.ReactNode }) => {
 	return (
 		<Protected permissions={{ client: ["read"] }}>
 			<div>
-				<ClientsStats stats={clientStats} />
+				<ClientStatsContainer
+					initialStats={initialClientStats}
+					userOrganizationId={userOrganizationId}
+				/>
 				<HydrationBoundary state={dehydrate(queryClient)}>
 					<div className="flex flex-col  mx-auto  px-4  sm:px-6 lg:px-8 lg:mx-0 lg:max-w-none">
 						{children}

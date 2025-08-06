@@ -62,6 +62,12 @@ export const useReviewSubmissionMutation = () => {
 					: "Changes Requested";
 			toast.success(successMessage);
 			queryClient.invalidateQueries({ queryKey: ["submissions"] });
+
+			queryClient.invalidateQueries({ queryKey: ["assignments"] });
+			queryClient.invalidateQueries({ queryKey: ["all-task-assignments"] });
+			queryClient.invalidateQueries({
+				queryKey: ["all-deliverable-assignments"],
+			});
 		},
 		onError: (error: Error) => {
 			toast.error("Review Failed", { description: error.message });

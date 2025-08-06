@@ -287,6 +287,10 @@ export const receivedAmounts = pgTable("received_amounts", {
 	amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
 	description: text("description"),
 	paidOn: date("paid_on"),
+	paymentScheduleId: integer("payment_schedule_id").references(
+		() => paymentSchedules.id,
+		{ onDelete: "set null" },
+	),
 	createdAt: timestamp("created_at").defaultNow(),
 	updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -302,6 +306,7 @@ export const paymentSchedules = pgTable("payment_schedules", {
 	amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
 	description: text("description"),
 	dueDate: date("due_date"),
+	status: text("status").notNull().default("pending"),
 	createdAt: timestamp("created_at").defaultNow(),
 	updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -868,6 +873,54 @@ export const tasksAssignmentsRelations = relations(
 	}),
 );
 
+export const attachments = pgTable(
+	"attachments",
+	{
+		id: serial("id").primaryKey(),
+
+		organizationId: text("organization_id")
+			.notNull()
+			.references(() => organizations.id, { onDelete: "cascade" }),
+
+		resourceType: text("resource_type").notNull(), // e.g., "booking", "received_payment", "task"
+		resourceId: text("resource_id").notNull(), // use text to support int/uuid across resources
+
+		subType: text("sub_type"), // e.g., "quotation", "payment_proof"
+
+		fileName: text("file_name").notNull(),
+		filePath: text("file_path").notNull(), // storage key
+		fileSize: integer("file_size"),
+		mimeType: text("mime_type"),
+
+		metadata: jsonb("metadata"), // e.g., { amount: "123.00", method: "upi", tags: ["proof"] }
+
+		uploadedBy: text("uploaded_by").references(() => users.id, {
+			onDelete: "set null",
+		}),
+		createdAt: timestamp("created_at").defaultNow(),
+		updatedAt: timestamp("updated_at").defaultNow(),
+
+		isDeleted: boolean("is_deleted").notNull().default(false),
+		deletedAt: timestamp("deleted_at"),
+	},
+	(t) => [
+		index("attachments_resource_idx").on(t.resourceType, t.resourceId),
+		index("attachments_org_idx").on(t.organizationId),
+		index("attachments_subtype_idx").on(t.subType),
+	],
+);
+
+export const attachmentsRelations = relations(attachments, ({ one }) => ({
+	organization: one(organizations, {
+		fields: [attachments.organizationId],
+		references: [organizations.id],
+	}),
+	uploadedByUser: one(users, {
+		fields: [attachments.uploadedBy],
+		references: [users.id],
+	}),
+}));
+
 export const invoices = pgTable("invoices", {
 	id: serial("id").primaryKey(),
 	bookingId: integer("booking_id")
@@ -1094,6 +1147,9 @@ export type NewDeliverablesAssignment =
 
 export type ExpensesAssignment = typeof expensesAssignments.$inferSelect;
 export type NewExpensesAssignment = typeof expensesAssignments.$inferInsert;
+
+export type Attachment = typeof attachments.$inferSelect;
+export type NewAttachment = typeof attachments.$inferInsert;
 
 export enum ActivityType {
 	SIGN_UP = "SIGN_UP",

@@ -7,6 +7,7 @@ import { getServerSession } from "@/lib/dal";
 import { db } from "@/lib/db/drizzle";
 import { getBookings, getBookingsStats } from "@/lib/db/queries";
 import {
+	attachments,
 	bookingParticipants,
 	bookings,
 	clients,
@@ -183,15 +184,33 @@ export async function POST(request: Request) {
 			}
 
 			if (data.payments?.length) {
-				await tx.insert(receivedAmounts).values(
-					data.payments.map((pmt) => ({
-						bookingId,
-						organizationId: orgId,
-						amount: pmt.amount,
-						description: pmt.description,
-						paidOn: pmt.date,
-					})),
-				);
+				for (const pmt of data.payments) {
+					const [newPayment] = await tx
+						.insert(receivedAmounts)
+						.values({
+							bookingId,
+							organizationId: orgId,
+							amount: pmt.amount,
+							description: pmt.description,
+							paidOn: pmt.date,
+						})
+						.returning({ id: receivedAmounts.id });
+
+					// --- THE FIX: Handle attachment for each payment ---
+					if (pmt.attachment) {
+						await tx.insert(attachments).values({
+							organizationId: orgId,
+							resourceType: "received_payment",
+							resourceId: newPayment.id.toString(),
+							subType: "payment_proof",
+							fileName: pmt.attachment.name,
+							filePath: pmt.attachment.key,
+							fileSize: pmt.attachment.size,
+							mimeType: pmt.attachment.type,
+							uploadedBy: session.user.id,
+						});
+					}
+				}
 			}
 
 			if (data.scheduledPayments?.length) {
@@ -204,6 +223,34 @@ export async function POST(request: Request) {
 						dueDate: sch.dueDate,
 					})),
 				);
+			}
+
+			if (data.contractAttachment) {
+				await tx.insert(attachments).values({
+					organizationId: orgId,
+					resourceType: "booking",
+					resourceId: bookingId.toString(),
+					subType: "contract",
+					fileName: data.contractAttachment.name,
+					filePath: data.contractAttachment.key,
+					fileSize: data.contractAttachment.size,
+					mimeType: data.contractAttachment.type,
+					uploadedBy: session.user.id,
+				});
+			}
+
+			if (data.deliverablesAttachment) {
+				await tx.insert(attachments).values({
+					organizationId: orgId,
+					resourceType: "booking",
+					resourceId: bookingId.toString(),
+					subType: "deliverables_summary", // A specific subtype for this attachment
+					fileName: data.deliverablesAttachment.name,
+					filePath: data.deliverablesAttachment.key,
+					fileSize: data.deliverablesAttachment.size,
+					mimeType: data.deliverablesAttachment.type,
+					uploadedBy: session.user.id,
+				});
 			}
 
 			return bookingId;

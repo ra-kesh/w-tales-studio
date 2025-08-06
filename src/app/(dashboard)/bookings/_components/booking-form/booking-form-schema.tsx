@@ -25,6 +25,15 @@ export const ParticipantSchema = z.object({
 });
 export type Participant = z.infer<typeof ParticipantSchema>;
 
+export const UploadedAttachmentSchema = z.object({
+	name: z.string(),
+	size: z.number(),
+	type: z.string(),
+	key: z.string(),
+	url: z.string(),
+});
+export type UploadedAttachment = z.infer<typeof UploadedAttachmentSchema>;
+
 export const BookingSchema = z.object({
 	bookingName: z.string().min(1, "Booking Name is required"),
 	bookingType: z.string().min(1, "Booking Type is required"),
@@ -34,6 +43,8 @@ export const BookingSchema = z.object({
 		.array(ParticipantSchema)
 		.min(1, "At least one participant is required"),
 	note: z.string().optional(),
+	contractAttachment: UploadedAttachmentSchema.optional().nullable(),
+	deliverablesAttachment: UploadedAttachmentSchema.optional().nullable(),
 	shoots: z
 		.array(
 			z.object({
@@ -59,6 +70,7 @@ export const BookingSchema = z.object({
 				cost: DecimalString,
 				quantity: DecimalString,
 				dueDate: z.string().optional(),
+				attachment: UploadedAttachmentSchema.optional().nullable(),
 			}),
 		)
 		.optional(),
@@ -68,6 +80,7 @@ export const BookingSchema = z.object({
 				amount: DecimalString,
 				description: z.string().optional(),
 				date: z.string().min(1, "Payment date is required"),
+				attachment: UploadedAttachmentSchema.optional().nullable(),
 			}),
 		)
 		.optional(),
@@ -98,6 +111,8 @@ export const defaultBooking: BookingFormValues = {
 			metadata: {},
 		},
 	],
+	contractAttachment: null,
+	deliverablesAttachment: null,
 	note: "",
 	shoots: [],
 	deliverables: [],

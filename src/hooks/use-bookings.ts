@@ -118,5 +118,7 @@ export function transformBookingToFormData(booking: BookingDetail) {
 		packageCost: booking.packageCost,
 		note: booking.note,
 		status: booking.status,
+		contractAttachment: booking.contractAttachment,
+		deliverablesAttachment: booking.deliverablesAttachment,
 	};
 }

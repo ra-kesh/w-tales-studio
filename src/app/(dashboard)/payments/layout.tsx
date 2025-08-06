@@ -1,3 +1,8 @@
+import {
+	dehydrate,
+	HydrationBoundary,
+	QueryClient,
+} from "@tanstack/react-query";
 import { Suspense } from "react";
 import { Protected } from "@/app/restricted-to-roles";
 import { DataTableSkeleton } from "@/components/data-table/data-table-skeleton";
@@ -7,7 +12,7 @@ import {
 	getPaymentsStats,
 	type PaymentsStats as StatsType,
 } from "@/lib/db/queries";
-import { PaymentsStats } from "./_component/payment-stats";
+import { PaymentStatsContainer } from "./_component/payment-stats-container";
 import { PaymentTabs } from "./_component/payments-tab";
 
 export default async function PaymentsLayout({
@@ -16,15 +21,23 @@ export default async function PaymentsLayout({
 	children: React.ReactNode;
 }) {
 	const { session } = await getServerSession();
-	const userOrganizationId = session?.session.activeOrganizationId;
+	const userOrganizationId = session?.session.activeOrganizationId as string;
 
-	let stats: StatsType;
+	const queryClient = new QueryClient();
+
+	let initialStats: StatsType;
 	if (userOrganizationId) {
-		stats = await getPaymentsStats(userOrganizationId);
+		initialStats = await getPaymentsStats(userOrganizationId);
+
+		await queryClient.prefetchQuery({
+			queryKey: ["payments", "stats", userOrganizationId],
+			queryFn: () => getPaymentsStats(userOrganizationId),
+			staleTime: 30000,
+		});
 	} else {
-		stats = {
-			totalReceived: "0",
-			totalScheduled: "0",
+		initialStats = {
+			totalReceived: 0,
+			totalScheduled: 0,
 			receivedCount: 0,
 			scheduledCount: 0,
 		};
@@ -33,7 +46,10 @@ export default async function PaymentsLayout({
 	return (
 		<Protected permissions={{ payment: ["list"] }}>
 			<div>
-				<PaymentsStats stats={stats} />
+				<PaymentStatsContainer
+					initialStats={initialStats}
+					userOrganizationId={userOrganizationId}
+				/>
 				<div className="mx-auto flex flex-col px-4 sm:px-6 lg:px-8 lg:mx-0 lg:max-w-none">
 					<Tabs>
 						<PaymentTabs />
@@ -44,7 +60,9 @@ export default async function PaymentsLayout({
 								</div>
 							}
 						>
-							{children}
+							<HydrationBoundary state={dehydrate(queryClient)}>
+								{children}
+							</HydrationBoundary>
 						</Suspense>
 					</Tabs>
 				</div>

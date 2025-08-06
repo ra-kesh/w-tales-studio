@@ -26,10 +26,15 @@ import { participantRoles as allParticipantRoles } from "@/data/role-data";
 import { useBookingTypesParams } from "@/hooks/use-booking-types-params";
 import { useBookingTypes, usePackageTypes } from "@/hooks/use-configs";
 import { usePackageParams } from "@/hooks/use-package-params";
+import { AttachmentUploader } from "./attachment-uploader";
 import type { BookingFormValues } from "./booking-form-schema";
 
 export const BookingDetailForm = () => {
 	const form = useFormContext<BookingFormValues>();
+
+	console.log(form.formState);
+	console.log(form.formState.errors);
+
 	const { data: bookingTypes = [] } = useBookingTypes();
 	const { data: allPackageTypes = [] } = usePackageTypes();
 
@@ -249,7 +254,7 @@ export const BookingDetailForm = () => {
 								)}
 							/>
 						</div>
-						<div className="col-span-5">
+						{/* <div className="col-span-5">
 							<FormField
 								control={form.control}
 								name="note"
@@ -260,6 +265,42 @@ export const BookingDetailForm = () => {
 											<Textarea
 												placeholder="Add any booking specific notes or request here"
 												{...field}
+											/>
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+						</div> */}
+						<div className="col-span-3">
+							<FormField
+								control={form.control}
+								name="note"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>Notes</FormLabel>
+										<FormControl>
+											<Input
+												placeholder="Add any booking specific notes or requests here"
+												{...field}
+											/>
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+						</div>
+						<div className="col-span-2">
+							<FormField
+								control={form.control}
+								name="contractAttachment"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>Contract / Document</FormLabel>
+										<FormControl>
+											<AttachmentUploader
+												name="contractAttachment"
+												uploadContext="contracts"
 											/>
 										</FormControl>
 										<FormMessage />

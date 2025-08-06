@@ -61,17 +61,17 @@ const HomeContent = () => {
 			show: true,
 			icon: Package,
 		},
-		{
-			value: "announcements" as const,
-			label: "Announcements",
-			show: true,
-		},
+		// {
+		// 	value: "announcements" as const,
+		// 	label: "Announcements",
+		// 	show: true,
+		// },
 	].filter((tab) => tab.show);
 
 	const renderTabContent = () => {
 		switch (activeTab) {
-			case "announcements":
-				return <Announcements />;
+			// case "announcements":
+			// 	return <Announcements />;
 			case "all-shoots":
 				return <AllShoots />;
 			case "all-tasks":

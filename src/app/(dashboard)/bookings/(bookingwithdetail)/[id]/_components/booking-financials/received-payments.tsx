@@ -1,3 +1,4 @@
+// components/bookings/received-payments.tsx (Refactored)
 "use client";
 
 import { format } from "date-fns";
@@ -5,10 +6,11 @@ import { Edit } from "lucide-react";
 import { Fragment } from "react";
 import { Button } from "@/components/ui/button";
 import { usePaymentsParams } from "@/hooks/use-payments-params";
-import type { ReceivedAmount } from "@/lib/db/schema";
+import type { ReceivedAmountWithAttachment } from "@/types/booking"; // <-- Import the correct type
+import { ViewAttachmentButton } from "../view-attachement";
 
 interface ReceivedPaymentsProps {
-	receivedAmounts: ReceivedAmount[];
+	receivedAmounts: ReceivedAmountWithAttachment[]; // <-- Use the enriched type
 }
 
 export function ReceivedPayments({ receivedAmounts }: ReceivedPaymentsProps) {
@@ -16,13 +18,13 @@ export function ReceivedPayments({ receivedAmounts }: ReceivedPaymentsProps) {
 
 	if (!receivedAmounts.length) {
 		return (
-			<div className="text-sm text-muted-foreground py-4">
+			<div className="text-sm text-muted-foreground py-4 text-center">
 				No payments received yet
 			</div>
 		);
 	}
 
-	// Group payments by date
+	// Grouping logic remains the same
 	const groupedPayments = receivedAmounts.reduce(
 		(acc, payment) => {
 			const paidDate = payment.paidOn
@@ -34,24 +36,23 @@ export function ReceivedPayments({ receivedAmounts }: ReceivedPaymentsProps) {
 				: "No Date";
 
 			if (!acc[dateKey]) {
-				acc[dateKey] = {
-					date: displayDate,
-					dateTime: dateKey,
-					payments: [],
-				};
+				acc[dateKey] = { date: displayDate, dateTime: dateKey, payments: [] };
 			}
-
 			acc[dateKey].payments.push(payment);
 			return acc;
 		},
 		{} as Record<
 			string,
-			{ date: string; dateTime: string; payments: ReceivedAmount[] }
+			{
+				date: string;
+				dateTime: string;
+				payments: ReceivedAmountWithAttachment[];
+			}
 		>,
 	);
 
-	const sortedDates = Object.values(groupedPayments).sort(
-		(a, b) => b.dateTime.localeCompare(a.dateTime), // Reverse sort - newest first
+	const sortedDates = Object.values(groupedPayments).sort((a, b) =>
+		b.dateTime.localeCompare(a.dateTime),
 	);
 
 	return (
@@ -61,13 +62,13 @@ export function ReceivedPayments({ receivedAmounts }: ReceivedPaymentsProps) {
 					<tr>
 						<th>Amount</th>
 						<th className="hidden sm:table-cell">Description</th>
-						<th>Paid On</th>
+						<th>Actions</th>
 					</tr>
 				</thead>
 				<tbody>
 					{sortedDates.map((day) => (
 						<Fragment key={day.dateTime}>
-							<tr className="text-sm leading-6 text-gray-900 ">
+							<tr className="text-sm leading-6 text-gray-900">
 								<th
 									scope="colgroup"
 									colSpan={3}
@@ -90,23 +91,6 @@ export function ReceivedPayments({ receivedAmounts }: ReceivedPaymentsProps) {
 													<div className="rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
 														Received
 													</div>
-													<div className="mb-auto">
-														<Button
-															variant="ghost"
-															size="icon"
-															className="h-6 w-6 rounded-full hover:bg-gray-100 ml-2"
-															onClick={() =>
-																setParams({
-																	receivedPaymentId: payment.id.toString(),
-																})
-															}
-														>
-															<Edit className="h-3.5 w-3.5 text-gray-500" />
-															<span className="sr-only">
-																Edit received payment
-															</span>
-														</Button>
-													</div>
 												</div>
 											</div>
 										</div>
@@ -119,36 +103,33 @@ export function ReceivedPayments({ receivedAmounts }: ReceivedPaymentsProps) {
 										</div>
 									</td>
 									<td className="py-5 px-4 text-right">
-										<div className="flex justify-end">
-											<a
-												href="#"
-												className="text-sm font-medium leading-6 text-indigo-600 hover:text-indigo-500"
+										<div className="flex justify-end items-center gap-4">
+											{payment.attachment ? (
+												<ViewAttachmentButton
+													attachmentKey={payment.attachment.key}
+												>
+													View
+												</ViewAttachmentButton>
+											) : (
+												<span className="text-xs text-muted-foreground">
+													No Attachment
+												</span>
+											)}
+											<Button
+												variant="ghost"
+												size="icon"
+												className="h-6 w-6 rounded-full hover:bg-gray-100"
+												onClick={() =>
+													setParams({
+														receivedPaymentId: payment.id.toString(),
+													})
+												}
 											>
-												View
-												<span className="hidden sm:inline"> transaction</span>
-												{/* <span className="sr-only">
-													, invoice #1120,{" "}
-													{transaction.client}
-												</span> */}
-											</a>
+												<Edit className="h-3.5 w-3.5 text-gray-500" />
+												<span className="sr-only">Edit received payment</span>
+											</Button>
 										</div>
-										{/* <div className="mt-1 text-xs leading-5 text-gray-500">
-											Invoice <span className="text-gray-900">#{109932}</span>
-										</div> */}
 									</td>
-									{/* <td className="py-5 text-right">
-										<div className="flex justify-end items-center">
-											<CheckCircle className="h-4 w-4 mr-2 text-green-500" />
-											<span className="text-sm text-gray-500">
-												{payment.paidOn
-													? format(
-															new Date(payment.paidOn as string),
-															"MMM d, yyyy",
-														)
-													: "No date"}
-											</span>
-										</div>
-									</td> */}
 								</tr>
 							))}
 						</Fragment>

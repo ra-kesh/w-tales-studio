@@ -4,7 +4,6 @@ import {
 	MutationCache,
 	QueryClient,
 } from "@tanstack/react-query";
-import { Suspense } from "react";
 import { Protected } from "@/app/restricted-to-roles";
 import { getServerSession } from "@/lib/dal";
 import {
@@ -14,7 +13,7 @@ import {
 	getDeliverablesStats,
 	getMinimalBookings,
 } from "@/lib/db/queries";
-import { DeliverableStats } from "./_components/deliverable-stats";
+import { DeliverableStatsContainer } from "./_components/deliverable-stats-container";
 
 const DeliverableLayout = async ({
 	children,
@@ -25,12 +24,26 @@ const DeliverableLayout = async ({
 
 	const userOrganizationId = session?.session.activeOrganizationId as string;
 
-	let deliverableStats: DeliverableStatsType;
+	const queryClient = new QueryClient({
+		mutationCache: new MutationCache({
+			onSuccess: () => {
+				queryClient.invalidateQueries();
+			},
+		}),
+	});
+
+	let initialDeliverableStats: DeliverableStatsType;
 
 	if (userOrganizationId) {
-		deliverableStats = await getDeliverablesStats(userOrganizationId);
+		initialDeliverableStats = await getDeliverablesStats(userOrganizationId);
+
+		await queryClient.prefetchQuery({
+			queryKey: ["deliverables", "stats", userOrganizationId],
+			queryFn: () => getDeliverablesStats(userOrganizationId),
+			staleTime: 30000,
+		});
 	} else {
-		deliverableStats = {
+		initialDeliverableStats = {
 			totalDeliverables: 0,
 			activeDeliverables: 0,
 			pendingDeliverables: 0,
@@ -41,14 +54,6 @@ const DeliverableLayout = async ({
 			"User organization ID not found during booking layout prerender. Using default stats.",
 		);
 	}
-
-	const queryClient = new QueryClient({
-		mutationCache: new MutationCache({
-			onSuccess: () => {
-				queryClient.invalidateQueries();
-			},
-		}),
-	});
 
 	await queryClient.prefetchQuery({
 		queryKey: ["bookings", "list", "minimal"],
@@ -74,7 +79,10 @@ const DeliverableLayout = async ({
 	return (
 		<Protected permissions={{ deliverable: ["read"] }}>
 			<div>
-				<DeliverableStats stats={deliverableStats} />
+				<DeliverableStatsContainer
+					initialStats={initialDeliverableStats}
+					userOrganizationId={userOrganizationId}
+				/>
 				<HydrationBoundary state={dehydrate(queryClient)}>
 					<div className="flex flex-col  mx-auto  px-4  sm:px-6 lg:px-8 lg:mx-0 lg:max-w-none">
 						{children}

@@ -17,6 +17,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useClientParams } from "@/hooks/use-client-params";
 import { cn } from "@/lib/utils";
 import type { BookingDetail } from "@/types/booking";
+import { BookingAttachments } from "./booking-attachments";
 
 interface BookingOverviewProps {
 	booking: BookingDetail;
@@ -266,6 +267,8 @@ export function BookingOverview({ booking }: BookingOverviewProps) {
 					)}
 				</CardContent>
 			</Card>
+
+			<BookingAttachments booking={booking} />
 
 			<div className="bg-white rounded-lg border shadow-sm">
 				<div className="p-5">

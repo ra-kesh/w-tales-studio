@@ -11,6 +11,7 @@ import {
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAllTaskAssignments } from "@/hooks/use-all-task-assignment";
 import { TaskCard } from "./task-card";
 
@@ -133,7 +134,7 @@ export function AllTasks() {
 
 	return (
 		<div className="grid grid-cols-12 gap-8">
-			<div className="col-span-3 flex-shrink-0">
+			<div className="col-span-12 lg:col-span-4 2xl:col-span-3 flex-shrink-0">
 				<Card className="border border-gray-200 py-0">
 					<CardContent className="p-0">
 						<div className="p-4 border-b border-gray-200">
@@ -182,7 +183,7 @@ export function AllTasks() {
 				</Card>
 			</div>
 
-			<div className="flex-1 col-span-9 space-y-6">
+			<div className="flex-1 col-span-12 lg:col-span-8 2xl:col-span-9 space-y-6">
 				<div>
 					<h2 className="text-xl font-semibold text-gray-900 mb-2">
 						{selectedOption?.label}
@@ -193,34 +194,36 @@ export function AllTasks() {
 					</p>
 				</div>
 
-				<div className="space-y-4">
-					{filteredTasks.length > 0 ? (
-						<>
-							<ul role="list" className="divide-y divide-gray-100">
-								{filteredTasks.map((assignment) => (
-									<TaskCard key={assignment.id} assignment={assignment} />
-								))}
-							</ul>
-							{hasNextPage && selectedFilter === "all" && (
-								<div className="flex justify-center mt-4">
-									<Button
-										variant="outline"
-										onClick={() => fetchNextPage()}
-										disabled={isLoading}
-									>
-										Load More
-									</Button>
-								</div>
-							)}
-						</>
-					) : (
-						<EmptyState
-							icon={selectedOption?.icon || CheckCircle2}
-							title={`No ${selectedOption?.label || "Tasks"} Found`}
-							description={getEmptyStateDescription(selectedFilter)}
-						/>
-					)}
-				</div>
+				<ScrollArea className="h-[70vh] pr-4">
+					<div className="space-y-4">
+						{filteredTasks.length > 0 ? (
+							<>
+								<ul role="list" className="divide-y divide-gray-100">
+									{filteredTasks.map((assignment) => (
+										<TaskCard key={assignment.id} assignment={assignment} />
+									))}
+								</ul>
+								{hasNextPage && selectedFilter === "all" && (
+									<div className="flex justify-center mt-4">
+										<Button
+											variant="outline"
+											onClick={() => fetchNextPage()}
+											disabled={isLoading}
+										>
+											Load More
+										</Button>
+									</div>
+								)}
+							</>
+						) : (
+							<EmptyState
+								icon={selectedOption?.icon || CheckCircle2}
+								title={`No ${selectedOption?.label || "Tasks"} Found`}
+								description={getEmptyStateDescription(selectedFilter)}
+							/>
+						)}
+					</div>
+				</ScrollArea>
 			</div>
 		</div>
 	);

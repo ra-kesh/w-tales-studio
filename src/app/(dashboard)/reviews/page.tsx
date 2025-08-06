@@ -4,6 +4,7 @@ import { Inbox, ListChecks, Package, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Switch } from "@/components/ui/switch";
 import { useReviewQueueParams } from "@/hooks/use-review-queue-params";
 import { useSubmissions } from "@/hooks/use-submissions";
