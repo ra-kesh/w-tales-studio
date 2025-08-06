@@ -39,9 +39,10 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { useMinimalBookings } from "@/hooks/use-bookings";
+import { useBookingDetail, useMinimalBookings } from "@/hooks/use-bookings";
 import { useCrews } from "@/hooks/use-crews";
 import { cn } from "@/lib/utils";
+import { ViewAttachmentButton } from "../../bookings/(bookingwithdetail)/[id]/_components/view-attachement";
 import {
 	type DeliverableFormValues,
 	DeliverableSchema,
@@ -83,10 +84,15 @@ export function DeliverableForm({
 	useEffect(() => {
 		if (mode === "create") return;
 		form.trigger(); // triggers all form validations when component is mounted
-	}, []);
+	}, [form, mode]);
 
 	const { data: MinimalBookings } = useMinimalBookings();
 	const bookings = MinimalBookings?.data;
+
+	const selectedBookingId = form.watch("bookingId");
+	const { data: bookingDetail } = useBookingDetail(selectedBookingId);
+
+	console.log({ bookingDetail });
 
 	const { data: crewData, isLoading: isLoadingCrew } = useCrews();
 	const crewOptions = useMemo(() => {
@@ -103,6 +109,10 @@ export function DeliverableForm({
 			};
 		});
 	}, [crewData?.data]);
+
+	const deliverablesAttachment = bookingDetail?.deliverablesAttachment;
+
+	console.log({ deliverablesAttachment });
 
 	return (
 		<Form {...form}>
@@ -195,6 +205,14 @@ export function DeliverableForm({
 						)}
 					/>
 				</div>
+				{deliverablesAttachment && (
+					<div className="col-span-6 -mt-3 text-sm text-muted-foreground flex items-center gap-2 ">
+						<span>View deliverables summary attachement here </span>
+						<ViewAttachmentButton attachmentKey={deliverablesAttachment.key}>
+							View
+						</ViewAttachmentButton>
+					</div>
+				)}
 
 				<div className="col-span-6">
 					<FormField
