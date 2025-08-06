@@ -23,6 +23,7 @@ export function useCreateTaskMutation() {
 			return response.json();
 		},
 		onSuccess: ({ data }) => {
+			queryClient.invalidateQueries({ queryKey: ["tasks", "stats"] });
 			queryClient.invalidateQueries({ queryKey: ["bookings", "task", "list"] });
 			// queryClient.invalidateQueries({ queryKey: ["crews"] });
 			queryClient.invalidateQueries({
@@ -78,6 +79,7 @@ export function useUpdateTaskMutation() {
 			return response.json();
 		},
 		onSuccess: ({ data }) => {
+			queryClient.invalidateQueries({ queryKey: ["tasks", "stats"] });
 			queryClient.invalidateQueries({ queryKey: ["bookings", "task", "list"] });
 			// queryClient.invalidateQueries({ queryKey: ["crews"] });
 			queryClient.invalidateQueries({
