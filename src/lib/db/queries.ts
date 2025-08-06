@@ -3725,7 +3725,12 @@ export async function getPaymentsStats(
 				count: count(),
 			})
 			.from(paymentSchedules)
-			.where(eq(paymentSchedules.organizationId, organizationId)),
+			.where(
+				and(
+					eq(paymentSchedules.organizationId, organizationId),
+					eq(paymentSchedules.status, "pending"),
+				),
+			),
 	]);
 
 	return {
