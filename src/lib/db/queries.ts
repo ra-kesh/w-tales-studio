@@ -3702,8 +3702,8 @@ export async function getPaymentSchedules(
 }
 
 export type PaymentsStats = {
-	totalReceived: string;
-	totalScheduled: string;
+	totalReceived: number;
+	totalScheduled: number;
 	receivedCount: number;
 	scheduledCount: number;
 };
@@ -3729,8 +3729,8 @@ export async function getPaymentsStats(
 	]);
 
 	return {
-		totalReceived: receivedResult[0]?.total || "0.00",
-		totalScheduled: scheduledResult[0]?.total || "0.00",
+		totalReceived: Number(receivedResult[0]?.total) || 0.0,
+		totalScheduled: Number(scheduledResult[0]?.total) || 0.0,
 		receivedCount: receivedResult[0]?.count || 0,
 		scheduledCount: scheduledResult[0]?.count || 0,
 	};

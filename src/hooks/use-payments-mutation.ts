@@ -24,8 +24,7 @@ export function useCreateReceivedPaymentMutation() {
 			return response.json();
 		},
 		onSuccess: (updatedData) => {
-			console.log({ updatedData });
-
+			queryClient.invalidateQueries({ queryKey: ["payments", "stats"] });
 			queryClient.invalidateQueries({ queryKey: ["received-payments"] });
 			queryClient.invalidateQueries({
 				queryKey: ["bookings"],
@@ -77,6 +76,7 @@ export function useUpdateReceivedPaymentMutation() {
 			return response.json();
 		},
 		onSuccess: (updatedData) => {
+			queryClient.invalidateQueries({ queryKey: ["payments", "stats"] });
 			queryClient.invalidateQueries({ queryKey: ["received-payments"] });
 			queryClient.invalidateQueries({
 				queryKey: ["bookings"],
@@ -115,6 +115,7 @@ export function useDeleteReceivedPaymentMutation() {
 			return response.json();
 		},
 		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["payments", "stats"] });
 			queryClient.invalidateQueries({ queryKey: ["received-payments"] });
 			toast.success("Payment deleted successfully!");
 		},
@@ -139,6 +140,7 @@ export function useCreateScheduledPaymentMutation() {
 			return response.json();
 		},
 		onSuccess: (updatedData) => {
+			queryClient.invalidateQueries({ queryKey: ["payments", "stats"] });
 			queryClient.invalidateQueries({ queryKey: ["payment-schedules"] });
 			queryClient.invalidateQueries({
 				queryKey: ["bookings"],
@@ -183,6 +185,7 @@ export function useUpdateScheduledPaymentMutation() {
 		},
 		onSuccess: (updatedData) => {
 			toast.success("Scheduled payment updated!");
+			queryClient.invalidateQueries({ queryKey: ["payments", "stats"] });
 			queryClient.invalidateQueries({ queryKey: ["payment-schedules"] });
 			queryClient.invalidateQueries({
 				queryKey: ["scheduled-payment", updatedData.id],
