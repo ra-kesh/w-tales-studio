@@ -23,6 +23,9 @@ export function useCreateDeliverableMutation() {
 		},
 		onSuccess: ({ data }) => {
 			queryClient.invalidateQueries({
+				queryKey: ["deliverables", "stats"],
+			});
+			queryClient.invalidateQueries({
 				queryKey: ["bookings", "deliverable", "list"],
 			});
 
@@ -82,6 +85,9 @@ export function useUpdateDeliverableMutation() {
 			return response.json();
 		},
 		onSuccess: ({ data }) => {
+			queryClient.invalidateQueries({
+				queryKey: ["deliverables", "stats"],
+			});
 			queryClient.invalidateQueries({
 				queryKey: ["bookings", "deliverable", "list"],
 			});
