@@ -48,17 +48,24 @@ export async function POST(
 	const { amount, paidOn, description, attachment } = parse.data;
 
 	try {
+		let bookingId: number = 0;
+
 		await db.transaction(async (tx) => {
+			const paymentSchedule = await tx.query.paymentSchedules.findFirst({
+				where: eq(paymentSchedules.id, scheduleId),
+			});
+
+			if (!paymentSchedule) {
+				throw new Error("Payment schedule not found");
+			}
+
+			bookingId = paymentSchedule.bookingId;
+
 			const [newReceivedAmount] = await tx
 				.insert(receivedAmounts)
 				.values({
 					organizationId: orgId,
-					bookingId:
-						(
-							await tx.query.paymentSchedules.findFirst({
-								where: eq(paymentSchedules.id, scheduleId),
-							})
-						)?.bookingId ?? 0,
+					bookingId: bookingId,
 					amount,
 					paidOn,
 					description,
@@ -87,7 +94,10 @@ export async function POST(
 		});
 
 		return NextResponse.json(
-			{ message: "Conversion successful" },
+			{
+				message: "Conversion successful",
+				bookingId,
+			},
 			{ status: 200 },
 		);
 	} catch (error) {

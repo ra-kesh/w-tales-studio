@@ -21,7 +21,7 @@ export function useConvertScheduleMutation() {
 
 	return useMutation({
 		mutationFn: convertSchedule,
-		onSuccess: () => {
+		onSuccess: (data) => {
 			toast.success("Payment schedule converted successfully");
 			queryClient.invalidateQueries({ queryKey: ["payments", "stats"] });
 
@@ -31,6 +31,20 @@ export function useConvertScheduleMutation() {
 			queryClient.invalidateQueries({
 				queryKey: ["received-payments", "list", ""],
 			});
+
+			if (data.bookingId) {
+				queryClient.invalidateQueries({
+					queryKey: [
+						"bookings",
+						"detail",
+						{
+							bookingId: data.bookingId.toString(),
+						},
+					],
+				});
+			}
+
+			queryClient.invalidateQueries({ queryKey: ["bookings", "stats"] });
 		},
 		onError: (error: Error) => {
 			toast.error(error.message);
