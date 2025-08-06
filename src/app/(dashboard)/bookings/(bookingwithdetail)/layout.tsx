@@ -11,6 +11,7 @@ import {
 	getBookingsStats,
 	getConfigs,
 } from "@/lib/db/queries";
+import { BookingStatsContainer } from "../_components/booking-stats-container";
 import { BookingStats } from "./_components/booking-stats";
 
 const BookingLayout = async ({ children }: { children: React.ReactNode }) => {
@@ -19,21 +20,23 @@ const BookingLayout = async ({ children }: { children: React.ReactNode }) => {
 
 	const queryClient = new QueryClient();
 
-	let bookingsStats: BookingStatsType;
+	let initialBookingsStats: BookingStatsType;
 
 	if (userOrganizationId) {
-		bookingsStats = await getBookingsStats(userOrganizationId);
+		initialBookingsStats = await getBookingsStats(userOrganizationId);
+
+		await queryClient.prefetchQuery({
+			queryKey: ["bookings", "stats", userOrganizationId],
+			queryFn: () => getBookingsStats(userOrganizationId),
+			staleTime: 30000,
+		});
 	} else {
-		bookingsStats = {
+		initialBookingsStats = {
 			totalBookings: 0,
 			activeBookings: 0,
 			newBookings: 0,
 			overdueBookings: 0,
 		};
-
-		console.warn(
-			"User organization ID not found during booking layout prerender. Using default stats.",
-		);
 	}
 
 	if (userOrganizationId) {
@@ -51,7 +54,10 @@ const BookingLayout = async ({ children }: { children: React.ReactNode }) => {
 	return (
 		<Protected permissions={{ booking: ["read"] }}>
 			<div>
-				<BookingStats stats={bookingsStats} />
+				<BookingStatsContainer
+					initialStats={initialBookingsStats}
+					userOrganizationId={userOrganizationId}
+				/>
 				<HydrationBoundary state={dehydrate(queryClient)}>
 					<div className="flex flex-col  mx-auto  px-4  sm:px-6 lg:px-8 lg:mx-0 lg:max-w-none">
 						{children}

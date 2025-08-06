@@ -7,28 +7,39 @@ import {
 import { Protected } from "@/app/restricted-to-roles";
 import { getServerSession } from "@/lib/dal";
 import {
-	type BookingStats as BookingStatsType,
 	getConfigs,
 	getMinimalBookings,
-	getMinimalDeliverables,
 	getTasks,
 	getTasksStats,
-	type ShootStats as ShootsStatsType,
 	type TaskStats as TasksStatsType,
 } from "@/lib/db/queries";
-import { TasksStats } from "./_components/taks-shoot";
+import { TaskStatsContainer } from "./_components/task-stats-container";
 
 const TaskLayout = async ({ children }: { children: React.ReactNode }) => {
 	const { session } = await getServerSession();
 
 	const userOrganizationId = session?.session.activeOrganizationId as string;
 
-	let tasksStats: TasksStatsType;
+	const queryClient = new QueryClient({
+		mutationCache: new MutationCache({
+			onSuccess: () => {
+				queryClient.invalidateQueries();
+			},
+		}),
+	});
+
+	let initialTasksStats: TasksStatsType;
 
 	if (userOrganizationId) {
-		tasksStats = await getTasksStats(userOrganizationId);
+		initialTasksStats = await getTasksStats(userOrganizationId);
+
+		await queryClient.prefetchQuery({
+			queryKey: ["tasks", "stats", userOrganizationId],
+			queryFn: () => getTasksStats(userOrganizationId),
+			staleTime: 30000,
+		});
 	} else {
-		tasksStats = {
+		initialTasksStats = {
 			totalTasks: 0,
 			inProgressTasks: 0,
 			todoTasks: 0,
@@ -39,14 +50,6 @@ const TaskLayout = async ({ children }: { children: React.ReactNode }) => {
 			"User organization ID not found during booking layout prerender. Using default stats.",
 		);
 	}
-
-	const queryClient = new QueryClient({
-		mutationCache: new MutationCache({
-			onSuccess: () => {
-				queryClient.invalidateQueries();
-			},
-		}),
-	});
 
 	await queryClient.prefetchQuery({
 		queryKey: ["bookings", "task", "list", ""],
@@ -86,7 +89,10 @@ const TaskLayout = async ({ children }: { children: React.ReactNode }) => {
 	return (
 		<Protected permissions={{ task: ["read"] }}>
 			<div>
-				<TasksStats stats={tasksStats} />
+				<TaskStatsContainer
+					initialStats={initialTasksStats}
+					userOrganizationId={userOrganizationId}
+				/>
 				<HydrationBoundary state={dehydrate(queryClient)}>
 					<div className="flex flex-col  mx-auto  px-4  sm:px-6 lg:px-8 lg:mx-0 lg:max-w-none">
 						{children}

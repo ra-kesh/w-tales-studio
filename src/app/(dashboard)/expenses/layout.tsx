@@ -4,32 +4,42 @@ import {
 	MutationCache,
 	QueryClient,
 } from "@tanstack/react-query";
-
 import { Protected } from "@/app/restricted-to-roles";
 import { getServerSession } from "@/lib/dal";
 import {
-	type BookingStats as BookingStatsType,
 	type ExpenseStats as ExpenseStatsType,
 	getConfigs,
 	getExpenseStats,
 	getExpenses,
 	getMinimalBookings,
-	getShoots,
-	getShootsStats,
 } from "@/lib/db/queries";
-import { ExpensesStats } from "./_components/expense-stats";
+import { ExpenseStatsContainer } from "./_components/expense-stats-container";
 
 const ExpenseLayout = async ({ children }: { children: React.ReactNode }) => {
 	const { session } = await getServerSession();
 
 	const userOrganizationId = session?.session.activeOrganizationId as string;
 
-	let expenseStats: ExpenseStatsType;
+	const queryClient = new QueryClient({
+		mutationCache: new MutationCache({
+			onSuccess: () => {
+				queryClient.invalidateQueries();
+			},
+		}),
+	});
+
+	let initialExpenseStats: ExpenseStatsType;
 
 	if (userOrganizationId) {
-		expenseStats = await getExpenseStats(userOrganizationId);
+		initialExpenseStats = await getExpenseStats(userOrganizationId);
+
+		await queryClient.prefetchQuery({
+			queryKey: ["expenses", "stats", userOrganizationId],
+			queryFn: () => getExpenseStats(userOrganizationId),
+			staleTime: 30000,
+		});
 	} else {
-		expenseStats = {
+		initialExpenseStats = {
 			foodAndDrink: 0,
 			travelAndAccommodation: 0,
 			equipment: 0,
@@ -40,14 +50,6 @@ const ExpenseLayout = async ({ children }: { children: React.ReactNode }) => {
 			"User organization ID not found during booking layout prerender. Using default stats.",
 		);
 	}
-
-	const queryClient = new QueryClient({
-		mutationCache: new MutationCache({
-			onSuccess: () => {
-				queryClient.invalidateQueries();
-			},
-		}),
-	});
 
 	await queryClient.prefetchQuery({
 		queryKey: ["expenses", ""],
@@ -72,7 +74,10 @@ const ExpenseLayout = async ({ children }: { children: React.ReactNode }) => {
 	return (
 		<Protected permissions={{ expense: ["read"] }}>
 			<div>
-				<ExpensesStats stats={expenseStats} />
+				<ExpenseStatsContainer
+					initialStats={initialExpenseStats}
+					userOrganizationId={userOrganizationId}
+				/>
 				<HydrationBoundary state={dehydrate(queryClient)}>
 					<div className="flex flex-col  mx-auto  px-4  sm:px-6 lg:px-8 lg:mx-0 lg:max-w-none">
 						{children}

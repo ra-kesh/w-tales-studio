@@ -1,0 +1,3 @@
+ALTER TABLE "payment_schedules" ADD COLUMN "status" text DEFAULT 'pending' NOT NULL;--> statement-breakpoint
+ALTER TABLE "received_amounts" ADD COLUMN "payment_schedule_id" integer;--> statement-breakpoint
+ALTER TABLE "received_amounts" ADD CONSTRAINT "received_amounts_payment_schedule_id_payment_schedules_id_fk" FOREIGN KEY ("payment_schedule_id") REFERENCES "public"."payment_schedules"("id") ON DELETE set null ON UPDATE no action;

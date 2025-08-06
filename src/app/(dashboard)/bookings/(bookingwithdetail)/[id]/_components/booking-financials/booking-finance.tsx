@@ -148,7 +148,11 @@ const BookingFinance = ({ booking }: { booking: BookingDetail }) => {
 					<ReceivedPayments receivedAmounts={booking.receivedAmounts} />
 				</TabsContent>
 				<TabsContent value="upcoming" className="mt-0">
-					<UpcomingPayments paymentSchedules={booking.paymentSchedules} />
+					<UpcomingPayments
+						paymentSchedules={booking.paymentSchedules.filter(
+							(payment) => payment.status === "pending",
+						)}
+					/>
 				</TabsContent>
 				<TabsContent value="expenses" className="mt-0">
 					<Expenses expenses={booking.expenses} />

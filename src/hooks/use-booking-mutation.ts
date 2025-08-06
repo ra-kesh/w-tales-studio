@@ -129,6 +129,7 @@ export function useUpdateBookingMutation() {
 				],
 			});
 			queryClient.invalidateQueries({ queryKey: ["bookings", "list"] });
+			queryClient.invalidateQueries({ queryKey: ["bookings", "stats"] });
 		},
 	});
 }

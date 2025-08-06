@@ -85,7 +85,7 @@ export const ShootDetailForm = () => {
 				<div className="space-y-6">
 					{fields.length === 0 && (
 						<div className="p-4 text-center text-sm text-muted-foreground border rounded-md">
-							No shoots added yet. Click "Add Shoot" to get started.
+							No shoots added yet. Click &quot;Add Shoot&quot; to get started.
 						</div>
 					)}
 					{fields.map((field, index) => (

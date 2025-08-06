@@ -9,6 +9,8 @@ const UPLOAD_CONTEXTS = {
 	logos: "logos",
 	invoices: "invoices",
 	payments: "payments",
+	contracts: "contracts",
+	deliverables: "deliverables",
 } as const;
 
 type UploadContext = keyof typeof UPLOAD_CONTEXTS;

@@ -3,6 +3,7 @@
 import { format } from "date-fns";
 import { ArrowDown, Calendar, Clock, Edit } from "lucide-react";
 import { Fragment } from "react";
+import { ConvertScheduleSheet } from "@/app/(dashboard)/payments/_component/convert-schedule-sheet";
 import { Button } from "@/components/ui/button";
 import { usePaymentsParams } from "@/hooks/use-payments-params";
 import type { PaymentSchedule } from "@/lib/db/schema";
@@ -127,6 +128,15 @@ export function UpcomingPayments({ paymentSchedules }: UpcomingPaymentsProps) {
 														)
 													: "No date"}
 											</span>
+										</div>
+									</td>
+									<td className="py-5 px-4 text-right">
+										<div className="flex justify-end items-center ">
+											<ConvertScheduleSheet schedule={payment}>
+												<Button size="sm" variant={"outline"}>
+													Mark as Paid
+												</Button>
+											</ConvertScheduleSheet>
 										</div>
 									</td>
 								</tr>

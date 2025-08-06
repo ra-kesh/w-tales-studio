@@ -12,7 +12,7 @@ const fetchAllTaskAssignments = async ({ pageParam = 1 }) => {
 
 export const useAllTaskAssignments = () => {
 	return useInfiniteQuery({
-		queryKey: ["allTaskAssignments"],
+		queryKey: ["all-task-assignments"],
 		queryFn: fetchAllTaskAssignments,
 		initialPageParam: 1,
 		getNextPageParam: (lastPage, allPages) => {

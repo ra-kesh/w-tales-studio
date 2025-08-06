@@ -5,7 +5,12 @@ import { ZodError } from "zod/v4";
 import { receivedPaymentFormSchema } from "@/app/(dashboard)/payments/_component/received-payment-form-schema";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db/drizzle";
-import { bookings, paymentSchedules, receivedAmounts } from "@/lib/db/schema";
+import {
+	attachments,
+	bookings,
+	paymentSchedules,
+	receivedAmounts,
+} from "@/lib/db/schema";
 
 interface RouteContext {
 	params: {
@@ -76,10 +81,26 @@ export async function GET(
 			);
 		}
 
+		const attachment = await db.query.attachments.findFirst({
+			where: and(
+				eq(attachments.resourceType, "received_payment"),
+				eq(attachments.resourceId, payment.id.toString()),
+			),
+		});
+
 		return NextResponse.json(
 			{
 				...payment,
 				bookingId: payment.bookingId.toString(),
+				attachment: attachment
+					? {
+							name: attachment.fileName,
+							size: attachment.fileSize,
+							type: attachment.mimeType,
+							key: attachment.filePath,
+							url: `${process.env.AWS_ENDPOINT_URL_S3}/${attachment.filePath}`,
+						}
+					: null,
 			},
 			{ status: 200 },
 		);
@@ -131,7 +152,7 @@ export async function PUT(
 	const body = await request.json();
 
 	const validatedData = receivedPaymentFormSchema.parse(body);
-	const { bookingId, amount, description, paidOn } = validatedData;
+	const { bookingId, amount, description, paidOn, attachment } = validatedData;
 	const numericBookingId = Number(bookingId);
 
 	const existingPayment = await db.query.receivedAmounts.findFirst({
@@ -183,19 +204,66 @@ export async function PUT(
 	}
 
 	try {
-		const updatedPayment = await db
-			.update(receivedAmounts)
-			.set({
-				bookingId: Number(bookingId),
-				amount,
-				description: description || "N/a",
-				paidOn,
-				updatedAt: new Date(),
-			})
-			.where(eq(receivedAmounts.id, paymentId))
-			.returning();
+		const updatedPayment = await db.transaction(async (tx) => {
+			const [payment] = await tx
+				.update(receivedAmounts)
+				.set({
+					bookingId: Number(bookingId),
+					amount,
+					description: description || "N/a",
+					paidOn,
+					updatedAt: new Date(),
+				})
+				.where(eq(receivedAmounts.id, paymentId))
+				.returning();
 
-		return NextResponse.json(updatedPayment[0], { status: 200 });
+			const existingAttachment = await tx.query.attachments.findFirst({
+				where: and(
+					eq(attachments.resourceType, "received_payment"),
+					eq(attachments.resourceId, paymentId.toString()),
+				),
+			});
+
+			if (attachment && !existingAttachment) {
+				await tx.insert(attachments).values({
+					organizationId: activeOrganizationId,
+					resourceType: "received_payment",
+					resourceId: paymentId.toString(),
+					subType: "payment_proof",
+					fileName: attachment.name,
+					filePath: attachment.key,
+					fileSize: attachment.size,
+					mimeType: attachment.type,
+					uploadedBy: session.user.id,
+				});
+			} else if (attachment && existingAttachment) {
+				await tx
+					.update(attachments)
+					.set({
+						fileName: attachment.name,
+						filePath: attachment.key,
+						fileSize: attachment.size,
+						mimeType: attachment.type,
+						uploadedBy: session.user.id,
+						updatedAt: new Date(),
+					})
+					.where(eq(attachments.id, existingAttachment.id));
+			} else if (!attachment && existingAttachment) {
+				await tx
+					.delete(attachments)
+					.where(eq(attachments.id, existingAttachment.id));
+			}
+
+			return payment;
+		});
+
+		return NextResponse.json(
+			{
+				id: updatedPayment.id,
+				bookingId: numericBookingId,
+			},
+			{ status: 200 },
+		);
 	} catch (error) {
 		if (error instanceof ZodError) {
 			return NextResponse.json({ errors: error.issues }, { status: 400 });

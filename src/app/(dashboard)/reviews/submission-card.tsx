@@ -64,8 +64,6 @@ export function SubmissionCard({
 }: {
 	submission: SubmissionWithRelations;
 }) {
-	console.log({ submission });
-
 	const { data: session, isPending } = useSession();
 	const myCrewId = !isPending && session?.crewId;
 
@@ -87,6 +85,7 @@ export function SubmissionCard({
 
 	const handleFileView = async (file: SubmissionFile) => {
 		const key = new URL(file.filePath).pathname.substring(1);
+
 		setIsLoadingFileKey(key);
 		try {
 			const res = await fetch("/api/uploads/file", {

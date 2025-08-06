@@ -29,6 +29,7 @@ export function useUpdateClientMutation() {
 	return useMutation({
 		mutationFn: updateClient,
 		onSuccess: ({ data }) => {
+			queryClient.invalidateQueries({ queryKey: ["clients", "stats"] });
 			queryClient.invalidateQueries({ queryKey: ["clients"] });
 			queryClient.invalidateQueries({
 				queryKey: ["client", { id: data.clientId.toString() }],

@@ -4,7 +4,6 @@ import { usePathname } from "next/navigation";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import type { Session } from "@/types/auth";
-import { NavUser } from "./nav-user";
 import NewActionSwitcher from "./new-action-switcher";
 
 const pageMetadata: Record<string, { title: string; description?: string }> = {
@@ -53,6 +52,10 @@ const pageMetadata: Record<string, { title: string; description?: string }> = {
 		title: "Configurations",
 		description: "Configure your studio offerings",
 	},
+	"/reviews": {
+		title: "Reviews",
+		description: "Keep track of review queue",
+	},
 };
 
 export function SiteHeader({ sessions }: { sessions: Session[] }) {
@@ -64,6 +67,7 @@ export function SiteHeader({ sessions }: { sessions: Session[] }) {
 		}
 
 		const editBookingRegex = /^\/bookings\/edit\/\d+$/;
+
 		if (editBookingRegex.test(pathname)) {
 			return pageMetadata["/bookings/edit/"];
 		}
@@ -92,11 +96,6 @@ export function SiteHeader({ sessions }: { sessions: Session[] }) {
 						<h1 className="text-md font-medium">
 							{currentPageMetadata?.title ?? ""}
 						</h1>
-						{/* {currentPageMetadata?.description && (
-							<p className="text-sm text-muted-foreground">
-								{currentPageMetadata?.description ?? ""}
-							</p>
-						)} */}
 					</div>
 				</div>
 				<div className="flex items-center space-x-2">

@@ -21,10 +21,12 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useBookingTypes, usePackageTypes } from "@/hooks/use-configs";
+import { AttachmentUploader } from "./attachment-uploader";
 import {
 	type BookingEditFormValues,
 	BookingEditSchema,
 } from "./booking-edit-form-schema";
+import type { UploadedAttachment } from "./booking-form-schema";
 
 interface BookingEditFormProps {
 	booking: {
@@ -40,6 +42,8 @@ interface BookingEditFormProps {
 			| "completed"
 			| "cancelled";
 		note?: string | null;
+		contractAttachment?: UploadedAttachment | null;
+		deliverablesAttachment?: UploadedAttachment | null;
 	};
 	onSubmit: (data: BookingEditFormValues) => Promise<void>;
 }
@@ -52,6 +56,8 @@ export function BookingEditForm({ booking, onSubmit }: BookingEditFormProps) {
 			packageCost: booking.packageCost,
 			status: booking.status,
 			note: booking.note ?? "",
+			contractAttachment: booking.contractAttachment ?? null,
+			deliverablesAttachment: booking.deliverablesAttachment ?? null,
 		},
 		mode: "onChange",
 	});
@@ -164,6 +170,44 @@ export function BookingEditForm({ booking, onSubmit }: BookingEditFormProps) {
 								<FormLabel>Notes</FormLabel>
 								<FormControl>
 									<Textarea placeholder="Add any additional notes" {...field} />
+								</FormControl>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
+				</div>
+
+				<div className="col-span-6">
+					<FormField
+						control={form.control}
+						name="contractAttachment"
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel>Contract</FormLabel>
+								<FormControl>
+									<AttachmentUploader
+										name="contractAttachment"
+										uploadContext="contracts"
+									/>
+								</FormControl>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
+				</div>
+
+				<div className="col-span-6">
+					<FormField
+						control={form.control}
+						name="deliverablesAttachment"
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel>Deliverables</FormLabel>
+								<FormControl>
+									<AttachmentUploader
+										name="deliverablesAttachment"
+										uploadContext="deliverables"
+									/>
 								</FormControl>
 								<FormMessage />
 							</FormItem>

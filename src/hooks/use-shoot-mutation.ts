@@ -27,6 +27,9 @@ export function useCreateShootMutation() {
 		},
 		onSuccess: ({ data }) => {
 			queryClient.invalidateQueries({
+				queryKey: ["shoots", "stats"],
+			});
+			queryClient.invalidateQueries({
 				queryKey: ["bookings", "shoot", "list"],
 			});
 			queryClient.invalidateQueries({ queryKey: ["bookings", "list"] });
@@ -90,6 +93,9 @@ export function useUpdateShootMutation() {
 			return responseData;
 		},
 		onSuccess: ({ data }) => {
+			queryClient.invalidateQueries({
+				queryKey: ["shoots", "stats"],
+			});
 			queryClient.invalidateQueries({
 				queryKey: ["bookings", "shoot", "list"],
 			});

@@ -32,6 +32,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import { useMinimalBookings } from "@/hooks/use-bookings";
 import { cn } from "@/lib/utils";
+import { AttachmentUploader } from "../../bookings/_components/booking-form/attachment-uploader";
 import {
 	defaultReceivedPayment,
 	type ReceivedPaymentFormValues,
@@ -204,6 +205,25 @@ export function ReceivedPaymentForm({
 									<Textarea
 										placeholder="e.g., Initial deposit, final payment..."
 										{...field}
+									/>
+								</FormControl>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
+				</div>
+
+				<div className="col-span-2">
+					<FormField
+						control={form.control}
+						name="attachment"
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel>Attachment</FormLabel>
+								<FormControl>
+									<AttachmentUploader
+										name="attachment"
+										uploadContext="receipts"
 									/>
 								</FormControl>
 								<FormMessage />
