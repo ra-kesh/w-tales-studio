@@ -3,10 +3,8 @@
 import { format } from "date-fns";
 import {
 	Calendar,
-	CheckCircle,
 	ChevronDown,
 	ChevronUp,
-	DollarSign,
 	Edit,
 	FileText,
 	Package,
@@ -171,7 +169,6 @@ function DeliverablesList({
 										</div>
 										<div className="flex flex-col items-end">
 											<div className="flex items-center text-sm text-gray-500">
-												<DollarSign className="h-4 w-4 mr-1 text-gray-400" />
 												{Number(deliverable.cost) > 0
 													? `₹${Number(deliverable.cost).toLocaleString()}`
 													: "No additional cost"}
